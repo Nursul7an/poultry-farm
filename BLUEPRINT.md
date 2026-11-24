@@ -1,6 +1,14 @@
 # Broiler Farm App — Product Blueprint
-2026-11-24 · v1 · status: **draft**. It is built on assumptions about the farm (marked ⚠️); validate them before the build.
+2026-11-24 · **v2** (rewritten for a mid-size farm; v1 is in `archive/v1/`) · status: draft
 Knowledge base: `knowledge/` (Arbor Acres Handbook 2015 + Russian broiler guide).
+
+**Confirmed by you:**
+- 3–4 houses, 40–80k birds
+- two roles: head + house workers
+- workers use their own Android phones
+- the first version covers daily records, early warnings, batch results and money
+
+Everything else marked ⚠️ is an assumption.
 
 ---
 
@@ -8,197 +16,159 @@ Knowledge base: `knowledge/` (Arbor Acres Handbook 2015 + Russian broiler guide)
 
 | | |
 |---|---|
-| **What it is** | A mobile-first, offline-capable app for running broiler batches: house workers log the daily data in under 3 minutes, the app checks it against Arbor Acres norms, and the manager and owner see problems the same day. |
-| **Core loop** | Batch opened at placement → daily house log (deaths, feed, water, climate) → norms check and alerts → weekly weighing → pre-catch → batch closed with KPIs (survival, FCR, EPEF). |
-| **North Star** | **EPEF per closed batch** (combines survival, weight, age and FCR). ⚠️ Baseline ~280 → target ≥ 320 within 3 batches. |
-| **Input metric** | % of house-days with a complete daily log (target ≥ 95%). |
-| **MVP in** | Batches and houses, placement record, daily log, auto task calendar from the placement date, norms and alerts, weekly weighing with CV%, medication and vaccination log with withdrawal check, feed deliveries, batch close report, manager and owner dashboard. |
-| **MVP out** | Sales and invoicing, accounting/1C integration, IoT sensor integration, payroll, full warehouse, multi-farm. |
-| **Biggest risk** | Workers stop entering data after 2 weeks, so the dashboard is empty. **Test:** run a 2-house pilot for one full batch with a paper-replacing form, and track daily completeness. |
-| **Missing input** | Arbor Acres **Performance Objectives** (target weight, feed and FCR by day). Without them the app has no "actual vs target" for weight. |
+| **What it is** | A simple app for one broiler farm: workers log each house daily on their phones; the head sees problems the same day and gets a full batch result, including profit, without Excel. |
+| **Core loop** | Open batch → daily house log → warning if off-norm → weekly weight → catch & sale → **batch report: production + money** |
+| **North Star** | **EPEF per batch** ⚠️ baseline ~280 → target ≥ 310 in 3 batches |
+| **Owner's number** | **Profit per kg live weight** per batch |
+| **Input metric** | ≥ 95% of house-days logged |
+| **MVP in** | daily log · weekly weighing · 8 warnings · feed deliveries · treatments with withdrawal check · catch & sale · costs · batch report |
+| **MVP out** | warehouse, payroll, 1C, sensors, multi-site, task calendar beyond key dates, approvals |
+| **Biggest risk** | workers stop logging. **Test:** 1 house, 2 weeks, before the build |
+
+### 0.1 The farm we design for ⚠️
+| Item | Assumption |
+|---|---|
+| Houses | **4 houses × ~17,000 birds ≈ 68,000 per batch**, ~1,000 m² each |
+| Breed / system | Arbor Acres, mixed sex, floor litter, nipple drinkers, pan or chain feeders, heaters, simple fans |
+| Batch | all-in/all-out: all houses placed within 1–2 days, whole house caught at once; grow 40–42 days + 14–18 days cleanout ≈ **6 batches/year** |
+| Team | **Head** (owner who also manages and does the zootechnics, 1 person) + **2–4 house workers** (1 per house or 1 per 2 houses) + contracted vet (not an app user) + hired catching crew |
+| Feed | bought pelleted (starter/grower/finisher), delivered straight into house bins or in bags; the head receives it |
+| Sales | live birds by weight to 1–3 buyers (processor, wholesalers), some on credit |
+| Today | paper notebook per house, numbers phoned in or sent on WhatsApp/Telegram, head's Excel or notebook |
+| Devices | workers' own Android phones; weak signal inside houses; head has a phone + laptop |
+| Language | Russian (Kyrgyz later) |
 
 ---
 
 ## 1. Domain & workflow (as-is)
 
-### 1.1 Assumed farm profile ⚠️
-| Item | Assumption |
-|---|---|
-| Location / climate | Central Asia (assumed Kyrgyzstan): cold winters (heating cost), hot summers (heat stress) |
-| Breed | Arbor Acres broilers, mixed sex |
-| Houses | 6 closed houses, ~1,200 m² each, nipple drinkers, pan feeders, gas or coal heaters, minimum-ventilation fans, no climate computer in most houses |
-| Flock | ~18,000–20,000 birds/house → **~115,000 birds/batch** |
-| Cycle | grow 38–42 days (2.3–2.6 kg) + 14–18 days cleanout → **~6 batches/year** |
-| Feed | bought pelleted feed (starter/grower/finisher) from a feed mill, delivered in bulk to house bins or in bags |
-| Chicks | from 1–2 hatcheries; parent-flock age varies |
-| Sales | live birds sold by weight to a processor and wholesale buyers; part on credit |
-| Records today | paper logbook in each house → manager re-types into Excel; photos and messages in WhatsApp/Telegram; accountant in 1C or Excel |
-| Devices | workers have low/mid-range Android phones; mobile signal weak inside houses; Wi-Fi in the office only |
-| Languages | Russian (all), Kyrgyz (some workers) |
-
-### 1.2 Actors
-| Role | Inside / outside | Uses app? | Count ⚠️ |
+### 1.1 Actors
+| Role | Inside / outside | Uses app? | Count |
 |---|---|---|---|
-| House operator (птичница/оператор) | inside | **Yes — main data source** | 6–8 |
-| Farm manager / zootechnician (зоотехник) | inside | **Yes — main decision maker** | 1 |
-| Veterinarian (ветврач) | inside or contracted | Yes | 1 |
-| Storekeeper / feed receiver (кладовщик) | inside | Yes (feed deliveries) | 1 |
-| Owner / director | inside | Yes (read-only dashboard) | 1 |
-| Accountant / sales | inside | Later (v2) | 1 |
-| Hatchery | outside | No — receives a chick-quality report | 1–2 |
-| Feed mill | outside | No — receives a feed-quality complaint | 1 |
-| Processor / buyers | outside | No — supplies slaughter results | 1–3 |
-| Catching crew, drivers | outside | No | crew |
+| **Head** (owner-manager) | inside | **Yes**: everything except daily house entries | 1 |
+| **House worker** | inside | **Yes**: daily log, weighing, tasks for their house(s) | 2–4 |
+| Vet (contracted) | outside | No: tells the head what to give; the head records it | 1 |
+| Hatchery, feed mill | outside | No | 1–2 each |
+| Buyers | outside | No: their weight slip is entered by the head | 1–3 |
+| Catching crew | outside | No | crew |
 
-### 1.3 Current workflow (one batch)
-
+### 1.2 Current workflow (one batch)
 ```mermaid
 flowchart TB
-  subgraph Manager
-    M1["Plan batch: order chicks, feed, vaccines"] --> M2{"House cleaned and checked?"}
-    M2 -- no --> M2b["Re-clean / re-disinfect"]:::exc --> M2
-    M2 -- yes --> M3["Pre-heat house 24h+, set drinkers, feeders, paper"]
-    M5["Reads paper logs, types into Excel weekly"] --> M6{"Problem visible?"}
-    M6 -- yes --> M7["Calls vet"]
-    M8["Plans catch date with buyer"] --> M9["Feed withdrawal 8-12h, catch"]
-    M9 --> M10["Batch result in Excel weeks later"]
+  subgraph Head
+    H1["Order chicks + feed"] --> H2["Clean and prepare houses"]
+    H2 --> H3["Receive chicks"]
+    H4["Calls workers / reads notebooks"] --> H5{"Problem?"}
+    H5 -- yes --> H6["Calls vet, buys medicine"]
+    H5 -- no --> H7["Agrees catch date and price with buyer"]
+    H7 --> H8["Catch, weigh, sell"]
+    H8 --> H9["Counts profit later in Excel - or never"]:::exc
   end
-  subgraph Operator
-    O1["Receive chicks, place on paper"] --> O2["Daily: pick dead birds, check feed and water, adjust heat and vents"]
-    O2 --> O3["Write numbers in paper logbook - often at end of day or from memory"]
-    O3 --> M5
-    O2 --> O4{"Many dead / birds huddling?"}:::exc
-    O4 -- yes --> O5["Phones manager"] --> M7
-  end
-  subgraph Vet
-    V1["Vaccination per schedule"] --> V2["Post-mortem, prescribes medicine"]
-    M7 --> V2
-    V2 --> V3["Medicine given; withdrawal tracked in head or notebook"]:::exc
-  end
-  subgraph Storekeeper
-    S1["Receives feed, writes waybill"] --> S2["Feed issued to houses - often not recorded per house"]:::exc
+  subgraph Worker
+    W1["Daily: dead birds, feed, water, heat"] --> W2["Writes in notebook - often from memory"]:::exc
+    W2 --> H4
   end
   subgraph Outside
-    H["Hatchery delivers chicks"] --> O1
-    F["Feed mill delivers"] --> S1
-    P["Processor: weight, condemnations, payment"] --> M10
+    F["Feed mill delivers"] --> H10["Head signs waybill; feed per house not tracked"]:::exc
+    V["Vet prescribes"] --> H6
+    B["Buyer weight slip + payment"] --> H9
   end
-  M3 --> O1
-  M6 -- no --> M8
+  H3 --> W1
+  H6 --> W1
   classDef exc fill:#fde2e2,stroke:#c0392b
 ```
 
-**Steps and exceptions**
-1. **Cleanout (санразрыв):** remove litter, wash, disinfect, check the water line, rodent control. *Exception:* failed swab, house not ready, placement delayed.
-2. **Pre-placement:** heat for ≥ 24 h to air 30 °C and floor 28–30 °C; litter 5–10 cm; flush the water lines; paper covering ≥ 80% of the brooder area with 40 g feed per bird.
-3. **Placement (посадка):** count chicks and note parent-flock age and chick quality. *Exception:* poor chicks, count short, transport deaths. Today there is no evidence for a claim against the hatchery.
-4. **First week:** crop fill at 2/4/8/12/24/48 h; temperature by behaviour; target mortality < 0.7% and weight at day 7 ≥ 4× day-old weight. *Exception:* week-1 mortality > 1%.
-5. **Grow-out (days 7–40):** daily deaths and culls, feed, water, climate, light program; weekly weighing; vaccinations; feed phase changes (starter → grower ~day 10–14 → finisher ~day 25). *Exceptions:* disease outbreak, heat wave, power or water failure, feed bin empty, wet litter.
-6. **Pre-catch:** 23 h light for the last 3 days; whole wheat removed 2 days before; medicine withdrawal periods respected; feed withdrawal 8–12 h. *Exception:* buyer changes the date, which can fall inside a withdrawal period.
-7. **Catch and sale:** count birds, weigh, transport. *Exception:* weight dispute, processor condemnations.
-8. **Batch close:** reconcile feed, chicks and birds sold; calculate FCR and profit. *Today:* done late in Excel, if at all.
+**Exceptions that matter**
+- deaths spike
+- water drops
+- a bin runs empty
+- a catch date clashes with medicine withdrawal
+- the buyer's weight slip doesn't match
+- a worker is absent
 
-### 1.4 Information inventory
-| Step | Data / document | Created by | Used by | Today's form | Frequency |
-|---|---|---|---|---|---|
-| Placement | chick count, hatchery, parent-flock age, arrival time, transport deaths, chick quality, day-0 weight, crop fill % | operator, manager | manager, hatchery | paper / not recorded | per batch |
-| Daily | dead and culled birds (+ reason), feed given, water meter reading, t min/max, RH, light hours, notes | operator | manager, vet | paper logbook | daily per house |
-| Weekly | sample weights → average, CV% | operator + manager | manager, owner | paper → Excel | weekly |
-| Health | vaccine (type, batch no., date, method), medicine (dose, batch no., withdrawal), post-mortem findings | vet | manager, processor | vet notebook | as needed |
-| Feed | delivery date, type, tonnes, waybill, quality check | storekeeper | manager, accountant | waybill paper / 1C | 2–3 per week |
-| Air | NH3, CO2 (if a meter exists) | manager | manager | rarely recorded | weekly |
-| Cleanout | checklist, swab results | manager | manager, vet | not recorded | per batch |
-| Visitors | name, company, purpose, previous farm visit | guard | vet | notebook / none | daily |
-| Catch / sale | birds caught, live weight, buyer, price, condemnations | manager, accountant | owner | waybills, Excel | per batch |
-
-### 1.5 Pain points ⚠️ costs are estimates for ~115,000 birds per batch
-| # | Step | Problem | Cost | Who feels it |
+### 1.3 Information inventory
+| Data | Created by | Used by | Today | Frequency |
 |---|---|---|---|---|
-| P1 | Grow-out | Problems are found late: water drop, temperature and early deaths are not seen as a trend | 1% extra mortality ≈ **1,150 birds ≈ 2.9 t live weight per batch** | owner, manager |
-| P2 | Grow-out | FCR is unknown until the batch ends; feed is not tracked per house | every +0.1 FCR ≈ **~28 t extra feed per batch** | owner |
-| P3 | Feed | Deliveries are not reconciled with consumption; losses or theft are invisible | unknown; 2–3% of feed is typical in loose control ⚠️ | owner, storekeeper |
-| P4 | Daily | Manager spends time re-typing paper logs; numbers are written from memory | ~1–1.5 h/day of manager time; poor data quality | manager |
-| P5 | Placement | No day-0 evidence (count, quality, crop fill), so no claim against the hatchery | lost compensation and week-1 mortality | manager |
-| P6 | Health | Withdrawal periods tracked from memory, catch date can fall inside them | regulatory or buyer rejection risk | vet, owner |
-| P7 | Batch close | Owner sees batch results weeks later, so cannot compare houses or batches | slow improvement | owner |
-| P8 | Routine | Key age-based actions are missed or late (light change, feed phase switch, guard removal, feed withdrawal) | weight and uniformity loss, carcass defects | manager, operator |
+| Placement: chicks, hatchery, parent-flock age, transport deaths, day-0 weight | head | head, hatchery | paper / none | per batch |
+| Daily: deaths, culls, feed, water meter, t min/max, RH | worker | head | notebook | daily × 4 |
+| Weekly weight (sample) | worker / head | head | rarely | weekly |
+| Feed delivery: date, type, tonnes, house, price | head | head | waybills | 1–2/week |
+| Treatment / vaccine: product, dose, days, withdrawal | head (from vet) | head | memory | as needed |
+| Catch & sale: birds, kg, buyer, price, paid | head | head | slips, notebook | per batch |
+| Other costs: chicks, litter, gas/coal, electricity, labour, vet | head | head | notebook | per batch |
 
-### 1.6 Rules & constraints
-- **Default norms are Arbor Acres.** They are kept as an editable reference table per farm (see `knowledge/00_INDEX.md` for the differences from the second guide).
-- **Withdrawal periods** follow the drug label and local law, and must block or warn on catch planning.
-- **Biosecurity:** all-in/all-out per site, a visitor log, a cleanout checklist.
-- **Offline:** mobile signal inside houses is unreliable; data must save locally and sync later.
-- **Field use:** dusty, sometimes wet hands, low light at night. Data entry must be one-handed with large targets, numeric keypad, no long forms.
-- **Language:** Russian at launch; Kyrgyz labels in v1.
+### 1.4 Pain points (68k birds) ⚠️ estimates
+| # | Problem | Cost per batch |
+|---|---|---|
+| P1 | Problems seen 1–3 days late | +1% mortality ≈ **680 birds ≈ 1.7 t live weight** |
+| P2 | No FCR until the end, feed not tracked per house | +0.1 FCR ≈ **~17 t feed** |
+| P3 | Profit per batch unknown or weeks late | can't tell a good batch from a bad one |
+| P4 | Head phones around and re-types numbers | ~1 h/day |
+| P5 | Withdrawal tracked from memory | rejected birds or a fine |
+| P6 | Key age steps missed (light, feed phase, feed withdrawal) | weight and uniformity loss |
 
-### 1.7 Glossary (UI should use these words)
-| Russian | Meaning |
+### 1.5 Rules & constraints
+- Norms: **Arbor Acres**, stored as an editable table.
+- Withdrawal: per the drug label; it must block a catch date that comes too early.
+- Offline: house entries must work with no signal and sync later.
+- Field use: one hand, dirty hands, dim light; big buttons, numeric keypad, ≤ 6 fields per screen.
+- Russian UI at launch.
+
+### 1.6 Glossary
+| Term | Meaning |
 |---|---|
-| Партия / тур | batch (one flock cycle) |
-| Посадка | placement of day-old chicks |
-| Птичник | poultry house |
-| Падёж / отход | dead birds (mortality) |
-| Выбраковка | culls (birds removed alive) |
+| Партия | batch |
+| Птичник | house |
+| Посадка | placement |
+| Падёж / Выбраковка | dead birds / culls |
 | Сохранность | survival % |
-| Живая масса (ЖМ) | live weight |
-| Однородность, CV% | uniformity |
+| Живая масса | live weight |
+| Однородность (CV%) | uniformity |
 | Кормоконверсия (FCR) | kg feed per kg live weight |
-| ИЭП / EPEF | production efficiency index |
-| Брудер | brooding area/period |
-| Наполнение зоба | crop fill |
-| Санразрыв | cleanout / downtime between batches |
-| Срок ожидания | medicine withdrawal period |
+| ИЭП (EPEF) | efficiency index |
+| Срок ожидания | withdrawal period |
 | Выдержка без корма | feed withdrawal before catch |
-| Отлов | catching |
-| Старт / рост / финиш | starter / grower / finisher feed |
+| Отлов | catch |
+| Санразрыв | cleanout |
+| Старт / рост / финиш | feed phases |
 
 ---
 
 ## 2. Users & jobs
 
-| Role | JTBD | Context | Success measure |
+| Role | Job (JTBD) | Context | Success |
 |---|---|---|---|
-| **House operator** | When I finish the morning and evening rounds, I want to record what I counted in seconds, so that I'm not blamed for numbers and get told what to do today. | Inside the house, Android phone, dirty hands, weak signal, 2–3 min available, low tech comfort. | Daily log done in < 3 min; ≥ 95% of days logged. |
-| **Farm manager** | When I start the day, I want to see which houses are off-norm and why, so that I can act before birds die. | Office or walking between houses; phone, sometimes a laptop. | Problems seen the same day; no Excel re-typing; tasks done on schedule. |
-| **Vet** | When birds get sick or a vaccination is due, I want to log the treatment with withdrawal dates and see mortality trends, so that I treat early and never ship birds inside withdrawal. | Moves between houses; phone. | 0 shipments inside withdrawal; treatment starts ≤ 24 h after an alert. |
-| **Storekeeper** | When feed arrives or goes to a house, I want to record it against the house and batch, so that feed stock and FCR add up. | Feed area, phone. | Delivery = issue + stock (variance < 1%). |
-| **Owner** | When I check the farm (often remotely), I want 3–5 numbers per batch and house plus a batch report, so that I know if the farm is improving and where money is lost. | Phone, anywhere, a few minutes. | EPEF and FCR trend per batch; can compare houses. |
+| **House worker** | When I finish my morning round, I want to record the numbers in a minute and see if anything is wrong, so I don't have to call or write. | Inside the house, own phone, no signal, 2 min | log in < 2 min, ≥ 95% of days |
+| **Head** | When I start my day, I want to see which house is off and why. When a batch ends, I want to see what I earned and why, so I can act early and improve the next batch. | Phone around the farm, laptop in the evening | problems seen the same day; batch report incl. profit within 2 days of the last sale |
 
 ---
 
 ## 3. To-be workflow
-
 ```mermaid
-flowchart TB
-  A["Manager opens batch in app: houses, chicks, hatchery, placement date"] --> B["App generates task calendar for the whole batch from AA norms"]
-  B --> C["Placement form: count, transport deaths, chick quality, day-0 weight, crop fill checks"]
-  C --> D["Daily house log by operator - offline, < 3 min"]
-  D --> E{"App checks vs norms"}
-  E -- off-norm --> F["Alert to manager + vet, suggested causes from AA troubleshooting"]
-  F --> G["Action logged: adjustment / vet visit / treatment with withdrawal"]
-  G --> D
-  E -- ok --> H["Dashboard: live survival, feed per bird, water:feed, est. FCR"]
-  D --> W["Weekly weighing: app computes average, CV%, vs target"]
-  W --> H
-  S["Storekeeper logs feed delivery to house bin"] --> H
-  H --> P["Pre-catch checklist: withdrawal check, 23h light, wheat removal, feed off 8-12h timer"]
-  P --> Q["Catch and sale record: birds, kg, buyer"]
-  Q --> R["Batch close report: survival, ADG, FCR, EPEF, feed reconciliation, per house"]
-  R --> X["Cleanout checklist starts the next cycle"]
-  X --> A
+flowchart LR
+  A["Head opens batch: 4 houses, chicks, placement date"] --> B["Worker: daily log per house, offline"]
+  B --> C{"Off norm?"}
+  C -- yes --> D["Warning to head: value, norm, likely causes"]
+  D --> E["Head acts / records treatment"]
+  E --> B
+  C -- no --> F["Head home: 4 houses at a glance"]
+  B --> G["Weekly weighing"] --> F
+  H["Head: feed deliveries + costs"] --> F
+  F --> I["Catch plan: withdrawal check, feed-off time"]
+  I --> J["Catch & sale per house: birds, kg, price"]
+  J --> K["Batch report: production + money"]
 ```
 
 | Step | Change |
 |---|---|
-| Typing paper into Excel | **removed** |
-| KPI calculation (survival, FCR, CV%, EPEF, density) | **automated** |
-| Age-based routine (feed phases, light, weighing days, feed withdrawal) | **automated as a task calendar** |
-| Off-norm detection (water, mortality, temperature, CV) | **made visible the same day** |
-| Withdrawal-period check vs catch date | **automated (blocking warning)** |
-| Feed delivered vs consumed | **made visible** |
-| Physical work (heating, vent adjustment, post-mortems) | **stays offline on purpose**; the app only records the result |
+| Notebook → phone log | **removed** paper and re-typing |
+| Survival, FCR, EPEF, density, profit | **automated** |
+| Off-norm detection | **visible same day** |
+| Withdrawal vs catch | **automated block** |
+| Key age steps (light, feed phase, weighing, feed-off) | **reminders** |
+| Heating, ventilation, vet visits | stay offline; the app records the result only |
 
-**Value proposition:** *Every house's daily numbers checked against Arbor Acres norms the same day, and every batch closed with true FCR and EPEF, without paper or Excel.*
+**Value proposition:** *every house checked against Arbor Acres norms every day, and every batch closed with real FCR and profit, without paper or Excel.*
 
 ---
 
@@ -206,372 +176,248 @@ flowchart TB
 
 ### 4.1 Key journeys
 
-**Operator: daily log (happy path)**
-1. Opens the app (it is already on "My house – Day 23").
-2. Sees today's tasks (e.g. "Weigh 100 birds", "Raise drinkers").
-3. Taps **Daily log** and fills it in:
-   - deaths, with a stepper
-   - culls, with a reason chip
-   - feed given (kg, or bags × bag weight)
-   - water meter reading (the app calculates litres)
-   - temperature min/max and RH
-4. Saves the log. The app shows a green tick, or a yellow/red hint such as "Water down 18% vs yesterday – check drinkers, tell manager".
-
-**Operator: unhappy paths**
-- **No signal:** the log saves locally, a "pending sync" badge shows, and it syncs automatically.
-- **Forgot yesterday:** they can back-fill up to 48 h. The entry is flagged "late", and the manager sees it.
-- **Typo** (e.g. 900 deaths instead of 9): a soft confirmation appears when a value is more than 5× the 7-day average.
-- **Water meter reset or replaced:** a "new meter" option sets the starting reading.
-
-**Manager: morning review**
-1. Opens the dashboard: a farm-wide card per house shows a status colour, day of age, survival, and the alerts count.
-2. Taps the red house and sees the trend charts (mortality, water, feed per bird, temperature vs target), with an alert explanation and suggested causes (from AA Appendix 5).
-3. Assigns an action ("Vet check", "Adjust vents") or resolves the alert with a note.
-- **Unhappy path:** a house has no log by 11:00, so the app flags "missing log" and shows the operator's name.
-
-**Vet: treatment**
-1. Opens the alert or the house.
-2. Records the post-mortem finding (pick list plus a photo).
-3. Prescribes the medicine: name, dose, days, batch no., and withdrawal days. The app calculates the earliest catch date.
-4. The operator receives "Give medicine X in water, days 24–28" as tasks.
-- **Unhappy path:** if the planned catch date is inside the withdrawal period, the catch plan shows a red block, and an override needs an owner's or vet's reason.
-
-**Manager: batch close**
-1. The pre-catch checklist completes.
-2. Catch records are entered per house (birds, kg, buyer).
-3. The app computes the close report and asks to reconcile: chicks placed − dead − culled − caught = **unexplained difference**, and feed delivered − feed in bins = consumed.
-4. The report is locked, exported to PDF/Excel, and sent to the owner.
-
-**Owner:** a weekly push or Telegram summary, with one tap to the report.
-
-### 4.2 User flows
-
-**F1 — Daily house log**
-```mermaid
-flowchart LR
-  A["Home: My house, Day N"] --> B["Daily log"]
-  B --> C["Deaths + culls with reason"]
-  C --> D["Feed kg"]
-  D --> E["Water meter reading"]
-  E --> F["Temp min/max, RH"]
-  F --> G{"Values plausible?"}
-  G -- "no: >5x avg" --> H["Confirm or fix"] --> G
-  G -- yes --> I["Save locally"]
-  I --> J{"Online?"}
-  J -- yes --> K["Sync, run norm checks"]
-  J -- no --> L["Pending badge, sync later"] --> K
-  K --> M{"Off-norm?"}
-  M -- yes --> N["Show hint to operator + alert manager"]
-  M -- no --> O["Green tick"]
-```
-
-**F2 — Alert → action**
-```mermaid
-flowchart LR
-  A["Rule fires, e.g. water -15% or week-1 mortality >1%"] --> B["Push/Telegram to manager, vet if health"]
-  B --> C["Alert detail: trend chart + AA suggested causes"]
-  C --> D{"Decision"}
-  D -- adjust --> E["Log action, assign task to operator"]
-  D -- vet --> F["Vet visit, post-mortem, treatment"]
-  D -- false alarm --> G["Resolve with reason"]
-  E --> H["Rule re-checked on next log"]
-  F --> H
-```
-
-**F3 — Placement day**
-```mermaid
-flowchart LR
-  A["Open batch: houses, hatchery, parent flock age, planned count"] --> B["Pre-placement checklist: temp, litter, water, paper+feed"]
-  B --> C{"All checks OK?"}
-  C -- no --> B
-  C -- yes --> D["Arrival: actual count, transport dead, time"]
-  D --> E["Chick quality score + day-0 weight sample, 1 box per parent flock"]
-  E --> F["Crop-fill reminders at 2/4/8/12/24/48h"]
-  F --> G{"24h crop fill >= 95%?"}
-  G -- no --> H["Alert: check feed/water access, temperature, light"]
-  G -- yes --> I["Day 0 complete; chick report for hatchery"]
-```
-
-**F4 — Weekly weighing**
-```mermaid
-flowchart LR
-  A["Task: weigh, day 7/14/21/..."] --> B{"Age < 21 days?"}
-  B -- yes --> C["Group weighing: crate total kg + bird count, 3 points"]
-  B -- no --> D["Individual: tap-in weights, sample >= max 100 birds or 1%"]
-  C --> E["App: average, vs target"]
-  D --> F["App: average, SD, CV%, vs target"]
-  E --> G{"Off target or CV% > 10?"}
-  F --> G
-  G -- yes --> H["Alert + checklist of causes"]
-  G -- no --> I["Saved to batch curve"]
-```
-
-**F5 — Pre-catch & withdrawal**
-```mermaid
-flowchart LR
-  A["Manager sets catch date/time per house"] --> B{"Any medicine withdrawal ends after catch?"}
-  B -- yes --> C["Blocking warning: earliest date X; override needs reason"]
-  B -- no --> D["App schedules: 23h light catch-3d, remove whole wheat catch-2d, feed off 8-12h before slaughter"]
-  D --> E["Checklist: crates, trucks, lift feed lines, dim lights"]
-  E --> F["Catch record: birds, kg, buyer, deaths in transit"]
-  F --> G["Batch close report"]
-```
-
-### 4.3 Navigation & home screen per role
-| Role | Tabs | Home screen |
-|---|---|---|
-| Operator | **Today** · Log · My house · Help | Today: my house, day of age, task list, big "Daily log" button, sync status |
-| Manager | **Farm** · Alerts · Tasks · Batches · Reference | Farm: one card per house (status colour, age, survival %, feed per bird, open alerts); missing logs on top |
-| Vet | **Health** · Alerts · Treatments · Houses | Health: mortality trend per house, active treatments with withdrawal end dates, due vaccinations |
-| Storekeeper | **Feed** · Deliveries · Stock | Feed: bin stock per house in days remaining, "Record delivery" button |
-| Owner | **Overview** · Batches · Reports | Overview: current batch (survival, avg weight vs target, est. FCR), last 3 batches EPEF/FCR, alerts count |
-
-### 4.4 Screen inventory
-| Screen | Role | Purpose | Key data | Key actions | Release |
-|---|---|---|---|---|---|
-| Login / pick house | all | sign-in by phone + PIN | user, assigned houses | log in | MVP |
-| Today | operator | what to do now | day of age, tasks, last log status | open log, tick task | MVP |
-| Daily log | operator | record the day | deaths, culls+reason, feed, water meter, t min/max, RH, note, photo | save, back-fill ≤ 48 h | MVP |
-| Weighing | operator, manager | sample weights | group/individual entries, avg, SD, CV% | add weights, finish | MVP |
-| Placement | manager | open house in batch | hatchery, parent flock age, count, transport dead, quality, day-0 weight, crop fill | save, generate chick report | MVP |
-| Farm overview | manager | all houses at a glance | status per house | drill into house | MVP |
-| House detail | manager, vet | trends vs norms | charts: mortality, water, water:feed, feed/bird, temp vs target, weight curve | assign task, open alert | MVP |
-| Alerts | manager, vet | act on off-norm | rule, value, norm, trend, suggested causes | assign, resolve | MVP |
-| Treatments & vaccinations | vet | health log | product, batch no., dose, method, days, withdrawal | add, schedule tasks | MVP |
-| Catch plan & pre-catch | manager | safe catch | catch date, withdrawal check, timers, checklist | plan, override with reason | MVP |
-| Batch close report | manager, owner | results | placed, dead, culled, caught, kg, survival, ADG, FCR, adjusted FCR, EPEF, feed reconciliation, per house | lock, export PDF/XLSX | MVP |
-| Feed deliveries | storekeeper | feed in | date, supplier, type, tonnes, waybill photo, house/bin | record | MVP |
-| Owner overview | owner | headline numbers | current batch + last batches | open report | MVP |
-| Reference norms | manager | AA targets | temp by age and RH, light, density, equipment ratios, weight targets | edit per farm | MVP (seeded, edit = v1) |
-| Cleanout checklist | manager | prepare house | 18-step list, swab results, photos | tick, attach | v1 |
-| Visitor log | guard/manager | biosecurity | name, company, purpose, last farm visit | add | v1 |
-| Feed stock & reconciliation | storekeeper, manager | find losses | delivered vs consumed vs bin | adjust with reason | v1 |
-| Slaughter results | manager | close loop | condemnations by type, carcass yield | enter/import | v1 |
-| Batch comparison | owner, manager | learn | EPEF, FCR, survival by house/batch/hatchery/season | filter | v1 |
-| Sales & payments | accountant | money | buyer, kg, price, paid, debt | invoice, record payment | v2 |
-| Costs & P&L per batch | owner, accountant | profit | chicks, feed, meds, energy, labour, revenue | — | v2 |
-| Ventilation helper | manager | settings | min vent per bird by weight (App. 6), timer % and seconds | calculate | v1 |
-| Users & houses admin | manager | setup | users, roles, houses (area, equipment) | add/edit | MVP (basic) |
-
-### 4.5 Cross-cutting UX
-
-**Alert rules (MVP)** come from the knowledge base. Thresholds marked ⚠️ are assumed, so farms can tune them.
-| Rule | Trigger | To |
-|---|---|---|
-| Week-1 mortality | cumulative > 0.7% → warning; > 1% → alert | manager, vet |
-| Daily mortality spike | today > 2× the 3-day average and > 0.05% of birds ⚠️ | manager, vet |
-| Water change | daily litres ±15% vs previous day ⚠️ | manager |
-| Water:feed ratio | outside 1.6–1.8 (nipples) adjusted +6.5%/°C above 21 °C | manager |
-| Temperature | outside the age target (AA Table 2) ± 1.5 °C ⚠️ | manager |
-| Humidity | < 50% before day 10; > 70% after day 18 | manager |
-| Crop fill | < 95% at 24 h | manager |
-| Day-7 weight | < 4× day-0 weight | manager |
-| Uniformity | CV% > 10 | manager |
-| Density | projected kg/m² at catch > the farm limit (e.g. 39) | manager |
-| Withdrawal | catch date < withdrawal end | manager, vet (blocking) |
-| Missing log | no daily log by 11:00 ⚠️ | manager |
-| Feed bin | < 2 days of feed left | storekeeper, manager |
-
-**Channels:** in-app inbox plus push; a Telegram bot for the manager, vet and owner (fits existing habits). Quiet hours do not apply to red alerts.
-
-**Permissions matrix**
-| Action | Operator | Manager | Vet | Storekeeper | Owner |
-|---|---|---|---|---|---|
-| Daily log (own house) | create/edit ≤ 48 h | edit any | view | — | view |
-| Weighing | create | create/edit | view | — | view |
-| Placement / batch open/close | — | full | view | — | view |
-| Treatments / vaccinations | view tasks | view | full | — | view |
-| Catch plan, override withdrawal | — | plan | override | — | override |
-| Feed deliveries | — | view/edit | — | full | view |
-| Norms reference, users | — | full | — | — | view |
-| Reports export | — | yes | yes | — | yes |
-
-**Offline:** all operator screens work offline with a local queue; norm checks run on the device too, so hints appear immediately; conflicts resolve as last write wins plus an audit log.
-**States:** empty state on a new batch ("Placement not recorded yet — start here"); errors in plain words; sync badge on every record.
-**UI language:** Russian at MVP; Kyrgyz in v1; all labels in a translation file.
-**Field use:**
-- touch targets ≥ 48 px, numeric keypad, steppers for counts
-- high-contrast theme readable in a dim house
-- ≤ 6 fields per log screen
-- voice note and photo as optional proof
-
----
-
-## 5. Roadmap
-
-### 5.1 Prioritization (RICE-lite: R×I×C÷E, each 1–5)
-| Feature | R | I | C | E | Score | MoSCoW | Note |
-|---|---|---|---|---|---|---|---|
-| Daily house log (offline) | 5 | 5 | 5 | 3 | 41.7 | Must | enabler of everything |
-| Norm checks + alerts | 4 | 5 | 4 | 3 | 26.7 | Must | P1 |
-| Batch KPIs + close report | 4 | 5 | 5 | 2 | 50 | Must | P2, P7 |
-| Auto task calendar | 5 | 4 | 4 | 2 | 40 | Must | P8 |
-| Placement record + chick report | 3 | 4 | 4 | 2 | 24 | Must | P5 |
-| Weekly weighing + CV% | 4 | 4 | 5 | 2 | 40 | Must | uniformity |
-| Treatments + withdrawal check | 3 | 5 | 5 | 2 | 37.5 | Must | P6 |
-| Feed deliveries per house | 3 | 4 | 4 | 2 | 24 | Must | enabler for FCR |
-| Owner overview + Telegram summary | 2 | 4 | 4 | 1 | 32 | Should | |
-| Feed stock reconciliation | 3 | 4 | 3 | 3 | 12 | Should | P3 |
-| Cleanout checklist | 3 | 3 | 4 | 2 | 18 | Should | |
-| Visitor log | 2 | 2 | 4 | 1 | 16 | Should | biosecurity |
-| Batch comparison analytics | 2 | 4 | 3 | 3 | 8 | Should | |
-| Slaughter results | 2 | 3 | 3 | 2 | 9 | Should | |
-| Ventilation helper | 2 | 3 | 3 | 1 | 18 | Could | |
-| Sales, payments, debts | 2 | 4 | 3 | 4 | 6 | Could | v2 |
-| Batch P&L | 2 | 5 | 3 | 4 | 7.5 | Could | v2 |
-| Sensor/controller integration | 3 | 4 | 2 | 5 | 4.8 | Could | v2 |
-| 1C integration | 1 | 3 | 2 | 4 | 1.5 | Won't (now) | export XLSX instead |
-
-### 5.2 Releases
-| Release | Goal | Epics | Exit criterion | Depends on | Size ⚠️ (2 devs + PM part-time) |
-|---|---|---|---|---|---|
-| **MVP** | One full batch run in the app, no paper | Batches & houses · Placement · Daily log (offline) · Task calendar · Norms & alerts · Weighing · Health log + withdrawal · Feed deliveries · Close report · Manager/owner dashboard · Basic admin | 2 pilot houses: ≥ 95% complete daily logs for a whole batch; close report matches manual check within 1% | AA Performance Objectives; seeded norms | L · ~8–10 weeks build |
-| **Pilot** | Prove adoption and accuracy | — (run, fix, measure) | Operators < 3 min/log; manager stops Excel; alerts judged useful ≥ 70% | MVP | 1 batch · ~6–8 weeks |
-| **v1** | Whole farm, close the money leaks | All houses · Feed stock reconciliation · Cleanout checklist · Visitor log · Slaughter results · Batch comparison · Kyrgyz UI · Norms editing · Ventilation helper | EPEF +5–10% vs baseline over 2 batches; feed variance < 1% | Pilot results | M · ~6–8 weeks |
-| **v2** | Money and automation | Sales, payments & debts · Batch P&L · Controller/sensor import (temperature, water) · Multi-site | Batch profit known within 3 days of catch | v1, sensor vendor | L |
-
-### 5.3 Out of MVP, and why
-- **Sales and invoicing:** not in the production loop; the accountant's current tools still work.
-- **1C or accounting integration:** costly and fragile; an XLSX export covers it first.
-- **IoT/climate computer integration:** most houses have none ⚠️; manual min/max entry first.
-- **Payroll and HR, full warehouse:** not linked to the costed pains.
-- **Multi-farm:** one site first.
-
-### 5.4 Timeline (relative; assumes start in week 1)
-```mermaid
-gantt
-  dateFormat  YYYY-MM-DD
-  axisFormat  %d %b
-  section Prepare
-  Validate assumptions + get AA objectives :a1, 2026-12-01, 14d
-  Clickable prototype tested with 3 operators :a2, after a1, 10d
-  section MVP
-  Spec with jarvis + design :b1, after a2, 10d
-  Build MVP :b2, after b1, 63d
-  section Pilot
-  Pilot batch in 2 houses :c1, after b2, 49d
-  section v1
-  Build v1 :d1, after c1, 49d
-  Roll out all houses :d2, after d1, 14d
-```
-
-### 5.5 Metrics per release
-| Metric | Baseline ⚠️ | MVP/Pilot target | v1 target |
-|---|---|---|---|
-| Daily log completeness | 0 (paper) | ≥ 95% | ≥ 98% |
-| Time per daily log | — | < 3 min | < 2 min |
-| Manager time on records | ~1–1.5 h/day | < 20 min/day | < 15 min/day |
-| Time from problem to alert | 1–3 days | same day | same day |
-| Survival % | ~93–94% | measure | ≥ 95% |
-| FCR (≈ 2.4 kg) | ~1.80–1.85 | measure | −0.05 |
-| EPEF | ~280 | measure | ≥ 320 |
-| Shipments inside withdrawal | unknown | 0 | 0 |
-| Feed variance (delivered vs consumed) | unknown | measure | < 1% |
-
-### 5.6 Risks & assumptions
-| Item | Impact if wrong | Cheapest test | Before |
-|---|---|---|---|
-| Operators will log on phones daily | dashboard is empty, project fails | 2-week paper-form → Google Form or Telegram-bot trial with 2 operators | MVP spec |
-| Operators have Android phones | need farm-owned devices | count phones; budget 6–8 cheap tablets or phones | MVP |
-| No signal in houses | sync issues | walk test; offline-first is required anyway | MVP |
-| AA Performance Objectives available | no weight-vs-target | ask the Aviagen rep or download from Aviagen | MVP spec |
-| Water meter on each house | lose the best early-warning signal | check the houses; install meters (low cost) | pilot |
-| Feed is tracked per house | FCR per house is impossible | ask the storekeeper how feed reaches houses; weigh or count bags | pilot |
-| Farm size and setup (6 × 20k) | screens and limits off | answer the 5 open questions | spec |
-| Alert thresholds are right | alert fatigue | tune during the pilot; target ≥ 70% "useful" | v1 |
-| Owner enforces the "not in app = not done" rule | parallel paper continues | owner commitment at kickoff | pilot |
-
-### 5.7 Build vs buy
-Off-the-shelf broiler management software exists: international platforms, plus ERP/1C-based agricultural configurations in the CIS market. Availability, language and pricing in the region need checking. **Recommendation:** a 1–2 week evaluation against this must-have checklist before committing to a build:
-- Russian (+ Kyrgyz) UI
-- offline mobile data entry for operators
-- Arbor Acres norms and editable alert rules
-- withdrawal-period check
-- per-house feed and water tracking
-- batch close with FCR and EPEF
-- Telegram/push alerts
-- affordable price for 6 houses
-- XLSX export
-
-A custom build is justified if no tool meets the offline + local-language + price requirements, or if the app is meant to serve several farms in the region later (a product opportunity).
-
-### 5.8 Adoption plan
-1. **Champion:** the farm manager owns the rollout; the owner announces that from the pilot start, *"if it's not in the app, it didn't happen"* for logs and treatments.
-2. **Pilot:** the 2 most reliable operators, 1 batch; the paper logbook runs in parallel for the first 7 days only, then is removed.
-3. **Training:** a 30-minute hands-on session in the house plus a 1-page picture guide in Russian/Kyrgyz; a "Help" tab with short videos.
-4. **Incentive ⚠️:** a small monthly bonus for ≥ 95% complete logs, and recognition of the best house by EPEF.
-5. **Old data:** import the last 2–3 batches' totals from Excel as a baseline (optional).
-6. **Feedback loop:** a weekly 15-minute review with operators during the pilot; fix friction within a week.
-
----
-
-## 6. Handoff brief for jarvis
-
-**Product goal:** offline-first mobile app (plus a web dashboard) for a ~6-house broiler farm. It digitizes the daily house log, checks it against editable Arbor Acres norms, raises alerts, and closes each batch with FCR and EPEF.
-
-**Roles:** Operator, Manager, Vet, Storekeeper, Owner (permissions matrix in §4.5).
-
-**MVP epics → user stories**
-1. **Setup:** As a manager, I want to define houses (area m², drinker/feeder type, water meter) and users with roles, so the app knows the farm.
-2. **Batch & placement:**
-   - As a manager, I want to open a batch with houses, hatchery, parent-flock age and chick count, so all records attach to it.
-   - As a manager, I want to record arrival (count, transport deaths, quality score, day-0 sample weights, crop fill at 2/4/8/12/24/48 h), so I have evidence for the hatchery.
-3. **Task calendar:** As an operator, I want age-based tasks generated from the placement date (feed phases, light changes, weighing days, guard removal, pre-catch steps), so nothing is missed.
-4. **Daily log:** As an operator, I want to enter the following offline in < 3 min, so my house's day is recorded:
-   - deaths
-   - culls with reason
-   - feed kg
+**Worker: daily log (< 2 min)**
+1. Opens the app on "My house · day 23".
+2. Taps **Записать день** and enters:
+   - deaths and culls (+/−)
+   - feed (kg, or bags)
    - water meter reading
    - t min/max and RH
-   - a note and photo
-5. **Norms & alerts:**
-   - As a manager, I want each log checked against norm tables and rules (§4.5), so I get alerts with suggested causes.
-   - As a manager, I want to resolve or assign alerts.
-6. **Weighing:** As an operator, I want group (crate) or individual weighing with an automatic average, SD and CV%, compared with the target weight for that age.
-7. **Health:** As a vet, I want to log vaccinations and treatments (product, batch no., dose, method, days, withdrawal days), generating operator tasks and a withdrawal end date.
-8. **Feed deliveries:** As a storekeeper, I want to record deliveries (supplier, type, tonnes, waybill photo) against a house or bin.
-9. **Catch & close:**
-   - As a manager, I want to plan the catch with a blocking withdrawal check and a feed-withdrawal timer.
-   - As a manager, I want to record catch per house (birds, kg, buyer) and get a locked close report (survival, ADG, FCR, adjusted FCR, EPEF, bird and feed reconciliation), with PDF/XLSX export.
-10. **Dashboards & notifications:** farm overview for the manager, health view for the vet, overview for the owner; push plus a Telegram bot for alerts and a weekly summary.
+3. Saves the log. They see a green "норма" or a hint ("Water −18%: check nipples, the head has been told").
 
-**Core data entities**
-- Farm, House (area, equipment, meter), User/Role
-- Batch, HouseBatch (placement: hatchery, parent-flock age, count, quality), DailyLog, CullReason
-- Weighing (type, sample entries), Task (template rule + instance), NormTable (temperature by age and RH, weight target by day, light, density, ratios), AlertRule, Alert, Action
-- Vaccination, Treatment (withdrawal days → end date), Product
-- FeedDelivery, FeedType, CatchRecord, Buyer, BatchReport, AuditLog
+Unhappy paths:
+- **No signal:** the log saves on the phone and sends later.
+- **Forgot yesterday:** they can still fill it within 48 h.
+- **Typing mistake** (e.g. 90 instead of 9): the app asks "Это верно?".
 
-**KPI formulas** (in `knowledge/04_AA_appendices_records_kpi.md`):
-- survival % = (placed − dead − culled) / placed
-- FCR = feed / total live kg
-- adjusted FCR = FCR + (target − actual kg)/4.5
-- EPEF = survival% × kg / (age × FCR) × 100
-- CV% = SD / mean × 100
-- density = birds × kg / m²
-- water:feed ratio
-- effective temperature = min + 2/3 × (max − min)
+**Head: morning**
+1. Opens Ферма: 4 house rows, each with a status, day of age, survival, today's deaths, water:feed and feed days left.
+2. Taps a red house to see the trends against the norm, the warning and its likely causes.
+3. Notes the action taken, or records a treatment. Treatment days appear as tasks for the worker.
 
-**Seed data:** AA temperature Tables 2–3, crop-fill Table 4, light program, feed phases and forms, equipment ratios, min-ventilation table, troubleshooting Appendix 5. Weight/feed targets by day come from the AA Performance Objectives (to obtain).
+Unhappy path: a house has no log by 11:00, so the app shows "нет журнала" with the worker's name and a call button.
 
-**Integrations:** Telegram Bot API (notifications); XLSX/PDF export. No 1C or sensors in MVP.
+**Head: end of batch**
+1. Sets the catch date per house. The app checks it against withdrawal and shows when to remove feed.
+2. After the catch, enters the buyer slip: birds, kg, price, paid / owed.
+3. The batch report opens: production (survival, weight, FCR, EPEF) + money (costs by category, revenue, profit per kg and per bird) + bird and feed reconciliation.
+4. Closes the batch, and the report locks.
 
-**Non-functional:**
-- offline-first on Android 8+ low-end devices
-- sync on reconnect, audit log of all edits
-- Russian UI at MVP, i18n-ready for Kyrgyz
-- ~10 users, ~6 houses, ~6 batches/year
-- data retention ≥ 5 years
-- the norm-check engine runs on the device and the server
+### 4.2 User flows
+```mermaid
+flowchart LR
+  A["My house, day N"] --> B["Записать день"]
+  B --> C["Deaths, culls"] --> D["Feed"] --> E["Water meter"] --> F["t / RH"]
+  F --> G{"Plausible?"}
+  G -- no --> H["Это верно?"] --> G
+  G -- yes --> I["Save on phone"] --> J{"Online?"}
+  J -- no --> K["Send later"] --> L
+  J -- yes --> L["Check norms"]
+  L --> M{"Off norm?"}
+  M -- yes --> N["Hint + warning to head"]
+  M -- no --> O["Норма"]
+```
+```mermaid
+flowchart LR
+  A["Head: set catch date"] --> B{"Treatment withdrawal ends after it?"}
+  B -- yes --> C["Blocked: earliest date X; override only with a reason"]
+  B -- no --> D["Reminders: 23h light -3d, no wheat -2d, feed off 8-12h"]
+  D --> E["Catch & sale entry"] --> F["Batch report"]
+```
 
-**Open questions**
-1. Farm size, houses and equipment (confirm §1.1).
-2. Phones vs farm-owned devices.
-3. How feed reaches each house today.
-4. Water meters present?
-5. Buyer and processor data available after catch?
-6. Has build vs buy been decided?
-7. Has Aviagen Performance Objectives been obtained?
-8. Is a climate controller present in any house?
+### 4.3 Navigation
+| Role | Tabs | Home screen |
+|---|---|---|
+| Worker | **Сегодня** · Журнал · Взвешивание | my house(s), day of age, today's 2–3 tasks, a big "Записать день" button, sync status |
+| Head (phone and laptop, same app, responsive) | **Ферма** · Партия · Корм и затраты · Отчёты · Настройки | Ферма: 4 house rows + open warnings |
 
-> **Next step:** give this to jarvis to turn the MVP into a technical spec and dev tickets.
+### 4.4 Screens: **11 in total**
+| # | Screen | Role | Purpose | Key actions | Release |
+|---|---|---|---|---|---|
+| 1 | Сегодня | worker | my house today | open log, tick task | MVP |
+| 2 | Журнал дня | worker (head can edit) | daily entry + norm check | save, fix ≤ 48 h | MVP |
+| 3 | Взвешивание | worker, head | sample → average, CV% | add weight, finish | MVP |
+| 4 | Ферма | head | 4 houses + warnings | open house, note action | MVP |
+| 5 | Птичник | head | trends vs norm, history, treatments | add treatment, edit log | MVP |
+| 6 | Партия: открыть / посадка | head | houses, chicks, hatchery, day-0 data | open batch | MVP |
+| 7 | Корм и затраты | head | feed deliveries per house + other costs | add delivery, add cost | MVP |
+| 8 | Лечение | head | product, days, withdrawal → earliest slaughter | add | MVP |
+| 9 | Отлов и продажа | head | catch plan + buyer slip | set date, enter sale, mark paid | MVP |
+| 10 | Отчёт партии | head | production + money + reconciliation | close, export PDF/XLSX | MVP |
+| 11 | Настройки | head | houses, workers, norms, thresholds | edit | MVP (basic) |
+
+### 4.5 Cross-cutting rules
+- **Notifications:** warnings go to the head by push + Telegram; the worker sees the hint on save. Daily summary for the head at 18:00.
+- **Permissions:** the worker sees and edits only their house(s), and logs ≤ 48 h old. The head can do everything; editing an older log needs a reason.
+- **Offline:** the worker's screens work fully offline; a visible "не отправлено" counter shows until sync. The head's screens show cached data with "обновлено N мин назад".
+- **States:** every list has empty, loading and error states. The worker sees "нет партии" during cleanout.
+- **Field use:** touch targets ≥ 48 dp, +/− buttons for counts, numeric keypad, high contrast.
+
+---
+
+## 5. How the app works (logic)
+
+### 5.1 Objects and their states
+| Object | States | Rule |
+|---|---|---|
+| **Batch** | Открыта → Отлов → Закрыта | closing locks the report; the head can reopen it with a reason |
+| **House in batch** | Посадка → Выращивание → Отловлен | day of age counted from **this house's** placement date |
+| **Daily log** | На телефоне → Отправлен → Закрыт (after 48 h) | one per house per day; an edit recalculates everything after it |
+| **Warning** | Открыта → Отмечена (action noted) → Закрыта | one per rule per house per day; closes itself after 24 h back in norm |
+| **Treatment** | Курс → Ожидание → Чисто | earliest slaughter = last dose + withdrawal days + 1; blocks catch until then |
+
+### 5.2 Calculations
+| Number | How |
+|---|---|
+| Live birds | placed − Σ deaths − Σ culls |
+| Mortality % | daily and cumulative; week 1 shown separately |
+| Feed per bird | feed kg / live birds |
+| Water | meter today − meter yesterday |
+| Water:feed | water L / feed kg; norm 1.6–1.8, +6.5% per °C above 21 °C |
+| Working temperature | min + ⅔ × (max − min), against AA Table 2 by age |
+| Average weight, CV% | from the weighing sample |
+| FCR (running) | Σ feed / (live birds × last weight), marked "оценка" |
+| FCR (final) | (feed delivered − feed left) / kg sold |
+| EPEF | survival % × kg / (age × FCR) × 100 |
+| Density | live birds × weight / m² |
+| Feed days left | bin stock / 3-day average use |
+| Cost per batch | Σ chicks + feed + medicine + litter + energy + labour + vet + other |
+| Revenue | Σ kg sold × price |
+| Profit | revenue − costs; also per kg live and per bird placed |
+| Bird check | placed − deaths − culls − sold (unexplained if > 0.2%) |
+| Feed check | delivered − left − logged (unexplained if > 1%) |
+
+### 5.3 Warnings in MVP: 8 rules, thresholds editable
+| Warning | Fires when |
+|---|---|
+| Week-1 mortality | > 0.7% cumulative by day 7 (critical > 1%) |
+| Mortality spike | today > 2× the 3-day average |
+| Water change | ±15% vs yesterday |
+| Water:feed | outside the adjusted norm |
+| Temperature | working t outside AA target ± 1.5 °C |
+| Weight / uniformity | weight < −5% of norm*, or CV% > 10 |
+| Feed bin | < 2 days left |
+| No log | missing by 11:00 |
+
+If two or more fire for one house on the same day, they are shown as one **"Возможна болезнь — позвоните ветврачу"**.
+*Weight norm needs the AA Performance Objectives booklet; until then it is a placeholder.
+
+### 5.4 Reminders (created from the placement date)
+- **Day 0:** crop fill at 24 h ≥ 95%.
+- **Day 7:** weigh, then switch to 4–6 h darkness.
+- **~Day 10:** starter → grower.
+- **Day 18:** pellets.
+- **~Day 25:** finisher.
+- **Weekly:** weighing.
+- **Before catch:** −3 d 23 h light, −2 d no whole wheat, −8…12 h feed off.
+
+---
+
+## 6. Roadmap
+
+### 6.1 Prioritization (RICE-lite)
+| Feature | R | I | C | E | Score | MoSCoW |
+|---|---|---|---|---|---|---|
+| Daily log (offline) | 5 | 5 | 5 | 3 | 42 | Must (enabler) |
+| Farm view + 8 warnings | 4 | 5 | 4 | 3 | 27 | Must |
+| Batch report (production) | 3 | 5 | 5 | 2 | 38 | Must |
+| Catch & sale + withdrawal check | 3 | 5 | 5 | 2 | 38 | Must |
+| Feed deliveries + costs → profit | 3 | 5 | 4 | 2 | 30 | Must |
+| Weekly weighing | 4 | 4 | 5 | 2 | 40 | Must |
+| Age reminders | 4 | 3 | 4 | 1 | 48 | Should |
+| Telegram notifications | 2 | 3 | 4 | 1 | 24 | Should |
+| Buyer debts tracking | 1 | 3 | 4 | 1 | 12 | Could (v1) |
+| Cleanout checklist | 2 | 3 | 4 | 1 | 24 | Could (v1) |
+| Batch-to-batch comparison | 1 | 4 | 4 | 2 | 8 | v1 |
+| Sensors, 1C, multi-site | — | — | — | — | — | Won't (now) |
+
+### 6.2 Releases ⚠️ assumes 1–2 developers
+| Release | Goal | Content | Exit criterion | Size |
+|---|---|---|---|---|
+| **Test (before build)** | will workers log daily? | Telegram bot or Google Form, 1 house | ≥ 12 of 14 days logged | 2 weeks |
+| **MVP** | one full batch in the app, including profit | screens 1–11, 8 warnings, reminders | 4 houses, ≥ 95% logs for a full batch; report matches a manual check within 1% | ~8 weeks |
+| **Pilot batch** | prove it | run, fix, measure | head stops paper/Excel | ~6 weeks |
+| **v1** | learn across batches | batch comparison, cleanout checklist, buyer debts, Kyrgyz UI | EPEF ↑ over 2 batches | ~4 weeks |
+| **v2** | less typing | climate-controller / water-meter import if the houses have them | — | later |
+
+### 6.3 Out of scope, and why
+- **Separate vet and storekeeper roles:** the head does it; add them only if the team grows.
+- **Warehouse, payroll, accounting/1C:** not part of the batch loop; an XLSX export covers it.
+- **Approvals, audit screens:** one person decides; edits are still logged in the background.
+- **Thinning, multi-site, staggered batches:** not how this farm works.
+
+### 6.4 Metrics
+| Metric | Baseline ⚠️ | MVP / pilot | v1 |
+|---|---|---|---|
+| Logged house-days | 0 (paper) | ≥ 95% | ≥ 98% |
+| Time per daily log | — | < 2 min | < 2 min |
+| Head's time on records | ~1 h/day | < 15 min | < 10 min |
+| Survival | ~94% | measure | ≥ 95.5% |
+| FCR (~2.4 kg) | ~1.85 | measure | −0.05 |
+| EPEF | ~280 | measure | ≥ 310 |
+| Report ready after the last sale | weeks | ≤ 2 days | same day |
+
+### 6.5 Risks & assumptions
+| Risk | If wrong | Cheapest test |
+|---|---|---|
+| Workers won't log daily | no data → no value | 2-week Telegram-bot test, 1 house |
+| Each house has a water meter | lose the best early signal | check; install (cheap) |
+| Feed can be counted per house | no FCR per house | ask how feed reaches each bin |
+| AA weight norms available | no weight warning | ask the Aviagen rep / hatchery |
+| Head enters costs and sales | no profit | the head enters one past batch in a sheet |
+
+### 6.6 Build vs buy
+Ready-made broiler software exists. Check 1–2 products for 1 week against these must-haves:
+- Russian UI
+- offline worker log on Android
+- AA norms
+- withdrawal check
+- profit per batch
+- price that makes sense for 4 houses
+
+Build if none fits. For a farm this size, the most common case is a custom build, or a simple app on a low-code base.
+
+### 6.7 Adoption
+1. The head announces: *from batch X, the house log lives only in the app*.
+2. Start with the most reliable worker in 1 house for the 2-week test, then all 4 houses.
+3. 20 minutes of training in the house plus a 1-page picture guide.
+4. Paper runs in parallel for the first 7 days only.
+5. ⚠️ A small monthly bonus for ≥ 95% complete logs.
+
+---
+
+## 7. Handoff brief for jarvis
+- **Goal:** an offline-first Android/web app for a 4-house broiler farm. The daily house log is checked against Arbor Acres norms, and each batch closes with production + profit.
+- **Roles:** Worker (own houses, logs ≤ 48 h), Head (everything).
+- **Epics → stories**
+  1. **Setup:** as the head I define houses (m², water meter) and workers.
+  2. **Batch:** as the head I open a batch and record placement per house.
+  3. **Daily log:** as a worker I record deaths, culls, feed, water meter, t, RH offline in < 2 min and see whether it's normal.
+  4. **Weighing:** as a worker I enter sample weights and get average + CV%.
+  5. **Warnings:** as the head I get the 8 warnings with likely causes and note what I did.
+  6. **Treatment:** as the head I record a treatment and get the earliest slaughter date.
+  7. **Feed & costs:** as the head I record feed deliveries per house and other costs.
+  8. **Catch & sale:** as the head I plan the catch (withdrawal block, feed-off time) and enter the buyer slip.
+  9. **Report:** as the head I get the batch report (production, money, reconciliation) and export it.
+  10. **Reminders:** age-based tasks from the placement date.
+- **Data entities:**
+  - Farm, House, User
+  - Batch, HouseBatch (placement)
+  - DailyLog, Weighing (samples)
+  - Warning, Rule (thresholds), NormTable
+  - Treatment, FeedDelivery, Cost (category, amount)
+  - Sale (buyer, birds, kg, price, paid)
+  - Reminder
+  - edit history
+- **Integrations:** Telegram bot (notifications), PDF/XLSX export. Nothing else in MVP.
+- **Non-functional:**
+  - offline-first on Android 8+ low-end phones
+  - Russian UI, i18n-ready
+  - ~6 users, 4 houses, ~6 batches/year
+  - keep data ≥ 5 years
+- **Open questions:**
+  1. Production day: 08:00 → 08:00 or calendar date?
+  2. Water meters in all houses?
+  3. Feed per house: weighed, or counted in bags?
+  4. Currency and price units for sales?
+  5. Has the AA Performance Objectives booklet been obtained?

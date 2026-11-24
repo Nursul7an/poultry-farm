@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Руководитель — быстрый обзор</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.sec{background:#FFFFFF;border-top:1px solid #D5DBE0;border-bottom:1px solid #D5DBE0;padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.kv{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;min-height:28px}
+.k{color:#52606D}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;font-size:12px;color:#52606D;text-decoration:none}
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden">
+  <header style="background:#FFFFFF;padding:16px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;flex-direction:column">
+      <span style="font-size:13px;color:#52606D">Руководитель · партия 06/2026 · обновлено 09:50</span>
+      <span style="font-size:20px;font-weight:600">Ферма сегодня</span>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:8px">
+      <span class="num" style="font-size:40px;font-weight:600;line-height:1">98,2%</span>
+      <span style="font-size:15px;color:#52606D">сохранность на день 23</span>
+    </div>
+    <div aria-label="Линейка возраста: день 23 из 42" role="img" style="position:relative;height:16px">
+      <div style="position:absolute;left:0;right:0;top:5px;height:6px;border-radius:3px;background:#D5DBE0"></div>
+      <div style="position:absolute;left:0;width:54.8%;top:5px;height:6px;border-radius:3px;background:#0D5C7D"></div>
+      <div style="position:absolute;left:calc(54.8% - 7px);top:1px;width:14px;height:14px;border-radius:50%;background:#FFFFFF;border:3px solid #0D5C7D;box-sizing:border-box"></div>
+    </div>
+    <span style="font-size:13px;color:#52606D">День 23 из ~42 · отлов план 12.12</span>
+  </header>
+
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
+    <a href="MgrFarm.dc.html" style="margin:0 16px;background:#FFFFFF;border:2px solid #B3202A;border-radius:12px;padding:12px 14px;display:flex;gap:12px;text-decoration:none;color:#18212B">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B3202A" stroke-width="2" aria-hidden="true" style="flex:none"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>
+      <span style="display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:15px;font-weight:600;color:#B3202A">2 тревоги · 5 внимание</span>
+        <span style="font-size:13px;color:#52606D">П-4: падёж 41 (×3,7), ветврач назначил лечение до 28.11</span>
+      </span>
+    </a>
+
+    <section class="sec">
+      <h2 style="margin:0;font-size:15px;font-weight:600">Текущая партия</h2>
+      <div class="kv"><span class="k">Посажено</span><span class="num">118 716</span></div>
+      <div class="kv"><span class="k">Живых сейчас</span><span class="num">116 576</span></div>
+      <div class="kv"><span class="k">Средняя масса, день 21</span><span class="num">1 006 г <span style="color:#52606D;font-size:13px">норма* 1 000</span></span></div>
+      <div class="kv"><span class="k">CV% (худший П-6)</span><span class="num" style="color:#A35200">11,2%</span></div>
+      <div class="kv"><span class="k">Корм на голову</span><span class="num">1,42 кг</span></div>
+      <div class="kv"><span class="k">FCR (оценка на сегодня)</span><span class="num" style="font-weight:600">1,36</span></div>
+    </section>
+
+    <section class="sec">
+      <h2 style="margin:0;font-size:15px;font-weight:600">Последние партии · ИЭП (EPEF)</h2>
+      <div style="display:flex;align-items:flex-end;gap:16px;height:120px;padding-top:8px" role="img" aria-label="ИЭП: 03/26 — 288, 04/26 — 301, 05/26 — 296">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><span class="num" style="font-size:13px">288</span><div style="width:100%;height:69px;background:#8FB3C4;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#52606D">03/26</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><span class="num" style="font-size:13px">301</span><div style="width:100%;height:76px;background:#8FB3C4;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#52606D">04/26</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><span class="num" style="font-size:13px">296</span><div style="width:100%;height:73px;background:#8FB3C4;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#52606D">05/26</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><span class="num" style="font-size:13px;color:#0D5C7D;font-weight:600">цель 320</span><div style="width:100%;height:82px;border:2px dashed #0D5C7D;border-bottom:0;border-radius:4px 4px 0 0;box-sizing:border-box"></div><span style="font-size:12px;color:#0D5C7D">06/26</span></div>
+      </div>
+      <a href="MgrReport.dc.html" style="font-size:15px;min-height:44px;display:flex;align-items:center">Отчёт партии 05/26 →</a>
+    </section>
+    <span style="margin:0 16px;font-size:12px;color:#52606D">* норма — заглушка до получения AA Performance Objectives</span>
+  </main>
+  <nav aria-label="Основное меню" style="display:flex;background:#FFFFFF;border-top:1px solid #D5DBE0;padding-bottom:20px">
+    <a href="FieldOwner.dc.html" class="tab" style="color:#0D5C7D;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Обзор</a>
+    <a href="MgrReport.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Партии</a>
+    <a href="MgrReport.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M12 10v7M9 14l3 3 3-3"/></svg>Отчёты</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

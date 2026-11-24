@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>План отлова</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EEF1F3}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.nav{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:8px;color:#C9D3DB;text-decoration:none;font-size:14px}
+.nav:hover{background:#24313E;color:#FFFFFF}
+.navon{background:#24313E;color:#FFFFFF;font-weight:600}
+.panel{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:14px 16px;box-sizing:border-box}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-weight:500;color:#52606D;text-align:right;padding:8px 10px;border-bottom:1px solid #D5DBE0;font-size:12px;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:0 10px;height:44px;border-bottom:1px solid #EEF1F3;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip{min-height:36px;padding:0 12px;border-radius:8px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.chip:focus-visible,.btn:focus-visible{outline:3px solid #0D5C7D;outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border-radius:8px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.stp{display:flex;gap:12px;padding:10px 0;border-top:1px solid #EEF1F3;font-size:14px;align-items:flex-start}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;background:#EEF1F3">
+  <aside style="flex:1 1 220px;max-width:240px;background:#18212B;padding:16px 12px;display:flex;flex-direction:column;gap:4px;box-sizing:border-box">
+    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма</div>
+    <a class="nav" href="MgrFarm.dc.html">Ферма</a>
+    <a class="nav" href="MgrFarm.dc.html">Тревоги</a>
+    <a class="nav" href="MgrCalendar.dc.html">Календарь партии</a>
+    <a class="nav" href="MgrHouse.dc.html">Птичники</a>
+    <a class="nav navon" href="MgrCatch.dc.html">Отлов</a>
+    <a class="nav" href="MgrReport.dc.html">Отчёты</a>
+  </aside>
+  <main style="flex:999 1 560px;min-width:0;padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+    <header style="display:flex;flex-direction:column">
+      <span style="font-size:13px;color:#52606D">Партия 06/2026 · покупатель: мясокомбинат (договор) · цель 2,5 кг</span>
+      <h1 style="margin:0;font-size:28px;font-weight:600">План отлова</h1>
+    </header>
+
+    <section class="panel">
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Птичник</th><th>Дата отлова</th><th>День</th><th>Голов (прогноз)</th><th>Масса прогноз, кг</th><th>Живой вес, т</th><th>Срок ожидания до</th><th>Проверка</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight:600">П-1</td><td>11.12 · 22:00</td><td>40</td><td>19 280</td><td>2,46</td><td>47,4</td><td>—</td><td style="color:#1D7044">● можно</td></tr>
+            <tr><td style="font-weight:600">П-2</td><td>11.12 · 22:00</td><td>40</td><td>19 210</td><td>2,44</td><td>46,9</td><td>—</td><td style="color:#1D7044">● можно</td></tr>
+            <tr><td style="font-weight:600">П-3</td><td>12.12 · 22:00</td><td>41</td><td>19 330</td><td>2,53</td><td>48,9</td><td>—</td><td style="color:#1D7044">● можно</td></tr>
+            <tr style="background:{{p4bg}}"><td style="font-weight:600">П-4</td><td>{{p4date}} · 22:00</td><td>{{p4day}}</td><td>19 150</td><td>{{p4w}}</td><td>{{p4t}}</td><td>05.12 (Амоксициллин)</td><td><span style="{{p4s}}">{{p4check}}</span></td></tr>
+            <tr><td style="font-weight:600">П-5</td><td>12.12 · 22:00</td><td>41</td><td>19 300</td><td>2,49</td><td>48,1</td><td>—</td><td style="color:#1D7044">● можно</td></tr>
+            <tr><td style="font-weight:600">П-6</td><td>13.12 · 22:00</td><td>42</td><td>19 200</td><td>2,51</td><td>48,2</td><td>—</td><td style="color:#1D7044">● можно</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:12px">
+        <span style="font-size:14px;font-weight:600">П-4, дата отлова:</span>
+        <sc-for list="{{dates}}" as="d" hint-placeholder-count="4">
+          <button class="{{d.cls}}" onClick="{{d.pick}}" aria-pressed="{{d.on}}">{{d.label}}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{blocked}}" hint-placeholder-val="{{false}}">
+        <div role="alert" style="margin-top:12px;border:2px solid #B3202A;background:#F9E3E4;color:#8A1820;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:15px;font-weight:600">■ Нельзя: отлов {{p4date}} раньше конца срока ожидания (до 05.12 включительно)</span>
+          <span style="font-size:14px">Курс Амоксициллина 24–28.11, ожидание 7 дн. Убой не ранее 06.12. Изменить может только ветврач или владелец, с причиной — запись попадёт в журнал.</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" style="background:#0D5C7D;color:#FFFFFF;border-color:#0D5C7D">Перенести на 06.12</button><button class="btn">Запросить разрешение ветврача</button></div>
+        </div>
+      </sc-if>
+    </section>
+
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <section class="panel" style="flex:1 1 440px;min-width:0">
+        <h2 style="margin:0 0 4px;font-size:16px">Предотловочные шаги · П-3, отлов 12.12</h2>
+        <div class="stp"><span class="num" style="width:96px;flex:none;color:#52606D">09.12 (−3 дн.)</span><span style="flex:1">Свет 23 ч, не менее 5–10 лк</span><span style="color:#52606D">задача оператору</span></div>
+        <div class="stp"><span class="num" style="width:96px;flex:none;color:#52606D">10.12 (−2 дн.)</span><span style="flex:1">Убрать цельное зерно из рациона</span><span style="color:#52606D">склад</span></div>
+        <div class="stp"><span class="num" style="width:96px;flex:none;color:#52606D">10.12</span><span style="flex:1">Взвесить 100+ гол. для прогноза массы</span><span style="color:#52606D">оператор</span></div>
+        <div class="stp"><span class="num" style="width:96px;flex:none;color:#52606D">12.12</span><span style="flex:1">Контейнеры и машины: 49 т → 7 машин; подъезд, мокрую подстилку заменить</span><span style="color:#52606D">менеджер</span></div>
+        <div class="stp"><span class="num" style="width:96px;flex:none;color:#A35200;font-weight:600">12.12 · 18:00</span><span style="flex:1;font-weight:600">Снять корм (вода — без ограничений)</span><span style="color:#A35200">таймер</span></div>
+        <div class="stp"><span class="num" style="width:96px;flex:none;color:#52606D">12.12 · 22:00</span><span style="flex:1">Отлов: приглушить свет, поднять кормовые линии, вентиляция работает</span><span style="color:#52606D">бригада</span></div>
+      </section>
+
+      <section class="panel" style="flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:8px">
+        <h2 style="margin:0;font-size:16px">Выдержка без корма · цель 8–12 ч</h2>
+        <div style="display:flex;justify-content:space-between;font-size:14px"><span>В птичнике без корма</span><span class="num">4 ч</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px"><span>Отлов</span><span class="num">3 ч</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px"><span>Транспорт</span><span class="num">1,5 ч</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px"><span>Ожидание на комбинате</span><span class="num">1,5 ч</span></div>
+        <div style="height:14px;border-radius:7px;background:#D5DBE0;position:relative;margin-top:6px" role="img" aria-label="Итого 10 часов, в коридоре 8–12">
+          <div style="position:absolute;left:40%;width:20%;top:0;bottom:0;background:#DCE9E2;border-left:2px solid #1D7044;border-right:2px solid #1D7044"></div>
+          <div style="position:absolute;left:50%;top:-3px;width:4px;height:20px;background:#0D5C7D;border-radius:2px"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#52606D"><span>0 ч</span><span>8</span><span>12</span><span>20 ч</span></div>
+        <span class="num" style="font-size:16px;font-weight:600;color:#1D7044">Итого 10 ч · норма</span>
+        <span style="font-size:12px;color:#52606D">Меньше 8 ч — корм в зобе, загрязнение тушек. Больше 12 ч — потеря 0,1–0,5% массы в час.</span>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { d: '04.12' }; }
+  renderVals() {
+    const opts = [['04.12', 33, '1,88', '36,0'], ['06.12', 35, '2,08', '39,8'], ['10.12', 39, '2,40', '46,0'], ['12.12', 41, '2,52', '48,3']];
+    const cur = opts.find(o => o[0] === this.state.d);
+    const blocked = cur[1] < 35;
+    const dates = opts.map(o => ({ label: o[0] + ' (д. ' + o[1] + ')', on: o[0] === this.state.d, cls: o[0] === this.state.d ? 'chip chipon' : 'chip', pick: () => this.setState({ d: o[0] }) }));
+    return {
+      dates, blocked, p4date: cur[0], p4day: cur[1], p4w: cur[2], p4t: cur[3],
+      p4check: blocked ? '■ срок ожидания' : '● можно',
+      p4s: blocked ? 'color:#B3202A;font-weight:600' : 'color:#1D7044',
+      p4bg: blocked ? '#FDF1F1' : '#FFFFFF'
+    };
+  }
+}
+</script>
+</body>
+</html>

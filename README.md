@@ -1,8 +1,7 @@
 # Poultry Farm App
 
-A broiler farm management app: a daily log for each house, checks against Arbor Acres norms, alerts, weekly weighing, a health log with withdrawal-period checks, and batch close reports (FCR, EPEF).
+An app for a mid-size broiler farm (4 houses, about 68,000 birds per batch): workers keep a daily log for each house on their phones, entries are checked against Arbor Acres norms, and each batch closes with a report covering production and profit.
 
-- `BLUEPRINT.md`: product blueprint (users, workflow, screens, roadmap, handoff brief for the technical spec)
-- `knowledge/`: domain knowledge base distilled from the Arbor Acres Broiler Handbook (2015) and a Russian broiler-rearing guide
-
-Status: product planning (draft v1).
+- `BLUEPRINT.md`: the product plan (v2, the current version)
+- `knowledge/`: domain knowledge base from the Arbor Acres Broiler Handbook (2015) and a Russian broiler-rearing guide
+- `archive/v1/`: the earlier plan for a 6-house farm, its logic document and screen designs (superseded)

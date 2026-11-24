@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Календарь партии</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EEF1F3}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.nav{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:8px;color:#C9D3DB;text-decoration:none;font-size:14px}
+.nav:hover{background:#24313E;color:#FFFFFF}
+.navon{background:#24313E;color:#FFFFFF;font-weight:600}
+.panel{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:14px 16px;box-sizing:border-box}
+.track{display:flex;align-items:stretch;border-top:1px solid #EEF1F3;min-height:44px}
+.tl{width:150px;flex:none;font-size:13px;font-weight:600;display:flex;align-items:center;padding-right:8px}
+.lane{position:relative;flex:1;min-width:0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-weight:500;color:#52606D;text-align:left;padding:8px 10px;border-bottom:1px solid #D5DBE0;font-size:12px;white-space:nowrap}
+td{padding:0 10px;height:40px;border-bottom:1px solid #EEF1F3;white-space:nowrap}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;background:#EEF1F3">
+  <aside style="flex:1 1 220px;max-width:240px;background:#18212B;padding:16px 12px;display:flex;flex-direction:column;gap:4px;box-sizing:border-box">
+    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма</div>
+    <a class="nav" href="MgrFarm.dc.html">Ферма</a>
+    <a class="nav" href="MgrFarm.dc.html">Тревоги</a>
+    <a class="nav navon" href="MgrCalendar.dc.html">Календарь партии</a>
+    <a class="nav" href="MgrHouse.dc.html">Птичники</a>
+    <a class="nav" href="MgrCatch.dc.html">Отлов</a>
+    <a class="nav" href="MgrReport.dc.html">Отчёты</a>
+  </aside>
+  <main style="flex:999 1 560px;min-width:0;padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+    <header style="display:flex;flex-direction:column">
+      <span style="font-size:13px;color:#52606D">Партия 06/2026 · все птичники · задачи создаются автоматически от даты посадки по нормам AA</span>
+      <h1 style="margin:0;font-size:28px;font-weight:600">Календарь партии · сегодня день 23</h1>
+    </header>
+
+    <section class="panel">
+      <div style="overflow-x:auto">
+        <div style="min-width:980px">
+          <div style="display:flex;padding-bottom:6px">
+            <div style="width:150px;flex:none;font-size:12px;color:#52606D">День</div>
+            <div class="lane" style="height:18px">
+              <sc-for list="{{ticks}}" as="t" hint-placeholder-count="10"><span class="num" style="{{t.style}}">{{t.l}}</span></sc-for>
+            </div>
+          </div>
+          <sc-for list="{{tracks}}" as="tr" hint-placeholder-count="7">
+            <div class="track">
+              <div class="tl">{{tr.name}}</div>
+              <div class="lane">
+                <sc-for list="{{tr.items}}" as="it" hint-placeholder-count="3">
+                  <div style="{{it.style}}" title="{{it.label}}">{{it.label}}</div>
+                </sc-for>
+                <div style="{{todayStyle}}" aria-hidden="true"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;padding-top:10px;font-size:12px;color:#52606D">
+        <span><span style="display:inline-block;width:12px;height:12px;background:#D7E6EE;border:1px solid #0D5C7D;vertical-align:-2px"></span> регламент AA</span>
+        <span><span style="display:inline-block;width:12px;height:12px;background:#F9E3E4;border:1px solid #B3202A;vertical-align:-2px"></span> лечение / срок ожидания</span>
+        <span><span style="display:inline-block;width:12px;height:12px;background:#FBEBDC;border:1px solid #A35200;vertical-align:-2px"></span> предотловочные шаги</span>
+        <span><span style="display:inline-block;width:2px;height:12px;background:#B3202A;vertical-align:-2px"></span> сегодня</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 8px;font-size:16px">Ближайшие 7 дней</h2>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Дата</th><th>День</th><th>Задача</th><th>Птичники</th><th>Кто</th><th>Статус</th></tr></thead>
+          <tbody class="num">
+            <tr><td>24.11</td><td>23</td><td>Лечение: Амоксициллин 10% с водой, день 1 из 5</td><td>П-4</td><td>оператор</td><td style="color:#1D7044">● выполнено</td></tr>
+            <tr><td>24.11</td><td>23</td><td>Напор ниппельных линий (еженедельно)</td><td>все</td><td>операторы</td><td>4 из 6</td></tr>
+            <tr><td>25.11</td><td>24</td><td>Переход на финишный рацион</td><td>все</td><td>склад, операторы</td><td style="color:#A35200;font-weight:600">▲ П-3, П-4: корма мало</td></tr>
+            <tr><td>28.11</td><td>27</td><td>Последний день лечения → начало срока ожидания (7 дн.)</td><td>П-4</td><td>ветврач</td><td>запланировано</td></tr>
+            <tr><td>29.11</td><td>28</td><td>Взвешивание индивидуальное, ≥ 196 гол., CV%</td><td>все</td><td>операторы</td><td>запланировано</td></tr>
+            <tr><td>30.11</td><td>29</td><td>Проверка NH₃ / CO₂ (порог 10 ppm / 3 000 ppm)</td><td>все</td><td>менеджер</td><td>запланировано</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const S = -3, N = 46;
+    const L = (d) => ((d - S) / N * 100).toFixed(2) + '%';
+    const W = (a, b) => ((b - a + 1) / N * 100).toFixed(2) + '%';
+    const kinds = { reg: 'background:#D7E6EE;border:1px solid #0D5C7D;color:#0B4A65', med: 'background:#F9E3E4;border:1px solid #B3202A;color:#8A1820', pre: 'background:#FBEBDC;border:1px solid #A35200;color:#7A3D00' };
+    const it = (a, b, label, k) => ({ label, style: 'position:absolute;top:7px;height:30px;left:' + L(a) + ';width:' + W(a, b) + ';min-width:10px;' + (kinds[k || 'reg']) + ';border-radius:6px;font-size:11px;line-height:30px;padding:0 6px;box-sizing:border-box;overflow:hidden;white-space:nowrap;text-overflow:ellipsis' });
+    const tracks = [
+      { name: 'Подготовка и посадка', items: [it(-3, -1, 'Прогрев ≥ 24 ч, подстилка 5–10 см, линии'), it(0, 2, 'Посадка · зоб 2–48 ч')] },
+      { name: 'Микроклимат', items: [it(0, 6, '30 → 27 °C, ОВ 60–70%'), it(7, 26, 'Цель по Табл. 2 с поправкой на ОВ: 27 → 20 °C'), it(27, 41, '20 °C, по поведению')] },
+      { name: 'Корм', items: [it(0, 10, 'Старт · крупка'), it(11, 17, 'Рост · мини-гранула'), it(18, 24, 'Рост · гранула 3,5 мм'), it(25, 38, 'Финиш'), it(39, 40, 'Без зерна', 'pre'), it(41, 41, '8–12 ч', 'pre')] },
+      { name: 'Свет', items: [it(0, 6, '23/1 ч · 30–40 лк'), it(7, 37, 'Темнота 4–6 ч · 5–10 лк · менять за 2–3 дня'), it(38, 41, '23 ч', 'pre')] },
+      { name: 'Взвешивание', items: [it(0, 0, '0'), it(7, 7, '7'), it(14, 14, '14'), it(21, 21, '21'), it(28, 28, '28'), it(35, 35, '35'), it(39, 40, '100+', 'pre')] },
+      { name: 'Здоровье', items: [it(14, 14, 'Гамборо'), it(23, 27, 'Лечение П-4', 'med'), it(28, 34, 'Ожидание П-4', 'med')] },
+      { name: 'Отлов', items: [it(41, 41, '12.12', 'pre'), it(42, 42, 'Санразрыв →')] }
+    ];
+    const ticks = [];
+    for (let d = 0; d <= 42; d += 7) ticks.push({ l: String(d), style: 'position:absolute;left:' + L(d) + ';font-size:12px;color:#52606D' });
+    ticks.push({ l: 'сегодня 23', style: 'position:absolute;left:' + L(23) + ';font-size:12px;color:#B3202A;font-weight:600;transform:translateX(4px)' });
+    return { tracks, ticks, todayStyle: 'position:absolute;top:0;bottom:0;left:calc(' + L(23.5) + ');width:2px;background:#B3202A' };
+  }
+}
+</script>
+</body>
+</html>

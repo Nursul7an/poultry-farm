@@ -1,0 +1,33 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-24T10:00:00Z"},
+  "title": "Бройлер — дизайн приложения",
+  "launch": {"view": "canvas", "page": "operator"},
+  "pages": [
+    {"id": "operator", "name": "Оператор птичника (телефон)"},
+    {"id": "field", "name": "Посадка, ветврач, склад, руководитель (телефон)"},
+    {"id": "manager", "name": "Руководитель (десктоп)"}
+  ],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "1 · Сегодня (главный экран оператора)", "page": "operator", "is_interactive": true, "radius": 28},
+    "OpDailyLog.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "2 · Журнал дня (ввод + проверка нормы)", "page": "operator", "is_interactive": true, "radius": 28},
+    "OpWeighing.dc.html": {"x": 940, "y": 0, "w": 390, "h": 844, "title": "3 · Взвешивание (CV% на лету)", "page": "operator", "is_interactive": true, "radius": 28},
+    "OpStates.dc.html": {"x": 1410, "y": 0, "w": 1250, "h": 844, "title": "4 · Состояния: загрузка, нет партии, нет сети", "page": "operator"},
+    "FieldPlacement.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "5 · Посадка и наполнение зоба", "page": "field", "is_interactive": true, "radius": 28},
+    "FieldVet.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "6 · Ветврач: лечение и срок ожидания", "page": "field", "is_interactive": true, "radius": 28},
+    "FieldStore.dc.html": {"x": 940, "y": 0, "w": 390, "h": 844, "title": "7 · Склад: поставка корма и остатки", "page": "field", "is_interactive": true, "radius": 28},
+    "FieldOwner.dc.html": {"x": 1410, "y": 0, "w": 390, "h": 844, "title": "8 · Руководитель на телефоне: быстрый обзор", "page": "field", "radius": 28},
+    "MgrFarm.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 1000, "title": "9 · Ферма: все птичники и тревоги", "page": "manager", "expand": "fill", "is_interactive": true},
+    "MgrHouse.dc.html": {"x": 1520, "y": 0, "w": 1440, "h": 1000, "title": "10 · Птичник П-4: тренды против нормы", "page": "manager", "expand": "fill", "is_interactive": true},
+    "MgrCalendar.dc.html": {"x": 0, "y": 1120, "w": 1440, "h": 900, "title": "11 · Календарь партии (задачи по возрасту)", "page": "manager", "expand": "fill"},
+    "MgrCatch.dc.html": {"x": 1520, "y": 1120, "w": 1440, "h": 900, "title": "12 · План отлова и проверка сроков ожидания", "page": "manager", "expand": "fill", "is_interactive": true},
+    "MgrReport.dc.html": {"x": 0, "y": 2140, "w": 1440, "h": 1100, "title": "13 · Закрытие партии: отчёт", "page": "manager", "expand": "fill"}
+  },
+  "order": ["Main.dc.html", "OpDailyLog.dc.html", "OpWeighing.dc.html", "OpStates.dc.html", "FieldPlacement.dc.html", "FieldVet.dc.html", "FieldStore.dc.html", "FieldOwner.dc.html", "MgrFarm.dc.html", "MgrHouse.dc.html", "MgrCalendar.dc.html", "MgrCatch.dc.html", "MgrReport.dc.html"],
+  "notes": {
+    "t_op": {"x": 0, "y": -300, "text": "Оператор: день в птичнике", "kind": "title1", "maxW": 2660, "page": "operator"},
+    "t_field": {"x": 0, "y": -300, "text": "Посадка, здоровье, корм, руководитель", "kind": "title1", "maxW": 1800, "page": "field"},
+    "t_mgr": {"x": 0, "y": -300, "text": "Руководитель: контроль фермы и партии", "kind": "title1", "maxW": 2960, "page": "manager"}
+  },
+  "designSystems": []
+}

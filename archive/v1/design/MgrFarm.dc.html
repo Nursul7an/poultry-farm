@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Ферма — все птичники</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EEF1F3}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.nav{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:8px;color:#C9D3DB;text-decoration:none;font-size:14px}
+.nav:hover{background:#24313E;color:#FFFFFF}
+.navon{background:#24313E;color:#FFFFFF;font-weight:600}
+.panel{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-weight:500;color:#52606D;text-align:right;padding:8px 10px;border-bottom:1px solid #D5DBE0;white-space:nowrap;font-size:12px}
+th:first-child,td:first-child{text-align:left}
+td{padding:0 10px;height:44px;border-bottom:1px solid #EEF1F3;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:hover td{background:#F6F8F9}
+.al{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;padding:10px 12px;border:0;border-bottom:1px solid #EEF1F3;background:#FFFFFF;font:inherit;color:#18212B;cursor:pointer}
+.al:hover{background:#F6F8F9}
+.alon{background:#E6F0F5}
+.al:focus-visible,.btn:focus-visible,.nav:focus-visible{outline:3px solid #0D5C7D;outline-offset:-3px}
+.btn{min-height:36px;padding:0 14px;border-radius:8px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.btnp{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;background:#EEF1F3">
+
+  <aside style="flex:1 1 220px;max-width:240px;background:#18212B;padding:16px 12px;display:flex;flex-direction:column;gap:4px;box-sizing:border-box">
+    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма</div>
+    <a class="nav navon" href="MgrFarm.dc.html">Ферма</a>
+    <a class="nav" href="MgrFarm.dc.html">Тревоги <span class="num" style="margin-left:auto;background:#B3202A;color:#FFFFFF;border-radius:999px;padding:0 8px;font-size:12px">7</span></a>
+    <a class="nav" href="MgrCalendar.dc.html">Календарь партии</a>
+    <a class="nav" href="MgrHouse.dc.html">Птичники</a>
+    <a class="nav" href="MgrCatch.dc.html">Отлов</a>
+    <a class="nav" href="MgrReport.dc.html">Отчёты</a>
+    <a class="nav" href="MgrFarm.dc.html">Нормы AA</a>
+    <a class="nav" href="MgrFarm.dc.html">Настройки</a>
+  </aside>
+
+  <main style="flex:999 1 560px;min-width:0;padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+    <header style="display:flex;flex-wrap:wrap;gap:16px 32px;align-items:flex-end">
+      <div style="display:flex;flex-direction:column">
+        <span style="font-size:13px;color:#52606D">Партия 06/2026 · посадка 01.11 · 118 716 гол. · обновлено 11:05</span>
+        <h1 style="margin:0;font-size:28px;font-weight:600">День 23 · сохранность 98,2%</h1>
+      </div>
+      <div style="flex:1;min-width:320px;position:relative;height:40px" role="img" aria-label="Линейка возраста, день 23 из 42">
+        <div style="position:absolute;left:0;right:0;top:12px;height:6px;border-radius:3px;background:#D5DBE0"></div>
+        <div style="position:absolute;left:0;width:54.8%;top:12px;height:6px;border-radius:3px;background:#0D5C7D"></div>
+        <div style="position:absolute;left:16.7%;top:8px;width:2px;height:14px;background:#52606D"></div>
+        <div style="position:absolute;left:23.8%;top:8px;width:2px;height:14px;background:#52606D"></div>
+        <div style="position:absolute;left:42.9%;top:8px;width:2px;height:14px;background:#52606D"></div>
+        <div style="position:absolute;left:59.5%;top:8px;width:2px;height:14px;background:#A35200"></div>
+        <div style="position:absolute;left:92.9%;top:8px;width:2px;height:14px;background:#52606D"></div>
+        <div style="position:absolute;left:calc(54.8% - 7px);top:8px;width:14px;height:14px;border-radius:50%;background:#FFFFFF;border:3px solid #0D5C7D;box-sizing:border-box"></div>
+        <span style="position:absolute;left:15%;top:24px;font-size:11px;color:#52606D">7 контроль</span>
+        <span style="position:absolute;left:23%;top:24px;font-size:11px;color:#52606D">10 рост</span>
+        <span style="position:absolute;left:42%;top:24px;font-size:11px;color:#52606D">18 гранула</span>
+        <span style="position:absolute;left:58.5%;top:24px;font-size:11px;color:#A35200;font-weight:600">25 финиш</span>
+        <span style="position:absolute;right:0;top:24px;font-size:11px;color:#52606D">41 отлов 12.12</span>
+      </div>
+    </header>
+
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <section class="panel" style="flex:3 1 640px;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">
+          <h2 style="margin:0;font-size:16px;font-weight:600">Птичники сегодня</h2>
+          <span style="font-size:12px;color:#52606D">цвет + знак: ● норма · ▲ внимание · ■ тревога</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>Птичник</th><th>Живых</th><th>Сохр., %</th><th>Падёж сег./вчера</th><th>Корм, г/гол</th><th>Вода:корм</th><th>t раб., °C</th><th>Масса д21, г</th><th>CV%</th><th>Бункер, дн.</th><th>Журнал</th>
+            </tr></thead>
+            <tbody>
+              <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+                <tr>
+                  <td><a href="MgrHouse.dc.html" style="display:flex;align-items:center;gap:8px;font-weight:600;text-decoration:none;color:#18212B"><span style="{{r.mark}}" aria-hidden="true">{{r.sym}}</span>{{r.h}}</a></td>
+                  <td>{{r.alive}}</td><td>{{r.surv}}</td>
+                  <td><span style="{{r.dS}}">{{r.d}}</span></td>
+                  <td>{{r.feed}}</td>
+                  <td><span style="{{r.wS}}">{{r.w}}</span></td>
+                  <td><span style="{{r.tS}}">{{r.t}}</span></td>
+                  <td>{{r.wt}}</td>
+                  <td><span style="{{r.cvS}}">{{r.cv}}</span></td>
+                  <td><span style="{{r.bS}}">{{r.b}}</span></td>
+                  <td><span style="{{r.logS}}">{{r.log}}</span></td>
+                </tr>
+              </sc-for>
+            </tbody>
+            <tfoot><tr>
+              <td style="font-weight:600">Ферма</td><td style="font-weight:600">116 576</td><td style="font-weight:600">98,2</td><td>80 / 66</td><td>117</td><td>1,64</td><td>—</td><td>1 003</td><td>9,3</td><td>—</td><td>5 из 6</td>
+            </tr></tfoot>
+          </table>
+        </div>
+        <div style="padding:10px 16px;font-size:12px;color:#52606D">Нормы: вода:корм 1,6–1,8 (21 °C) · t цель на день 23 — 22 °C ±1,5 · CV% ≤ 10 · масса — норма-заглушка до AA Performance Objectives</div>
+      </section>
+
+      <section class="panel" style="flex:2 1 380px;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+        <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #D5DBE0">
+          <h2 style="margin:0;font-size:16px;font-weight:600">Тревоги</h2>
+          <span class="num" style="font-size:13px;color:#52606D">2 тревоги · 5 внимание</span>
+        </div>
+        <sc-for list="{{alerts}}" as="a" hint-placeholder-count="7">
+          <button class="{{a.cls}}" onClick="{{a.pick}}" aria-pressed="{{a.on}}">
+            <span style="{{a.mark}}" aria-hidden="true">{{a.sym}}</span>
+            <span style="display:flex;flex-direction:column;gap:2px;flex:1">
+              <span style="font-size:14px;font-weight:600">{{a.h}} · {{a.title}}</span>
+              <span style="font-size:12px;color:#52606D">{{a.meta}}</span>
+            </span>
+          </button>
+        </sc-for>
+        <div style="padding:14px 16px;background:#F6F8F9;display:flex;flex-direction:column;gap:10px;border-top:1px solid #D5DBE0">
+          <span style="font-size:15px;font-weight:600">{{sel.h}} · {{sel.title}}</span>
+          <span class="num" style="font-size:13px;color:#18212B">{{sel.value}}</span>
+          <span style="font-size:12px;color:#52606D;font-weight:600">Возможные причины (AA, Прил. 5)</span>
+          <sc-for list="{{sel.causes}}" as="c" hint-placeholder-count="3">
+            <span style="font-size:13px;line-height:1.4;padding-left:12px;border-left:2px solid #D5DBE0">{{c}}</span>
+          </sc-for>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;padding-top:4px">
+            <button class="btn btnp">Назначить задачу</button>
+            <button class="btn">Вызвать ветврача</button>
+            <button class="btn">Закрыть с причиной</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { sel: 0 }; }
+  renderVals() {
+    const C = { ok: '#1D7044', warn: '#A35200', crit: '#B3202A', none: '#18212B' };
+    const st = (l) => 'color:' + C[l] + (l === 'warn' || l === 'crit' ? ';font-weight:600' : '');
+    const mk = (l) => ({ sym: l === 'ok' ? '●' : l === 'warn' ? '▲' : '■', mark: 'color:' + C[l] + ';font-size:12px;width:14px;display:inline-block' });
+    const R = [
+      ['П-1', 'ok', '19 452', '98,4', '9 / 11', 'none', '117', '1,72', 'none', '22,3', 'none', '1 012', '8,9', 'none', '2,7', 'none', '08:12', 'none'],
+      ['П-2', 'warn', '19 380', '98,0', '— / 14', 'none', '—', '—', 'none', '—', 'none', '998', '9,4', 'none', '1,9', 'warn', 'нет за 24.11', 'warn'],
+      ['П-3', 'warn', '19 501', '98,6', '10 / 8', 'none', '120', '1,69', 'none', '21,8', 'none', '1 021', '8,2', 'none', '1,5', 'warn', '08:40', 'none'],
+      ['П-4', 'crit', '19 389', '98,0', '41 / 12', 'crit', '118', '1,41', 'warn', '22,4', 'none', '1 004', '9,6', 'none', '1,3', 'crit', '09:42', 'none'],
+      ['П-5', 'ok', '19 471', '98,4', '7 / 9', 'none', '116', '1,75', 'none', '22,0', 'none', '995', '8,7', 'none', '4,5', 'none', '07:58', 'none'],
+      ['П-6', 'warn', '19 383', '98,0', '13 / 12', 'none', '114', '1,66', 'none', '23,6', 'warn', '987', '11,2', 'warn', '2,3', 'none', '09:20', 'none']
+    ];
+    const rows = R.map(r => ({ h: r[0], ...mk(r[1]), alive: r[2], surv: r[3], d: r[4], dS: st(r[5]), feed: r[6], w: r[7], wS: st(r[8]), t: r[9], tS: st(r[10]), wt: r[11], cv: r[12], cvS: st(r[13]), b: r[14], bS: st(r[15]), log: r[16], logS: st(r[17]) }));
+    const A = [
+      { l: 'crit', h: 'П-4', title: 'Падёж 41 гол. (×3,7)', meta: '09:42 · ветврач: лечение до 28.11', value: 'Падёж сегодня 41 гол. = 0,21% · среднее за 7 дн. 11 · норма до 0,10%/сут', causes: ['Инфекционные заболевания: вскрытие, консультация ветврача', 'Метаболические (асцит, ВСС): проверить вентиляцию и рацион', 'Проверить потребление воды — оно упало на 18%'] },
+      { l: 'crit', h: 'П-4', title: 'Корм на 1,3 дня', meta: '08:00 · склад уведомлён', value: 'Бункер 2,9 т · расход 2,3 т/сут · порог 2 дня', causes: ['Поставка финишного корма нужна до 26.11 (переход с 25-го дня)', 'Проверить заявку на кормозаводе'] },
+      { l: 'warn', h: 'П-4', title: 'Вода −18%, вода:корм 1,41', meta: '09:42', value: '3 260 л при корме 2 340 кг · норма 1,6–1,8', causes: ['Изменение потребления воды — первый признак проблем со здоровьем', 'Проверить напор и высоту ниппелей, утечки, засор фильтра', 'Связано с ростом падежа — сообщить ветврачу'] },
+      { l: 'warn', h: 'П-2', title: 'Нет журнала за 24.11', meta: '11:00 · оператор Нурлан Ж.', value: 'Последний журнал: 23.11, 18:05', causes: ['Позвонить оператору', 'Проверить очередь отправки (нет сети в П-2?)'] },
+      { l: 'warn', h: 'П-6', title: 'CV% 11,2 (> 10)', meta: 'взвешивание 22.11', value: 'Средняя 987 г · SD 110 г · выборка 196 гол.', causes: ['Проверить фронт кормления и поения, плотность', 'Проверить температуру и вентиляцию по зонам', 'Качество цыплят: смешаны РС разного возраста?'] },
+      { l: 'warn', h: 'П-6', title: 't 23,6 °C (цель 22 ±1,5)', meta: '09:20', value: 'Мин 22,8 · макс 24,0 · рабочая 23,6 °C', causes: ['Поведение: крылья отведены, частое дыхание — снизить t', 'Проверить настройку вентиляции и отопления'] },
+      { l: 'warn', h: 'П-3', title: 'Корм на 1,5 дня', meta: '08:00 · склад уведомлён', value: 'Бункер 3,7 т · расход 2,4 т/сут', causes: ['Запланировать поставку на 25.11'] }
+    ];
+    const s = this.state.sel;
+    const alerts = A.map((a, i) => ({ ...a, ...mk(a.l), on: i === s, cls: i === s ? 'al alon' : 'al', pick: () => this.setState({ sel: i }) }));
+    return { rows, alerts, sel: A[s] };
+  }
+}
+</script>
+</body>
+</html>

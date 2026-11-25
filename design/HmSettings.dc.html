@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Настройки — руководитель</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;font-size:12px;color:#52606D;text-decoration:none}
+.sec{background:#FFFFFF;border-top:1px solid #D5DBE0;border-bottom:1px solid #D5DBE0;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.h2{margin:0;font-size:15px;font-weight:600}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;min-height:30px}
+.k{color:#52606D}
+.tile{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.tl{font-size:12px;color:#52606D}
+.tv{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.btn{min-height:48px;border-radius:10px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:15px;font-weight:600;color:#18212B;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;flex:1;padding:0 12px}
+.btnp{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.inp{height:52px;border-radius:10px;border:1px solid #B9C3CB;padding:0 12px;font:inherit;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;width:100%;box-sizing:border-box;color:#18212B;background:#FFFFFF}
+.lbl{font-size:13px;color:#52606D}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px;background:#FFFFFF;border-top:1px solid #D5DBE0;text-decoration:none;color:#18212B}
+.btn:focus-visible,.chip:focus-visible,.tab:focus-visible,.row:focus-visible,.inp:focus{outline:3px solid #0D5C7D;outline-offset:2px}
+
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden;position:relative">
+  <header style="background:#FFFFFF;padding:12px 16px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column;gap:4px">
+    <span style="font-size:13px;color:#52606D">Руководитель · все права</span>
+    <span style="font-size:20px;font-weight:600">Настройки</span>
+  </header>
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
+    <div style="border-bottom:1px solid #D5DBE0">
+      <a class="row" href="HSettings.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:500">Птичники</span><span style="font-size:13px;color:#A35200;font-weight:600">4 · П-4 без водосчётчика</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a class="row" href="HSettings.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:500">Работники</span><span class="lbl">Айгуль Т. (П-1, П-2) · Нурлан Ж. (П-3, П-4)</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a class="row" href="HSettings.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:500">Пороги предупреждений</span><span class="lbl">8 правил · по умолчанию Arbor Acres</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a class="row" href="HSettings.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:500">Нормы</span><span style="font-size:13px;color:#A35200;font-weight:600">AA температура загружена · масса — нужен Performance Objectives</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a class="row" href="HSettings.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:500">Учётный день</span><span class="lbl">08:00 → 08:00</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a class="row" href="HSettings.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:500">Уведомления</span><span class="lbl">Telegram · сводка в 18:00</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a class="row" href="HSettings.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:500">Валюта и цены</span><span class="lbl">сом · цыплёнок 70 · корм 38 000/т</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a class="row" href="HSettings.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:500">Язык</span><span class="lbl">Русский</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+    </div>
+    <div style="margin:0 16px;display:flex;flex-direction:column;gap:8px">
+      <button class="btn btnp">Пригласить работника</button>
+      <span class="lbl" style="text-align:center">Изменения сохраняются в истории</span>
+    </div>
+  </main>
+  <nav aria-label="Основное меню" style="display:flex;background:#FFFFFF;border-top:1px solid #D5DBE0;padding-bottom:20px">
+    <a href="HFarmPhone.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/></svg>Ферма</a>
+    <a href="HmBatch.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Партия</a>
+    <a href="HmCosts.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16v12H4z"/><path d="M8 7V5h8v2M12 11v4M10 13h4"/></svg>Затраты</a>
+    <a href="HmReport.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Отчёты</a>
+    <a href="HmSettings.dc.html" class="tab" style="color:#0D5C7D;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Ещё</a>
+  </nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

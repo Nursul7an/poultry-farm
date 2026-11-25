@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Отлов и продажа — руководитель</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;font-size:12px;color:#52606D;text-decoration:none}
+.sec{background:#FFFFFF;border-top:1px solid #D5DBE0;border-bottom:1px solid #D5DBE0;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.h2{margin:0;font-size:15px;font-weight:600}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;min-height:30px}
+.k{color:#52606D}
+.tile{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.tl{font-size:12px;color:#52606D}
+.tv{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.btn{min-height:48px;border-radius:10px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:15px;font-weight:600;color:#18212B;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;flex:1;padding:0 12px}
+.btnp{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.inp{height:52px;border-radius:10px;border:1px solid #B9C3CB;padding:0 12px;font:inherit;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;width:100%;box-sizing:border-box;color:#18212B;background:#FFFFFF}
+.lbl{font-size:13px;color:#52606D}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px;background:#FFFFFF;border-top:1px solid #D5DBE0;text-decoration:none;color:#18212B}
+.btn:focus-visible,.chip:focus-visible,.tab:focus-visible,.row:focus-visible,.inp:focus{outline:3px solid #0D5C7D;outline-offset:2px}
+
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden;position:relative">
+  <header style="background:#FFFFFF;padding:12px 16px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column;gap:4px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="HmBatch.dc.html" aria-label="Назад" style="width:44px;height:44px;margin-left:-10px;display:flex;align-items:center;justify-content:center;color:#18212B"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+      <div style="display:flex;flex-direction:column"><span style="font-size:13px;color:#52606D">Партия 06/2026</span><span style="font-size:20px;font-weight:600">Отлов и продажа</span></div>
+    </div>
+  </header>
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
+    <section class="sec" style="padding-bottom:4px">
+      <h2 class="h2">План отлова</h2>
+      <div class="kv num"><span>П-1</span><span>11.12 · ~40,6 т <span style="color:#1D7044">●</span></span></div>
+      <div class="kv num" style="{{p2S}}"><span>П-2</span><span>{{date}} · {{t}} т {{chk}}</span></div>
+      <div class="kv num"><span>П-3</span><span>12.12 · ~41,2 т <span style="color:#1D7044">●</span></span></div>
+      <div class="kv num"><span>П-4</span><span>12.12 · ~40,4 т <span style="color:#1D7044">●</span></span></div>
+    </section>
+    <section class="sec">
+      <span class="lbl">П-2, дата отлова</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{dates}}" as="d" hint-placeholder-count="3"><button class="{{d.cls}}" onClick="{{d.pick}}" aria-pressed="{{d.on}}">{{d.label}}</button></sc-for></div>
+      <sc-if value="{{blocked}}" hint-placeholder-val="{{false}}">
+        <div role="alert" style="border:2px solid #B3202A;background:#F9E3E4;color:#8A1820;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:15px;font-weight:600">■ Срок ожидания до 05.12</span>
+          <span style="font-size:13px;line-height:1.4">Убой не ранее 06.12. Раньше — только с указанием причины.</span>
+          <button class="btn btnp" onClick="{{move}}">Перенести на 06.12</button>
+        </div>
+      </sc-if>
+      <span class="lbl">Снять корм в 18:00 в день отлова · вода без ограничений</span>
+    </section>
+    <section class="sec">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 class="h2">Продажа · П-1</h2><span class="lbl">пример</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{buyers}}" as="b" hint-placeholder-count="3"><button class="{{b.cls}}" onClick="{{b.pick}}" aria-pressed="{{b.on}}">{{b.name}}</button></sc-for></div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Голов</span><input class="inp" inputmode="numeric" value="{{birds}}" onInput="{{setBirds}}"></label>
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Кг</span><input class="inp" inputmode="decimal" value="{{kgIn}}" onInput="{{setKg}}"></label>
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Цена за кг*</span><input class="inp" inputmode="decimal" value="{{price}}" onInput="{{setPrice}}"></label>
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Оплачено</span><input class="inp" inputmode="decimal" value="{{paid}}" onInput="{{setPaid}}"></label>
+      </div>
+      <div class="kv num"><span class="k">Средняя масса</span><span>{{avg}} кг</span></div>
+      <div class="kv num"><span class="k">Сумма</span><span style="font-weight:600">{{sum}} сом</span></div>
+      <div class="kv num"><span class="k">Остаток</span><span style="{{owedS}}">{{owed}}</span></div>
+      <div style="display:flex;gap:8px"><button class="btn">Фото накладной</button><button class="btn btnp">Сохранить</button></div>
+    </section>
+  </main>
+  <nav aria-label="Основное меню" style="display:flex;background:#FFFFFF;border-top:1px solid #D5DBE0;padding-bottom:20px">
+    <a href="HFarmPhone.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/></svg>Ферма</a>
+    <a href="HmBatch.dc.html" class="tab" style="color:#0D5C7D;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Партия</a>
+    <a href="HmCosts.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16v12H4z"/><path d="M8 7V5h8v2M12 11v4M10 13h4"/></svg>Затраты</a>
+    <a href="HmReport.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Отчёты</a>
+    <a href="HmSettings.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Ещё</a>
+  </nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { d: '04.12', buyer: 'Мясокомбинат', birds: '16 482', kg: '40 546', price: '140', paid: '4 000 000' }; }
+  n(v) { return parseFloat(String(v).replace(/\s/g, '').replace(',', '.')) || 0; }
+  f(v, d) { return v.toLocaleString('ru-RU', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+  renderVals() {
+    const s = this.state;
+    const opts = [['04.12', 33, '32,0'], ['06.12', 35, '34,8'], ['11.12', 40, '40,0']];
+    const cur = opts.find(o => o[0] === s.d), blocked = cur[1] < 35;
+    const dates = opts.map(o => ({ label: o[0], on: o[0] === s.d, cls: o[0] === s.d ? 'chip chipon' : 'chip', pick: () => this.setState({ d: o[0] }) }));
+    const buyers = ['Мясокомбинат', 'Оптовик 1', 'Оптовик 2'].map(n => ({ name: n, on: s.buyer === n, cls: s.buyer === n ? 'chip chipon' : 'chip', pick: () => this.setState({ buyer: n }) }));
+    const birds = this.n(s.birds), kg = this.n(s.kg), sum = kg * this.n(s.price), owed = sum - this.n(s.paid);
+    return { dates, buyers, blocked, date: cur[0], t: cur[2], chk: blocked ? '■' : '●',
+      p2S: blocked ? 'color:#B3202A;font-weight:600' : '', move: () => this.setState({ d: '06.12' }),
+      birds: s.birds, kgIn: s.kg, price: s.price, paid: s.paid,
+      avg: birds ? this.f(kg / birds, 3) : '—', sum: this.f(sum),
+      owed: owed > 0 ? 'долг ' + this.f(owed) + ' сом' : 'оплачено', owedS: 'font-weight:600;color:' + (owed > 0 ? '#A35200' : '#1D7044'),
+      setBirds: (e) => this.setState({ birds: e.target.value }), setKg: (e) => this.setState({ kg: e.target.value }),
+      setPrice: (e) => this.setState({ price: e.target.value }), setPaid: (e) => this.setState({ paid: e.target.value }) };
+  }
+}
+</script>
+</body>
+</html>

@@ -42,7 +42,7 @@ function Shell() {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AppProvider api={createApi()}>
-      <BrowserRouter><Shell /></BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}><Shell /></BrowserRouter>
     </AppProvider>
   </StrictMode>,
 );

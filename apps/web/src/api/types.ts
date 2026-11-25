@@ -92,6 +92,7 @@ export interface Api {
   listWorkers(): Promise<Worker[]>;
   inviteWorker(w: { displayName: string; phone: string; pin: string; houseIds: string[] }): Promise<void>;
   setWorkerHouses(workerId: string, houseIds: string[]): Promise<void>;
+  changePin(newPin: string): Promise<void>;
 }
 
 /** Map a raw server error message to a code. */

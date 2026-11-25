@@ -217,4 +217,7 @@ export class DemoApi implements Api {
   setWorkerHouses(workerId: string, houseIds: string[]) {
     return this.net(() => { this.head(); const u = this.s.users.find((x) => x.id === workerId); if (u) u.houseIds = houseIds; this.save(); });
   }
+  changePin(newPin: string) {
+    return this.net(() => { const u = this.me(); u.pin = newPin; this.save(); });
+  }
 }

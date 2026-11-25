@@ -132,4 +132,9 @@ export class SupabaseApi implements Api {
     await this.call(() => this.sb.from('house_worker').delete().eq('user_id', workerId));
     if (houseIds.length) await this.call(() => this.sb.from('house_worker').insert(houseIds.map((house_id) => ({ house_id, user_id: workerId }))));
   }
+  async changePin(newPin: string) {
+    let res;
+    try { res = await this.sb.auth.updateUser({ password: newPin }); } catch (e: any) { throw new ApiError('NETWORK', e?.message); }
+    if (res.error) throw new ApiError('UNKNOWN', res.error.message);
+  }
 }

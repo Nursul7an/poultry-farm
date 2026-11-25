@@ -2,7 +2,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// VITE_BASE: '/poultry-farm/' when hosted on GitHub Pages (https://<user>.github.io/poultry-farm/), '/' elsewhere.
 export default defineConfig({
+  base: process.env.VITE_BASE ?? '/',
   plugins: [
     react(),
     VitePWA({
@@ -13,7 +15,8 @@ export default defineConfig({
         short_name: 'Птичник',
         description: 'Ежедневный журнал птичника и контроль фермы',
         lang: 'ru',
-        start_url: '/',
+        start_url: '.',
+        scope: '.',
         display: 'standalone',
         background_color: '#EEF1F3',
         theme_color: '#0D5C7D',
@@ -23,7 +26,7 @@ export default defineConfig({
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: { navigateFallback: '/index.html', globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
+      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
     }),
   ],
   test: { environment: 'node', include: ['src/**/*.test.ts'] },

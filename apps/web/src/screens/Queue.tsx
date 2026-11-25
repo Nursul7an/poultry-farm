@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useApp, useLive, useOnline, useSignedIn, useSyncStatus } from '../app';
 import { TopBar } from '../ui/parts';
 import { fmtDayShort, fmtTime } from '../ui/format';
+import { PIN_RE } from '../api/phone';
+import { ApiError } from '../api/types';
 
 /** Sync queue + device diagnostics (the T-02 spike checklist reads these values). */
 export default function Queue() {
@@ -13,6 +15,8 @@ export default function Queue() {
   const st = useSyncStatus();
   const items = useLive(() => db.outbox.orderBy('seq').toArray(), [db], []);
   const houses = useLive(() => db.houseBatches.toArray(), [db], []);
+  const [pin, setPin] = useState('');
+  const [pinMsg, setPinMsg] = useState<string | null>(null);
   const [diag, setDiag] = useState<{ persisted?: boolean; usage?: number; quota?: number }>({});
   useEffect(() => {
     void (async () => {
@@ -61,6 +65,18 @@ export default function Queue() {
           <span className="small">Установлено как приложение: {standalone ? 'да' : 'нет'}</span>
           <span className="small">Режим: {api.mode === 'demo' ? 'демо (без сервера)' : 'сервер'}</span>
         </section>
+        <form className="card" style={{ margin: '0 16px', display: 'flex', flexDirection: 'column', gap: 8 }}
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!PIN_RE.test(pin)) { setPinMsg('PIN — 6 цифр'); return; }
+            try { await api.changePin(pin); setPin(''); setPinMsg('PIN изменён'); }
+            catch (err) { setPinMsg(err instanceof ApiError ? err.message : 'Не удалось изменить PIN'); }
+          }}>
+          <strong>Сменить PIN</strong>
+          <input className="input" type="password" inputMode="numeric" autoComplete="new-password" maxLength={6} aria-label="Новый PIN" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} />
+          {pinMsg && <span className="small" role="status">{pinMsg}</span>}
+          <button className="btn" disabled={!online}>Сохранить новый PIN</button>
+        </form>
         <div className="pad">
           <button className="btn block" onClick={async () => {
             if (st?.pending && !confirm('Есть неотправленные записи. Они останутся на телефоне и отправятся после следующего входа. Выйти?')) return;

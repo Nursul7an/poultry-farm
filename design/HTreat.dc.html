@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Лечение — руководитель</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.sec{background:#FFFFFF;border-top:1px solid #D5DBE0;border-bottom:1px solid #D5DBE0;padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.lbl{font-size:13px;color:#52606D}
+.inp{height:52px;border-radius:10px;border:1px solid #B9C3CB;padding:0 12px;font:inherit;font-size:17px;width:100%;box-sizing:border-box;color:#18212B;background:#FFFFFF}
+.step{width:48px;height:48px;border-radius:10px;border:1px solid #B9C3CB;background:#F6F8F9;font:inherit;font-size:24px;cursor:pointer;color:#18212B}
+.inp:focus,.step:focus-visible,.btn:focus-visible,.chip:focus-visible{outline:3px solid #0D5C7D;outline-offset:2px}
+.btn{min-height:56px;border-radius:12px;border:0;font:inherit;font-size:17px;font-weight:600;cursor:pointer;width:100%}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden">
+  <header style="background:#FFFFFF;padding:12px 16px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column;gap:2px">
+    <span style="font-size:13px;color:#B3202A;font-weight:600">П-2 · Возможна болезнь: падёж 38 (×3,5), вода −18%</span>
+    <span style="font-size:20px;font-weight:600">Лечение · П-2 · день 23</span>
+  </header>
+
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
+    <section class="sec">
+      <span style="font-size:15px;font-weight:600">Что нашёл ветврач</span>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <sc-for list="{{finds}}" as="f" hint-placeholder-count="6">
+          <button class="{{f.cls}}" onClick="{{f.pick}}" aria-pressed="{{f.on}}">{{f.label}}</button>
+        </sc-for>
+      </div>
+      <span class="lbl">Фото: 2 · Заметка: «жидкий помёт, утолщение стенки тонкого кишечника»</span>
+    </section>
+
+    <section class="sec">
+      <span style="font-size:15px;font-weight:600">Назначение</span>
+      <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Препарат</span><input class="inp" value="Амоксициллин 10% (вода)"></label>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Доза</span><input class="inp" value="1 г / 1 л"></label>
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Серия</span><input class="inp" value="AX-2411-07"></label>
+      </div>
+      <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Стоимость, сом* — пойдёт в затраты партии</span><input class="inp" inputmode="decimal" value="18 500"></label>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:15px">Курс, дней</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="step" onClick="{{decCourse}}" aria-label="Курс минус день">−</button>
+          <span class="num" style="width:36px;text-align:center;font-size:22px;font-weight:600">{{course}}</span>
+          <button class="step" onClick="{{incCourse}}" aria-label="Курс плюс день">+</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:15px">Срок ожидания, дней<br><span class="lbl">по инструкции препарата</span></span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="step" onClick="{{decWd}}" aria-label="Срок ожидания минус день">−</button>
+          <span class="num" style="width:36px;text-align:center;font-size:22px;font-weight:600">{{wd}}</span>
+          <button class="step" onClick="{{incWd}}" aria-label="Срок ожидания плюс день">+</button>
+        </div>
+      </div>
+    </section>
+
+    <section style="{{boxStyle}}">
+      <span style="font-size:15px;font-weight:600">{{verdict}}</span>
+      <div style="display:flex;justify-content:space-between;font-size:15px"><span>Курс</span><span class="num">24.11 – {{courseEnd}}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:15px"><span>Убой не ранее</span><span class="num" style="font-weight:600">{{earliest}}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:15px"><span>План отлова</span><span class="num">12.12 (день 41)</span></div>
+      <span style="font-size:13px;line-height:1.4">{{verdictSub}}</span>
+    </section>
+  </main>
+  <div style="padding:12px 16px 28px;background:#FFFFFF;border-top:1px solid #D5DBE0">
+    <button class="btn" style="background:#0D5C7D;color:#FFFFFF">Сохранить и дать задачи работнику</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { course: 5, wd: 7, find: 'Энтерит' }; }
+  d(offset) { const t = new Date(2026, 10, 24); t.setDate(t.getDate() + offset); return String(t.getDate()).padStart(2, '0') + '.' + String(t.getMonth() + 1).padStart(2, '0'); }
+  renderVals() {
+    const s = this.state;
+    const endOff = s.course - 1, earliestOff = endOff + s.wd + 1, catchOff = 18;
+    const ok = earliestOff <= catchOff;
+    const finds = ['Энтерит', 'Кокцидиоз', 'Асцит', 'Респираторное', 'Ноги', 'Без изменений'].map(l => ({
+      label: l, on: s.find === l, cls: s.find === l ? 'chip chipon' : 'chip', pick: () => this.setState({ find: l })
+    }));
+    return {
+      finds, course: s.course, wd: s.wd,
+      courseEnd: this.d(endOff), earliest: this.d(earliestOff),
+      verdict: ok ? 'Отлов 12.12 не попадает в срок ожидания' : 'Конфликт: отлов 12.12 раньше конца срока ожидания',
+      verdictSub: ok ? 'В календаре партии появится отметка «срок ожидания до ' + this.d(earliestOff - 1) + '». Айгуль Т. получит задачу на ' + s.course + ' дн.' : 'План отлова будет заблокирован. Перенесите отлов на ' + this.d(earliestOff) + ' или выберите другой препарат. Отловить раньше можно только с указанием причины — она сохранится в истории.',
+      boxStyle: 'margin:0 16px;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;' + (ok ? 'background:#E3F1E8;color:#14532F;border:1px solid #9CCBAF' : 'background:#F9E3E4;color:#8A1820;border:2px solid #B3202A'),
+      incCourse: () => this.setState({ course: Math.min(10, s.course + 1) }), decCourse: () => this.setState({ course: Math.max(1, s.course - 1) }),
+      incWd: () => this.setState({ wd: Math.min(30, s.wd + 1) }), decWd: () => this.setState({ wd: Math.max(0, s.wd - 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>

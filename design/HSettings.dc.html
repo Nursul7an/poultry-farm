@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Настройки фермы</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EEF1F3}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.nav{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:8px;color:#C9D3DB;text-decoration:none;font-size:14px}
+.nav:hover{background:#24313E;color:#FFFFFF}
+.navon{background:#24313E;color:#FFFFFF;font-weight:600}
+.sub{padding-left:28px;font-size:13px;min-height:34px}
+.panel{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:14px 16px;box-sizing:border-box}
+.kpi{flex:1 1 150px;display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px}
+.kl{font-size:12px;color:#52606D}
+.kv{font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-weight:500;color:#52606D;text-align:right;padding:8px 10px;border-bottom:1px solid #D5DBE0;white-space:nowrap;font-size:12px}
+th:first-child,td:first-child{text-align:left}
+td{padding:0 10px;height:44px;border-bottom:1px solid #EEF1F3;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.btn{min-height:40px;padding:0 16px;border-radius:8px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.btnp{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.chip{min-height:36px;padding:0 12px;border-radius:8px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.inp{min-height:40px;border-radius:8px;border:1px solid #B9C3CB;padding:0 10px;font:inherit;font-size:14px;color:#18212B;box-sizing:border-box}
+.btn:focus-visible,.chip:focus-visible,.nav:focus-visible,.inp:focus{outline:3px solid #0D5C7D;outline-offset:2px}
+.line{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:8px 0;border-bottom:1px solid #EEF1F3}
+.fl{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#52606D}
+.th{width:90px;text-align:right}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;background:#EEF1F3">
+  <aside style="flex:1 1 220px;max-width:230px;background:#18212B;padding:16px 12px;display:flex;flex-direction:column;gap:2px;box-sizing:border-box">
+    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма</div>
+    <a class="nav" href="HFarm.dc.html">Ферма</a>
+    <a class="nav" href="HBatch.dc.html">Партия</a>
+    <a class="nav sub" href="HBatch.dc.html">Посадка</a>
+    <a class="nav sub" href="HCatch.dc.html">Отлов и продажа</a>
+    <a class="nav" href="HCosts.dc.html">Корм и затраты</a>
+    <a class="nav" href="HReport.dc.html">Отчёты</a>
+    <a class="nav navon" href="HSettings.dc.html">Настройки</a>
+  </aside>
+  <main style="flex:999 1 560px;min-width:0;padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+    <header style="display:flex;flex-direction:column">
+      <span style="font-size:13px;color:#52606D">Меняет только руководитель · изменения сохраняются в истории</span>
+      <h1 style="margin:0;font-size:28px;font-weight:600">Настройки фермы</h1>
+    </header>
+
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <section class="panel" style="flex:3 1 560px;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h2 style="margin:0;font-size:16px">Птичники</h2><button class="btn">Добавить птичник</button></div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Птичник</th><th>Площадь, м²</th><th>Поение</th><th>Кормление</th><th>Водосчётчик</th><th>Работник</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:600">П-1</td><td>1 000</td><td style="text-align:left">ниппели</td><td style="text-align:left">чашки</td><td style="color:#1D7044">● есть</td><td style="text-align:left">Айгуль Т.</td></tr>
+              <tr><td style="font-weight:600">П-2</td><td>1 000</td><td style="text-align:left">ниппели</td><td style="text-align:left">чашки</td><td style="color:#1D7044">● есть</td><td style="text-align:left">Айгуль Т.</td></tr>
+              <tr><td style="font-weight:600">П-3</td><td>1 000</td><td style="text-align:left">ниппели</td><td style="text-align:left">цепной</td><td style="color:#1D7044">● есть</td><td style="text-align:left">Нурлан Ж.</td></tr>
+              <tr><td style="font-weight:600">П-4</td><td>1 000</td><td style="text-align:left">ниппели</td><td style="text-align:left">цепной</td><td style="color:#A35200;font-weight:600">▲ нет — вода не считается</td><td style="text-align:left">Нурлан Ж.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="panel" style="flex:2 1 360px;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><h2 style="margin:0;font-size:16px">Работники</h2><button class="btn btnp">Пригласить</button></div>
+        <div class="line"><span style="display:flex;flex-direction:column"><b>Айгуль Т.</b><span style="font-size:12px;color:#52606D">+996 ••• •• 41 · П-1, П-2</span></span><span style="color:#1D7044;font-size:13px">активна · сегодня 09:42</span></div>
+        <div class="line"><span style="display:flex;flex-direction:column"><b>Нурлан Ж.</b><span style="font-size:12px;color:#52606D">+996 ••• •• 17 · П-3, П-4</span></span><span style="color:#A35200;font-size:13px">последняя запись 23.11</span></div>
+        <div class="line"><span style="display:flex;flex-direction:column"><b>Руководитель</b><span style="font-size:12px;color:#52606D">все птичники · все права</span></span><span style="font-size:13px;color:#52606D">вы</span></div>
+        <span style="font-size:12px;color:#52606D;display:block;padding-top:8px">Вход по номеру телефона и PIN. Работник видит только свои птичники и правит журнал до 48 ч.</span>
+      </section>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <section class="panel" style="flex:3 1 560px;min-width:0">
+        <h2 style="margin:0 0 8px;font-size:16px">Пороги предупреждений</h2>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Предупреждение</th><th>Порог</th><th style="text-align:left">Единица</th></tr></thead>
+            <tbody>
+<tr><td style="font-weight:500">Падёж за 1-ю неделю</td><td><input class="inp num th" aria-label="Падёж за 1-ю неделю" value="0,7"></td><td style="text-align:left;color:#52606D">% (тревога > 1%)</td></tr>
+<tr><td style="font-weight:500">Скачок падежа</td><td><input class="inp num th" aria-label="Скачок падежа" value="2"></td><td style="text-align:left;color:#52606D">× к среднему за 3 дня</td></tr>
+<tr><td style="font-weight:500">Изменение воды</td><td><input class="inp num th" aria-label="Изменение воды" value="15"></td><td style="text-align:left;color:#52606D">% к вчера</td></tr>
+<tr><td style="font-weight:500">Вода : корм</td><td><input class="inp num th" aria-label="Вода : корм" value="1,6–1,8"></td><td style="text-align:left;color:#52606D">при 21 °C, +6,5% на °C</td></tr>
+<tr><td style="font-weight:500">Температура</td><td><input class="inp num th" aria-label="Температура" value="1,5"></td><td style="text-align:left;color:#52606D">°C от цели AA</td></tr>
+<tr><td style="font-weight:500">Масса / однородность</td><td><input class="inp num th" aria-label="Масса / однородность" value="5 / 10"></td><td style="text-align:left;color:#52606D">% от нормы / CV%</td></tr>
+<tr><td style="font-weight:500">Корм в бункере</td><td><input class="inp num th" aria-label="Корм в бункере" value="2"></td><td style="text-align:left;color:#52606D">дня</td></tr>
+<tr><td style="font-weight:500">Нет журнала</td><td><input class="inp num th" aria-label="Нет журнала" value="11:00"></td><td style="text-align:left;color:#52606D">время</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <span style="font-size:12px;color:#52606D">Если для птичника в один день сработали 2 и больше — одно предупреждение «Возможна болезнь». Значения по умолчанию — из справочника Arbor Acres.</span>
+      </section>
+      <section class="panel" style="flex:2 1 360px;min-width:0;display:flex;flex-direction:column;gap:4px">
+        <h2 style="margin:0 0 4px;font-size:16px">Нормы и учёт</h2>
+        <div class="line"><span>Кросс и нормы</span><span>Arbor Acres, смешанный пол</span></div>
+        <div class="line"><span>Температура по возрасту</span><span style="color:#1D7044">AA Табл. 2 и 3 · загружено</span></div>
+        <div class="line"><span>Масса и корм по дням</span><span style="color:#A35200;font-weight:600">▲ нужен AA Performance Objectives</span></div>
+        <div class="line"><span>Учётный день</span><span>08:00 → 08:00</span></div>
+        <div class="line"><span>Валюта</span><span>сом</span></div>
+        <div class="line"><span>Уведомления</span><span>Telegram · сводка в 18:00</span></div>
+        <div class="line"><span>Язык</span><span>Русский</span></div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

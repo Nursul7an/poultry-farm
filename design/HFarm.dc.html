@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Ферма — руководитель</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EEF1F3}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.nav{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:8px;color:#C9D3DB;text-decoration:none;font-size:14px}
+.nav:hover{background:#24313E;color:#FFFFFF}
+.navon{background:#24313E;color:#FFFFFF;font-weight:600}
+.sub{padding-left:28px;font-size:13px;min-height:34px}
+.panel{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px}
+.kpi{flex:1 1 150px;display:flex;flex-direction:column;gap:2px;padding:10px 14px;background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px}
+.kl{font-size:12px;color:#52606D}
+.kv{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-weight:500;color:#52606D;text-align:right;padding:8px 10px;border-bottom:1px solid #D5DBE0;white-space:nowrap;font-size:12px}
+th:first-child,td:first-child{text-align:left}
+td{padding:0 10px;height:48px;border-bottom:1px solid #EEF1F3;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:hover td{background:#F6F8F9}
+.al{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;padding:10px 14px;border:0;border-bottom:1px solid #EEF1F3;background:#FFFFFF;font:inherit;color:#18212B;cursor:pointer}
+.al:hover{background:#F6F8F9}
+.alon{background:#E6F0F5}
+.al:focus-visible,.btn:focus-visible,.nav:focus-visible,.inp:focus{outline:3px solid #0D5C7D;outline-offset:-3px}
+.btn{min-height:36px;padding:0 14px;border-radius:8px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.btnp{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.inp{min-height:36px;border-radius:8px;border:1px solid #B9C3CB;padding:0 10px;font:inherit;font-size:14px;flex:1;min-width:160px;color:#18212B}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;background:#EEF1F3">
+
+  <aside style="flex:1 1 220px;max-width:230px;background:#18212B;padding:16px 12px;display:flex;flex-direction:column;gap:2px;box-sizing:border-box">
+    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма</div>
+    <a class="nav navon" href="HFarm.dc.html">Ферма <span class="num" style="margin-left:auto;background:#B3202A;color:#FFFFFF;border-radius:999px;padding:0 8px;font-size:12px">5</span></a>
+    <a class="nav" href="HBatch.dc.html">Партия</a>
+    <a class="nav sub" href="HBatch.dc.html">Посадка</a>
+    <a class="nav sub" href="HCatch.dc.html">Отлов и продажа</a>
+    <a class="nav" href="HCosts.dc.html">Корм и затраты</a>
+    <a class="nav" href="HReport.dc.html">Отчёты</a>
+    <a class="nav" href="HSettings.dc.html">Настройки</a>
+  </aside>
+
+  <main style="flex:999 1 560px;min-width:0;padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+    <header style="display:flex;flex-wrap:wrap;gap:16px 32px;align-items:flex-end">
+      <div style="display:flex;flex-direction:column">
+        <span style="font-size:13px;color:#52606D">Партия 06/2026 · посадка 01.11 · 4 птичника · 68 000 гол. · обновлено 11:05</span>
+        <h1 style="margin:0;font-size:28px;font-weight:600">День 23 · все птичники</h1>
+      </div>
+      <div style="flex:1;min-width:320px;position:relative;height:40px" role="img" aria-label="Линейка возраста, день 23 из 42">
+        <div style="position:absolute;left:0;right:0;top:12px;height:6px;border-radius:3px;background:#D5DBE0"></div>
+        <div style="position:absolute;left:0;width:54.8%;top:12px;height:6px;border-radius:3px;background:#0D5C7D"></div>
+        <div style="position:absolute;left:16.7%;top:8px;width:2px;height:14px;background:#52606D"></div>
+        <div style="position:absolute;left:23.8%;top:8px;width:2px;height:14px;background:#52606D"></div>
+        <div style="position:absolute;left:42.9%;top:8px;width:2px;height:14px;background:#52606D"></div>
+        <div style="position:absolute;left:59.5%;top:8px;width:2px;height:14px;background:#A35200"></div>
+        <div style="position:absolute;left:92.9%;top:8px;width:2px;height:14px;background:#52606D"></div>
+        <div style="position:absolute;left:calc(54.8% - 7px);top:8px;width:14px;height:14px;border-radius:50%;background:#FFFFFF;border:3px solid #0D5C7D;box-sizing:border-box"></div>
+        <span style="position:absolute;left:15%;top:24px;font-size:11px;color:#52606D">7 контроль</span>
+        <span style="position:absolute;left:23%;top:24px;font-size:11px;color:#52606D">10 рост</span>
+        <span style="position:absolute;left:42%;top:24px;font-size:11px;color:#52606D">18 гранула</span>
+        <span style="position:absolute;left:58.5%;top:24px;font-size:11px;color:#A35200;font-weight:600">25 финиш</span>
+        <span style="position:absolute;right:0;top:24px;font-size:11px;color:#52606D">41 отлов 12.12</span>
+      </div>
+    </header>
+
+    <div style="display:flex;flex-wrap:wrap;gap:12px">
+      <div class="kpi"><span class="kl">Живых</span><span class="kv">66 748</span></div>
+      <div class="kpi"><span class="kl">Сохранность</span><span class="kv">98,2%</span></div>
+      <div class="kpi"><span class="kl">Масса, день 21</span><span class="kv">1 003 г</span><span class="kl">норма* 1 000</span></div>
+      <div class="kpi"><span class="kl">FCR (оценка)</span><span class="kv">1,36</span></div>
+      <div class="kpi"><span class="kl"><a href="HCosts.dc.html">Затраты на сегодня</a></span><span class="kv">10,8 млн</span><span class="kl">сом* · 160 на голову</span></div>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <section class="panel" style="flex:3 1 600px;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">
+          <h2 style="margin:0;font-size:16px;font-weight:600">Птичники сегодня</h2>
+          <span style="font-size:12px;color:#52606D">● норма · ▲ внимание · ■ тревога</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Птичник</th><th>Живых</th><th>Сохр., %</th><th>Падёж сег./вчера</th><th>Корм, г/гол</th><th>Вода:корм</th><th>t раб., °C</th><th>Масса д21</th><th>CV%</th><th>Корма, дн.</th><th>Журнал</th></tr></thead>
+            <tbody>
+              <sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+                <tr>
+                  <td><a href="HHouse.dc.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:#18212B"><span style="{{r.mark}}" aria-hidden="true">{{r.sym}}</span><span style="display:flex;flex-direction:column;line-height:1.2"><b>{{r.h}}</b><span style="font-size:12px;color:#52606D">{{r.who}}</span></span></a></td>
+                  <td>{{r.alive}}</td><td>{{r.surv}}</td>
+                  <td><span style="{{r.dS}}">{{r.d}}</span></td>
+                  <td>{{r.feed}}</td>
+                  <td><span style="{{r.wS}}">{{r.w}}</span></td>
+                  <td><span style="{{r.tS}}">{{r.t}}</span></td>
+                  <td>{{r.wt}}</td>
+                  <td><span style="{{r.cvS}}">{{r.cv}}</span></td>
+                  <td><span style="{{r.bS}}">{{r.b}}</span></td>
+                  <td><span style="{{r.logS}}">{{r.log}}</span></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:10px 16px;font-size:12px;color:#52606D">Нормы AA: вода:корм 1,6–1,8 (21 °C) · t на день 23 — 22 °C ±1,5 · CV% ≤ 10 · корма ≥ 2 дн. · * масса — заглушка до AA Performance Objectives; сом — пример</div>
+      </section>
+
+      <section class="panel" style="flex:2 1 360px;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+        <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #D5DBE0">
+          <h2 style="margin:0;font-size:16px;font-weight:600">Предупреждения</h2>
+          <span class="num" style="font-size:13px;color:#52606D">1 тревога · 4 внимание</span>
+        </div>
+        <sc-for list="{{alerts}}" as="a" hint-placeholder-count="5">
+          <button class="{{a.cls}}" onClick="{{a.pick}}" aria-pressed="{{a.on}}">
+            <span style="{{a.mark}}" aria-hidden="true">{{a.sym}}</span>
+            <span style="display:flex;flex-direction:column;gap:2px;flex:1">
+              <span style="font-size:14px;font-weight:600">{{a.h}} · {{a.title}}</span>
+              <span style="font-size:12px;color:#52606D">{{a.meta}}</span>
+            </span>
+            <sc-if value="{{a.noted}}" hint-placeholder-val="{{false}}"><span style="font-size:12px;color:#1D7044;font-weight:600">отмечено</span></sc-if>
+          </button>
+        </sc-for>
+        <div style="padding:14px 16px;background:#F6F8F9;display:flex;flex-direction:column;gap:10px;border-top:1px solid #D5DBE0">
+          <span style="font-size:15px;font-weight:600">{{sel.h}} · {{sel.title}}</span>
+          <span class="num" style="font-size:13px">{{sel.value}}</span>
+          <span style="font-size:12px;color:#52606D;font-weight:600">Возможные причины (AA, Прил. 5)</span>
+          <sc-for list="{{sel.causes}}" as="c" hint-placeholder-count="3">
+            <span style="font-size:13px;line-height:1.4;padding-left:12px;border-left:2px solid #D5DBE0">{{c}}</span>
+          </sc-for>
+          <sc-if value="{{selNoted}}" hint-placeholder-val="{{false}}">
+            <span style="font-size:13px;color:#1D7044;background:#E3F1E8;border-radius:8px;padding:8px 10px">Отмечено 11:12: {{selNote}}</span>
+          </sc-if>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <input class="inp" aria-label="Что сделано" value="{{draft}}" onInput="{{setDraft}}">
+            <button class="btn btnp" onClick="{{note}}">Отметить действие</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-if value="{{sel.treat}}" hint-placeholder-val="{{true}}"><a class="btn" href="HTreat.dc.html">Записать лечение</a></sc-if>
+            <a class="btn" href="HHouse.dc.html">Открыть птичник</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { sel: 0, notes: {}, draft: 'Позвонил ветврачу, приедет в 14:00' }; }
+  renderVals() {
+    const C = { ok: '#1D7044', warn: '#A35200', crit: '#B3202A', none: '#18212B' };
+    const st = (l) => 'color:' + C[l] + (l === 'warn' || l === 'crit' ? ';font-weight:600' : '');
+    const mk = (l) => ({ sym: l === 'ok' ? '●' : l === 'warn' ? '▲' : '■', mark: 'color:' + C[l] + ';font-size:12px;width:14px;display:inline-block' });
+    const R = [
+      ['П-1', 'Айгуль Т.', 'ok', '16 742', '98,2', '9 / 11', 'none', '118', '1,74', 'none', '22,3', 'none', '1 012', '8,9', 'none', '3,1', 'none', '08:12', 'none'],
+      ['П-2', 'Айгуль Т.', 'crit', '16 661', '98,1', '38 / 15', 'crit', '118', '1,41', 'warn', '22,4', 'none', '1 004', '9,6', 'none', '2,4', 'none', '09:42', 'none'],
+      ['П-3', 'Нурлан Ж.', 'warn', '16 733', '98,3', '10 / 8', 'none', '120', '1,69', 'none', '23,6', 'warn', '987', '11,2', 'warn', '2,7', 'none', '08:40', 'none'],
+      ['П-4', 'Нурлан Ж.', 'warn', '16 612', '98,0', '— / 14', 'none', '—', '—', 'none', '—', 'none', '998', '9,4', 'none', '1,6', 'warn', 'нет за 24.11', 'warn']
+    ];
+    const rows = R.map(r => ({ h: r[0], who: r[1], ...mk(r[2]), alive: r[3], surv: r[4], d: r[5], dS: st(r[6]), feed: r[7], w: r[8], wS: st(r[9]), t: r[10], tS: st(r[11]), wt: r[12], cv: r[13], cvS: st(r[14]), b: r[15], bS: st(r[16]), log: r[17], logS: st(r[18]) }));
+    const A = [
+      { l: 'crit', h: 'П-2', title: 'Возможна болезнь', meta: '09:42 · падёж 38 (×3,5) + вода −18% · позвоните ветврачу', value: 'Падёж 38 гол. = 0,23% (среднее 11) · вода 2 780 л, вода:корм 1,41 (норма 1,6–1,8)', treat: true,
+        causes: ['Два сигнала сразу — вероятна инфекция: вскрытие павших, ветврач', 'Проверить ниппели, напор, фильтр — птица могла остаться без воды', 'Метаболические причины (асцит, ВСС): вентиляция и рацион'] },
+      { l: 'warn', h: 'П-4', title: 'Нет журнала за 24.11', meta: '11:00 · Нурлан Ж.', value: 'Последний журнал: 23.11, 18:05', treat: false, causes: ['Позвонить работнику', 'Возможно, запись ждёт отправки — нет сети в П-4'] },
+      { l: 'warn', h: 'П-4', title: 'Корма на 1,6 дня', meta: '08:00', value: 'В бункере 3,2 т · расход 2,0 т/сут · порог 2 дня', treat: false, causes: ['Заказать финишный корм: переход с 25-го дня', 'Записать поставку в «Корм и затраты»'] },
+      { l: 'warn', h: 'П-3', title: 'Однородность CV% 11,2', meta: 'взвешивание 22.11', value: 'Средняя 987 г · SD 111 г · 167 гол.', treat: false, causes: ['Фронт кормления и поения, плотность', 'Температура и сквозняки по зонам', 'Смешаны цыплята от РС разного возраста?'] },
+      { l: 'warn', h: 'П-3', title: 't 23,6 °C (цель 22 ±1,5)', meta: '08:40', value: 'Мин 22,8 · макс 24,0 · рабочая 23,6 °C', treat: false, causes: ['Птица с отведёнными крыльями, частое дыхание — снизить t', 'Проверить вентиляцию и обогрев'] }
+    ];
+    const s = this.state;
+    const alerts = A.map((a, i) => ({ ...a, ...mk(a.l), noted: !!s.notes[i], on: i === s.sel, cls: i === s.sel ? 'al alon' : 'al', pick: () => this.setState({ sel: i }) }));
+    return { rows, alerts, sel: A[s.sel], selNoted: !!s.notes[s.sel], selNote: s.notes[s.sel] || '', draft: s.draft,
+      setDraft: (e) => this.setState({ draft: e.target.value }),
+      note: () => this.setState({ notes: { ...s.notes, [s.sel]: s.draft || 'без комментария' } }) };
+  }
+}
+</script>
+</body>
+</html>

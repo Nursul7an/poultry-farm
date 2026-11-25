@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Журнал дня — П-2</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.row{background:#FFFFFF;border-top:1px solid #D5DBE0;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.lbl{font-size:15px;font-weight:600}
+.hint{font-size:13px;color:#52606D}
+.step{width:56px;height:56px;border-radius:10px;border:1px solid #B9C3CB;background:#F6F8F9;font:inherit;font-size:28px;color:#18212B;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.stepval{flex:1;text-align:center;font-size:32px;font-weight:600;font-variant-numeric:tabular-nums}
+.inp{height:52px;border-radius:10px;border:1px solid #B9C3CB;padding:0 12px;font:inherit;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;width:100%;box-sizing:border-box;color:#18212B;background:#FFFFFF}
+.inp:focus,.step:focus-visible,.chip:focus-visible,.btn:focus-visible{outline:3px solid #0D5C7D;outline-offset:2px}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.btn{min-height:56px;border-radius:12px;border:0;font:inherit;font-size:17px;font-weight:600;cursor:pointer;width:100%}
+.res{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;background:#FFFFFF;border-top:1px solid #D5DBE0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden;position:relative">
+
+  <header style="background:#FFFFFF;padding:12px 16px;border-bottom:1px solid #D5DBE0;display:flex;align-items:center;gap:12px">
+    <a href="Main.dc.html" aria-label="Назад к экрану Сегодня" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:#18212B">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <div style="flex:1;display:flex;flex-direction:column">
+      <span style="font-size:17px;font-weight:600">Журнал · П-2 · день 23</span>
+      <span class="num" style="font-size:13px;color:#52606D">24.11 · поголовье 16 661</span>
+    </div>
+    <button class="chip" onClick="{{toggleNet}}" style="{{netStyle}}" aria-label="Переключить имитацию связи">{{netLabel}}</button>
+  </header>
+
+  <sc-if value="{{isForm}}" hint-placeholder-val="{{true}}">
+  <main style="flex:1;overflow-y:auto;padding-bottom:96px">
+    <div class="row" style="border-top:0">
+      <span class="lbl">Падёж, голов</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="step" onClick="{{decDeaths}}" aria-label="Падёж минус один">−</button>
+        <span class="stepval">{{deaths}}</span>
+        <button class="step" onClick="{{incDeaths}}" aria-label="Падёж плюс один">+</button>
+      </div>
+      <span class="hint">Среднее за 7 дней: 11 · норма до 0,1% в день (≈ 17 гол.)</span>
+    </div>
+
+    <div class="row">
+      <span class="lbl">Выбраковка, голов</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="step" onClick="{{decCulls}}" aria-label="Брак минус один">−</button>
+        <span class="stepval">{{culls}}</span>
+        <button class="step" onClick="{{incCulls}}" aria-label="Брак плюс один">+</button>
+      </div>
+      <sc-if value="{{hasCulls}}" hint-placeholder-val="{{true}}">
+        <span class="hint">Причина</span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{reasons}}" as="r" hint-placeholder-count="5">
+            <button class="{{r.cls}}" onClick="{{r.pick}}" aria-pressed="{{r.on}}">{{r.label}}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+
+    <div class="row">
+      <label class="lbl" for="feed">Корм выдан, кг</label>
+      <input id="feed" class="inp" inputmode="decimal" value="{{feed}}" onInput="{{setFeed}}">
+      <span class="hint num">Ростовой рацион · {{feedPerBird}} г/гол</span>
+    </div>
+
+    <div class="row">
+      <label class="lbl" for="meter">Водосчётчик, м³</label>
+      <input id="meter" class="inp" inputmode="decimal" value="{{meter}}" onInput="{{setMeter}}">
+      <span class="hint num">Вчера 1 036,42 → расход {{waterL}} л · вода:корм {{ratio}}</span>
+    </div>
+
+    <div class="row">
+      <span class="lbl">Микроклимат</span>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="hint">t мин, °C</span><input class="inp" inputmode="decimal" value="{{tmin}}" onInput="{{setTmin}}"></label>
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="hint">t макс, °C</span><input class="inp" inputmode="decimal" value="{{tmax}}" onInput="{{setTmax}}"></label>
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="hint">ОВ, %</span><input class="inp" inputmode="decimal" value="{{rh}}" onInput="{{setRh}}"></label>
+      </div>
+      <span class="hint">Цель на день 23: 22 °C (±1,5), ОВ 50–70%</span>
+    </div>
+
+    <div class="row">
+      <span class="lbl">Заметка или фото</span>
+      <div style="display:flex;gap:8px">
+        <button class="chip" style="flex:1">Фото</button>
+        <button class="chip" style="flex:1">Голосом</button>
+        <button class="chip" style="flex:1">Текст</button>
+      </div>
+    </div>
+  </main>
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:12px 16px 28px;background:#FFFFFF;border-top:1px solid #D5DBE0">
+    <button class="btn" onClick="{{save}}" style="background:#0D5C7D;color:#FFFFFF">Сохранить журнал</button>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{isConfirm}}" hint-placeholder-val="{{false}}">
+  <div style="flex:1;background:rgba(24,33,43,0.45);display:flex;align-items:flex-end">
+    <div role="dialog" aria-label="Проверьте значение" style="background:#FFFFFF;border-radius:16px 16px 0 0;padding:20px 16px 32px;display:flex;flex-direction:column;gap:12px;width:100%;box-sizing:border-box">
+      <span style="font-size:20px;font-weight:600">Падёж {{deaths}} — это верно?</span>
+      <span style="font-size:15px;color:#52606D;line-height:1.45">Это в {{deathsX}} раз больше среднего за 7 дней (11). Если верно — руководитель получит тревогу сразу после сохранения.</span>
+      <button class="btn" onClick="{{confirmSave}}" style="background:#B3202A;color:#FFFFFF">Да, падёж {{deaths}} — сохранить</button>
+      <button class="btn" onClick="{{backToForm}}" style="background:#F6F8F9;color:#18212B;border:1px solid #B9C3CB">Исправить</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{isSaved}}" hint-placeholder-val="{{false}}">
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column">
+    <div style="padding:20px 16px;display:flex;flex-direction:column;gap:6px;background:#FFFFFF">
+      <span style="font-size:22px;font-weight:600">{{savedTitle}}</span>
+      <span style="font-size:15px;color:#52606D">{{savedSub}}</span>
+    </div>
+    <h2 style="margin:16px 16px 8px;font-size:15px;color:#52606D;font-weight:600">Проверка по нормам Arbor Acres</h2>
+    <sc-for list="{{results}}" as="x" hint-placeholder-count="4">
+      <div class="res">
+        <span style="{{x.dotStyle}}" aria-hidden="true"></span>
+        <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+          <span style="font-size:15px;font-weight:600">{{x.title}} · <span style="{{x.wordStyle}}">{{x.word}}</span></span>
+          <span class="num" style="font-size:13px;color:#52606D;line-height:1.4">{{x.detail}}</span>
+        </div>
+      </div>
+    </sc-for>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+      <a href="Main.dc.html" class="btn" style="background:#0D5C7D;color:#FFFFFF;display:flex;align-items:center;justify-content:center;text-decoration:none">К задачам дня</a>
+      <button class="btn" onClick="{{backToForm}}" style="background:#F6F8F9;color:#18212B;border:1px solid #B9C3CB">Изменить (до 48 ч)</button>
+    </div>
+  </main>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 'form', deaths: 38, culls: 2, reason: 'Ноги', feed: '1970', meter: '1039,20', tmin: '21,6', tmax: '23,0', rh: '62', online: true };
+  }
+  n(v) { return parseFloat(String(v).replace(/\s/g, '').replace(',', '.')) || 0; }
+  fmt(v, d) { return v.toLocaleString('ru-RU', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  renderVals() {
+    const s = this.state;
+    const birds = 16661, prev = 1036.42, avg = 11;
+    const feed = this.n(s.feed);
+    const waterL = Math.max(0, Math.round((this.n(s.meter) - prev) * 1000));
+    const ratio = feed > 0 ? waterL / feed : 0;
+    const tmin = this.n(s.tmin), tmax = this.n(s.tmax), rh = this.n(s.rh);
+    const eff = tmin + (tmax - tmin) * 2 / 3;
+    const deathPct = (s.deaths + s.culls) / birds * 100;
+    const set = (k) => (e) => this.setState({ [k]: e.target.value });
+    const tone = (lvl) => {
+      const c = lvl === 'ok' ? '#1D7044' : lvl === 'warn' ? '#A35200' : '#B3202A';
+      return { dotStyle: 'width:12px;height:12px;border-radius:' + (lvl === 'ok' ? '50%' : '2px') + ';background:' + c + ';margin-top:5px;flex:none', wordStyle: 'color:' + c, word: lvl === 'ok' ? 'норма' : lvl === 'warn' ? 'внимание' : 'тревога' };
+    };
+    const results = [
+      { title: 'Падёж и брак', ...tone(s.deaths > avg * 3 ? 'crit' : deathPct > 0.1 ? 'warn' : 'ok'), detail: (s.deaths + s.culls) + ' гол. = ' + this.fmt(deathPct, 2) + '% · норма до 0,10% в день' },
+      { title: 'Вода : корм', ...tone(ratio < 1.6 || ratio > 1.9 ? 'warn' : 'ok'), detail: this.fmt(waterL, 0) + ' л / ' + this.fmt(feed, 0) + ' кг = ' + this.fmt(ratio, 2) + ' · норма 1,6–1,8 при 21 °C. Проверьте ниппели и напор.' },
+      { title: 'Температура', ...tone(Math.abs(eff - 22) > 1.5 ? 'warn' : 'ok'), detail: 'Рабочая t ' + this.fmt(eff, 1) + ' °C (мин + ⅔ разницы) · цель 22 ±1,5' },
+      { title: 'Влажность', ...tone(rh < 50 || rh > 70 ? 'warn' : 'ok'), detail: 'ОВ ' + this.fmt(rh, 0) + '% · после 18 дня выше 70% — риск мокрой подстилки' }
+    ];
+    const reasons = ['Ноги', 'Отставание', 'Травма', 'Асцит', 'Другое'].map(l => ({
+      label: l, on: s.reason === l, cls: s.reason === l ? 'chip chipon' : 'chip', pick: () => this.setState({ reason: l })
+    }));
+    const doSave = () => this.setState({ step: 'saved' });
+    return {
+      isForm: s.step === 'form', isConfirm: s.step === 'confirm', isSaved: s.step === 'saved',
+      deaths: s.deaths, culls: s.culls, hasCulls: s.culls > 0, reasons,
+      feed: s.feed, meter: s.meter, tmin: s.tmin, tmax: s.tmax, rh: s.rh,
+      feedPerBird: this.fmt(feed / birds * 1000, 0), waterL: this.fmt(waterL, 0), ratio: this.fmt(ratio, 2),
+      deathsX: this.fmt(s.deaths / avg, 1), results,
+      incDeaths: () => this.setState({ deaths: s.deaths + 1 }), decDeaths: () => this.setState({ deaths: Math.max(0, s.deaths - 1) }),
+      incCulls: () => this.setState({ culls: s.culls + 1 }), decCulls: () => this.setState({ culls: Math.max(0, s.culls - 1) }),
+      setFeed: set('feed'), setMeter: set('meter'), setTmin: set('tmin'), setTmax: set('tmax'), setRh: set('rh'),
+      save: () => (s.deaths > avg * 5 ? this.setState({ step: 'confirm' }) : doSave()),
+      confirmSave: doSave, backToForm: () => this.setState({ step: 'form' }),
+      toggleNet: () => this.setState({ online: !s.online }),
+      netLabel: s.online ? 'В сети' : 'Нет сети',
+      netStyle: s.online ? 'color:#1D7044;border-color:#9CCBAF' : 'color:#3A4FA0;border-color:#3A4FA0;background:#E8EBF7',
+      savedTitle: s.online ? 'Журнал сохранён и отправлен' : 'Сохранено на телефоне',
+      savedSub: s.online ? '24.11, 09:42 · руководитель видит данные' : 'Отправится автоматически, когда появится связь · 1 запись в очереди'
+    };
+  }
+}
+</script>
+</body>
+</html>

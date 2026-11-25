@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Отчёт партии 05/2026</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EEF1F3}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.nav{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:8px;color:#C9D3DB;text-decoration:none;font-size:14px}
+.nav:hover{background:#24313E;color:#FFFFFF}
+.navon{background:#24313E;color:#FFFFFF;font-weight:600}
+.sub{padding-left:28px;font-size:13px;min-height:34px}
+.panel{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:14px 16px;box-sizing:border-box}
+.kpi{flex:1 1 150px;display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px}
+.kl{font-size:12px;color:#52606D}
+.kv{font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-weight:500;color:#52606D;text-align:right;padding:8px 10px;border-bottom:1px solid #D5DBE0;white-space:nowrap;font-size:12px}
+th:first-child,td:first-child{text-align:left}
+td{padding:0 10px;height:44px;border-bottom:1px solid #EEF1F3;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.btn{min-height:40px;padding:0 16px;border-radius:8px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.btnp{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.chip{min-height:36px;padding:0 12px;border-radius:8px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.inp{min-height:40px;border-radius:8px;border:1px solid #B9C3CB;padding:0 10px;font:inherit;font-size:14px;color:#18212B;box-sizing:border-box}
+.btn:focus-visible,.chip:focus-visible,.nav:focus-visible,.inp:focus{outline:3px solid #0D5C7D;outline-offset:2px}
+.line{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:8px 0;border-bottom:1px solid #EEF1F3}
+.fl{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#52606D}
+
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;background:#EEF1F3">
+  <aside style="flex:1 1 220px;max-width:230px;background:#18212B;padding:16px 12px;display:flex;flex-direction:column;gap:2px;box-sizing:border-box">
+    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма</div>
+    <a class="nav" href="HFarm.dc.html">Ферма</a>
+    <a class="nav" href="HBatch.dc.html">Партия</a>
+    <a class="nav sub" href="HBatch.dc.html">Посадка</a>
+    <a class="nav sub" href="HCatch.dc.html">Отлов и продажа</a>
+    <a class="nav" href="HCosts.dc.html">Корм и затраты</a>
+    <a class="nav navon" href="HReport.dc.html">Отчёты</a>
+    <a class="nav" href="HSettings.dc.html">Настройки</a>
+  </aside>
+  <main style="flex:999 1 560px;min-width:0;padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+    <header style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end">
+      <div style="display:flex;flex-direction:column">
+        <span style="font-size:13px;color:#52606D">Посадка 06.09.2026 · отлов 17–18.10 · возраст 42 дн. · закрыта 20.10 · суммы в сомах* (пример)</span>
+        <h1 style="margin:0;font-size:28px;font-weight:600;display:flex;gap:12px;align-items:center;flex-wrap:wrap">Отчёт партии 05/2026 <span style="font-size:13px;font-weight:600;color:#52606D;border:1px solid #B9C3CB;border-radius:999px;padding:2px 10px">закрыта · только чтение</span></h1>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn">PDF</button><button class="btn">XLSX</button><button class="btn">Открыть заново</button></div>
+    </header>
+
+    <div style="display:flex;flex-wrap:wrap;gap:12px">
+      <div class="kpi" style="border:2px solid #0D5C7D"><span class="kl">Прибыль на кг живого веса</span><span class="kv" style="color:#0D5C7D">17,0 сом</span><span class="kl">прошлая партия 14,2</span></div>
+      <div class="kpi"><span class="kl">Прибыль партии</span><span class="kv">2,71 млн</span><span class="kl">39,9 сом на посаженную голову</span></div>
+      <div class="kpi"><span class="kl">ИЭП (EPEF)</span><span class="kv">296</span><span class="kl">прошлая 301 · цель 310</span></div>
+      <div class="kpi"><span class="kl">Сохранность</span><span class="kv">95,6%</span><span class="kl">падёж 3,59% · брак 0,81%</span></div>
+      <div class="kpi"><span class="kl">FCR</span><span class="kv">1,89</span><span class="kl">301,2 т / 159,4 т</span></div>
+      <div class="kpi"><span class="kl">Средняя масса</span><span class="kv">2,457 кг</span><span class="kl">привес 57,5 г/сут</span></div>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <section class="panel" style="flex:1 1 420px;min-width:0">
+        <h2 style="margin:0 0 4px;font-size:16px">Деньги</h2>
+        <div class="line"><span>Выручка: 159 360 кг × 140</span><span class="num" style="font-weight:600">22 310 400</span></div>
+        <div class="line"><span>− Затраты</span><span class="num" style="font-weight:600">19 598 600</span></div>
+        <div class="line" style="font-size:16px;font-weight:600;color:#1D7044"><span>Прибыль</span><span class="num">2 711 800 · 12,2%</span></div>
+        <div class="line"><span>Себестоимость 1 кг живого веса</span><span class="num">123,0</span></div>
+        <div class="line"><span>Получено от покупателей</span><span class="num">20 810 400</span></div>
+        <div class="line" style="color:#A35200;font-weight:600"><span>Долг: Оптовик 2, срок 30.10</span><span class="num">1 500 000</span></div>
+      </section>
+      <section class="panel" style="flex:1 1 420px;min-width:0">
+        <h2 style="margin:0 0 4px;font-size:16px">Затраты по статьям</h2>
+        <div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">
+          <div style="display:flex;justify-content:space-between;font-size:14px"><span>Корм</span><span class="num">11 445 600 <span style="color:#52606D;font-size:12px">· 58,4%</span></span></div>
+          <div style="height:6px;border-radius:3px;background:#EEF1F3"><div style="height:6px;border-radius:3px;background:#0D5C7D;width:100.0%"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">
+          <div style="display:flex;justify-content:space-between;font-size:14px"><span>Цыплята</span><span class="num">4 753 000 <span style="color:#52606D;font-size:12px">· 24,3%</span></span></div>
+          <div style="height:6px;border-radius:3px;background:#EEF1F3"><div style="height:6px;border-radius:3px;background:#8FB3C4;width:41.5%"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">
+          <div style="display:flex;justify-content:space-between;font-size:14px"><span>Газ и уголь</span><span class="num">1 150 000 <span style="color:#52606D;font-size:12px">· 5,9%</span></span></div>
+          <div style="height:6px;border-radius:3px;background:#EEF1F3"><div style="height:6px;border-radius:3px;background:#8FB3C4;width:10.0%"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">
+          <div style="display:flex;justify-content:space-between;font-size:14px"><span>Зарплата</span><span class="num">900 000 <span style="color:#52606D;font-size:12px">· 4,6%</span></span></div>
+          <div style="height:6px;border-radius:3px;background:#EEF1F3"><div style="height:6px;border-radius:3px;background:#8FB3C4;width:7.9%"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">
+          <div style="display:flex;justify-content:space-between;font-size:14px"><span>Электричество</span><span class="num">420 000 <span style="color:#52606D;font-size:12px">· 2,1%</span></span></div>
+          <div style="height:6px;border-radius:3px;background:#EEF1F3"><div style="height:6px;border-radius:3px;background:#8FB3C4;width:3.7%"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">
+          <div style="display:flex;justify-content:space-between;font-size:14px"><span>Прочее: бригада отлова, транспорт</span><span class="num">380 000 <span style="color:#52606D;font-size:12px">· 1,9%</span></span></div>
+          <div style="height:6px;border-radius:3px;background:#EEF1F3"><div style="height:6px;border-radius:3px;background:#8FB3C4;width:3.3%"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">
+          <div style="display:flex;justify-content:space-between;font-size:14px"><span>Ветпрепараты</span><span class="num">310 000 <span style="color:#52606D;font-size:12px">· 1,6%</span></span></div>
+          <div style="height:6px;border-radius:3px;background:#EEF1F3"><div style="height:6px;border-radius:3px;background:#8FB3C4;width:2.7%"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">
+          <div style="display:flex;justify-content:space-between;font-size:14px"><span>Подстилка</span><span class="num">180 000 <span style="color:#52606D;font-size:12px">· 0,9%</span></span></div>
+          <div style="height:6px;border-radius:3px;background:#EEF1F3"><div style="height:6px;border-radius:3px;background:#8FB3C4;width:1.6%"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">
+          <div style="display:flex;justify-content:space-between;font-size:14px"><span>Ветврач</span><span class="num">60 000 <span style="color:#52606D;font-size:12px">· 0,3%</span></span></div>
+          <div style="height:6px;border-radius:3px;background:#EEF1F3"><div style="height:6px;border-radius:3px;background:#8FB3C4;width:0.5%"></div></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <h2 style="margin:0 0 8px;font-size:16px">По птичникам</h2>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Птичник</th><th>Посажено</th><th>Сохр., %</th><th>Масса, кг</th><th>FCR</th><th>ИЭП</th><th>Падёж 0–7 дн., %</th><th>Работник</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight:600">П-1</td><td>16 980</td><td>96,0</td><td>2,48</td><td>1,86</td><td>305</td><td>0,62</td><td>Айгуль Т.</td></tr>
+            <tr><td style="font-weight:600">П-2</td><td>16 960</td><td>95,1</td><td>2,43</td><td>1,92</td><td>287</td><td>0,81</td><td>Айгуль Т.</td></tr>
+            <tr style="background:#EEF6F1"><td style="font-weight:600">П-3 · лучший</td><td>16 990</td><td>96,3</td><td>2,50</td><td>1,85</td><td style="font-weight:600;color:#1D7044">310</td><td>0,58</td><td>Нурлан Ж.</td></tr>
+            <tr><td style="font-weight:600">П-4</td><td>16 970</td><td>95,0</td><td>2,42</td><td>1,93</td><td style="font-weight:600;color:#B3202A">284</td><td style="color:#B3202A;font-weight:600">1,08</td><td>Нурлан Ж.</td></tr>
+          </tbody>
+          <tfoot><tr><td style="font-weight:600">Ферма</td><td style="font-weight:600">67 900</td><td style="font-weight:600">95,6</td><td style="font-weight:600">2,46</td><td style="font-weight:600">1,89</td><td style="font-weight:600">296</td><td>0,77</td><td></td></tr></tfoot>
+        </table>
+      </div>
+      <span style="font-size:12px;color:#52606D">ИЭП = сохранность % × масса кг / (возраст × FCR) × 100 · П-4: падёж за первую неделю &gt; 1% — проверить цыплят и брудер (AA, Прил. 5)</span>
+    </section>
+
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <section class="panel" style="flex:1 1 380px;min-width:0">
+        <h2 style="margin:0 0 4px;font-size:16px">Сверка птицы</h2>
+        <div class="line"><span>Посажено</span><span class="num">67 900</span></div>
+        <div class="line"><span>− Падёж</span><span class="num">2 440</span></div>
+        <div class="line"><span>− Выбраковка</span><span class="num">548</span></div>
+        <div class="line"><span>− Продано</span><span class="num">64 860</span></div>
+        <div class="line" style="font-weight:600;color:#1D7044"><span>Не объяснено</span><span class="num">52 (0,08%) · норма</span></div>
+      </section>
+      <section class="panel" style="flex:1 1 380px;min-width:0">
+        <h2 style="margin:0 0 4px;font-size:16px">Сверка корма</h2>
+        <div class="line"><span>Поступило</span><span class="num">303,0 т</span></div>
+        <div class="line"><span>− Остаток в бункерах</span><span class="num">1,8 т</span></div>
+        <div class="line"><span>= Израсходовано</span><span class="num">301,2 т</span></div>
+        <div class="line"><span>По журналам работников</span><span class="num">298,6 т</span></div>
+        <div class="line" style="font-weight:600;color:#1D7044"><span>Не объяснено</span><span class="num">2,6 т (0,9%) · в пределах 1%</span></div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

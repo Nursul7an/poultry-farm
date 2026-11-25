@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Сегодня — работник</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.task{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px;border:0;border-top:1px solid #D5DBE0;background:#FFFFFF;width:100%;text-align:left;font:inherit;color:#18212B;cursor:pointer;box-sizing:border-box}
+.task:focus-visible,.cta:focus-visible,.tab:focus-visible,.seg:focus-visible{outline:3px solid #0D5C7D;outline-offset:2px}
+.box{width:26px;height:26px;border-radius:6px;border:2px solid #52606D;flex:none;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+.boxon{background:#1D7044;border-color:#1D7044}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;font-size:12px;color:#52606D;text-decoration:none}
+.seg{flex:1;min-height:48px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:15px;font-weight:600;color:#18212B;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.segon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.tile{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:10px 12px}
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden">
+
+  <header style="background:#FFFFFF;padding:14px 16px 12px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:15px;color:#52606D">Айгуль Т. · 24 ноября</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:#1D7044;background:#E3F1E8;padding:6px 10px;border-radius:999px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+        Отправлено
+      </span>
+    </div>
+    <div style="display:flex" role="group" aria-label="Мои птичники">
+      <sc-for list="{{houses}}" as="h" hint-placeholder-count="2">
+        <button class="{{h.cls}}" style="{{h.radius}}" onClick="{{h.pick}}" aria-pressed="{{h.on}}">{{h.name}}<span style="{{h.dot}}" aria-hidden="true"></span></button>
+      </sc-for>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:8px">
+      <span class="num" style="font-size:40px;font-weight:600;line-height:1">День 23</span>
+      <span class="num" style="font-size:15px;color:#52606D">{{cur.alive}} птиц</span>
+    </div>
+    <div aria-label="Линейка возраста: день 23 из 42" role="img" style="position:relative;height:34px">
+      <div style="position:absolute;left:0;right:0;top:10px;height:6px;border-radius:3px;background:#D5DBE0"></div>
+      <div style="position:absolute;left:0;width:54.8%;top:10px;height:6px;border-radius:3px;background:#0D5C7D"></div>
+      <div style="position:absolute;left:16.7%;top:6px;width:2px;height:14px;background:#52606D"></div>
+      <div style="position:absolute;left:23.8%;top:6px;width:2px;height:14px;background:#52606D"></div>
+      <div style="position:absolute;left:42.9%;top:6px;width:2px;height:14px;background:#52606D"></div>
+      <div style="position:absolute;left:59.5%;top:6px;width:2px;height:14px;background:#A35200"></div>
+      <div style="position:absolute;left:calc(54.8% - 7px);top:6px;width:14px;height:14px;border-radius:50%;background:#FFFFFF;border:3px solid #0D5C7D;box-sizing:border-box"></div>
+      <span style="position:absolute;left:14%;top:22px;font-size:11px;color:#52606D">7</span>
+      <span style="position:absolute;left:21.5%;top:22px;font-size:11px;color:#52606D">10</span>
+      <span style="position:absolute;left:40.8%;top:22px;font-size:11px;color:#52606D">18</span>
+      <span style="position:absolute;left:56%;top:22px;font-size:11px;color:#A35200;font-weight:600">25 финиш</span>
+      <span style="position:absolute;right:0;top:22px;font-size:11px;color:#52606D">отлов</span>
+    </div>
+  </header>
+
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
+    <sc-if value="{{cur.hasHint}}" hint-placeholder-val="{{true}}">
+      <section style="margin:0 16px;background:#FFFFFF;border:1px solid #E7B98C;border-radius:12px;padding:12px 14px;display:flex;gap:12px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A35200" stroke-width="2" aria-hidden="true" style="flex:none;margin-top:2px"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18v.5"/></svg>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:15px;font-weight:600;color:#A35200">{{cur.hintTitle}}</span>
+          <span style="font-size:13px;color:#52606D;line-height:1.4">{{cur.hintText}}</span>
+        </div>
+      </section>
+    </sc-if>
+
+    <a href="WLog.dc.html" class="cta" style="margin:0 16px;min-height:64px;border-radius:12px;background:#0D5C7D;color:#FFFFFF;display:flex;align-items:center;justify-content:center;gap:10px;font-size:17px;font-weight:600;text-decoration:none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>
+      Записать день · {{cur.name}}
+    </a>
+
+    <section style="background:#FFFFFF;border-top:1px solid #D5DBE0;border-bottom:1px solid #D5DBE0">
+      <div style="padding:12px 16px 8px;display:flex;justify-content:space-between;align-items:baseline">
+        <h2 style="margin:0;font-size:17px;font-weight:600">Сегодня в {{cur.name}}</h2>
+        <span class="num" style="font-size:13px;color:#52606D">{{doneCount}} из {{taskCount}}</span>
+      </div>
+      <sc-for list="{{tasks}}" as="t" hint-placeholder-count="3">
+        <button class="task" onClick="{{t.toggle}}" aria-pressed="{{t.done}}">
+          <span class="{{t.boxClass}}">
+            <sc-if value="{{t.done}}" hint-placeholder-val="{{false}}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+            </sc-if>
+          </span>
+          <span style="display:flex;flex-direction:column;gap:2px;flex:1">
+            <span style="font-size:15px;font-weight:500">{{t.title}}</span>
+            <span style="font-size:13px;color:#52606D">{{t.sub}}</span>
+          </span>
+        </button>
+      </sc-for>
+    </section>
+
+    <section style="margin:0 16px;display:flex;flex-direction:column;gap:8px">
+      <h2 style="margin:0;font-size:15px;font-weight:600;color:#52606D">Вчера, день 22</h2>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+        <div class="tile"><div style="font-size:13px;color:#52606D">Падёж + брак</div><div class="num" style="font-size:20px;font-weight:600">{{cur.dead}}</div><div style="font-size:12px;color:#1D7044">норма</div></div>
+        <div class="tile"><div style="font-size:13px;color:#52606D">Корм</div><div class="num" style="font-size:20px;font-weight:600">{{cur.feed}}</div><div style="font-size:12px;color:#52606D">{{cur.gpb}}</div></div>
+        <div class="tile" style="{{cur.waterBorder}}"><div style="font-size:13px;color:#52606D">Вода</div><div class="num" style="font-size:20px;font-weight:600">{{cur.water}}</div><div style="{{cur.ratioStyle}}">{{cur.ratio}}</div></div>
+        <div class="tile"><div style="font-size:13px;color:#52606D">t мин / макс</div><div class="num" style="font-size:20px;font-weight:600">{{cur.t}}</div><div style="font-size:12px;color:#1D7044">цель 22° ±1,5</div></div>
+      </div>
+    </section>
+  </main>
+
+  <nav aria-label="Основное меню" style="display:flex;background:#FFFFFF;border-top:1px solid #D5DBE0;padding-bottom:20px">
+    <a href="Main.dc.html" class="tab" style="color:#0D5C7D;font-weight:600">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Сегодня</a>
+    <a href="WLog.dc.html" class="tab">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>Журнал</a>
+    <a href="WWeigh.dc.html" class="tab">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h16M6 20l2-12h8l2 12"/><circle cx="12" cy="5" r="2"/></svg>Взвешивание</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { h: 1, done: {} }; }
+  renderVals() {
+    const H = [
+      { name: 'П-1', alive: '16 742', dead: '9 + 2', feed: '1 980 кг', gpb: '118 г/гол', water: '3 450 л', ratio: 'вода:корм 1,74 · норма', t: '21,6 / 23,0°', hasHint: false, warn: false,
+        tasks: [['Обход утром и вечером', 'Распределение, дыхание, подстилка'], ['Напор ниппельных линий', 'Еженедельно'], ['Финишный корм с завтра', 'Проверить, что привезли в бункер']] },
+      { name: 'П-2', alive: '16 661', dead: '12 + 3', feed: '1 970 кг', gpb: '118 г/гол', water: '2 780 л', ratio: 'вода:корм 1,41 · норма 1,6–1,8', t: '21,4 / 23,1°', hasHint: true, warn: true,
+        hintTitle: 'Вода упала на 18%', hintText: 'Проверьте ниппели в конце линий и напор. Руководитель уже знает.',
+        tasks: [['Лечение: препарат с водой, день 1 из 5', 'Назначил руководитель · доза на бачке'], ['Обход утром и вечером', 'Распределение, дыхание, подстилка'], ['Финишный корм с завтра', 'Проверить, что привезли в бункер']] }
+    ];
+    const s = this.state, cur = H[s.h];
+    const houses = H.map((x, i) => ({ name: x.name, on: i === s.h, cls: i === s.h ? 'seg segon' : 'seg', radius: i === 0 ? 'border-radius:10px 0 0 10px' : 'border-radius:0 10px 10px 0;border-left:0',
+      dot: x.warn ? 'width:10px;height:10px;border-radius:2px;background:#E08A2E' : 'width:10px;height:10px;border-radius:50%;background:#3FA36B', pick: () => this.setState({ h: i }) }));
+    const tasks = cur.tasks.map((t, i) => { const k = s.h + '-' + i; return { title: t[0], sub: t[1], done: !!s.done[k], boxClass: s.done[k] ? 'box boxon' : 'box', toggle: () => this.setState({ done: { ...s.done, [k]: !s.done[k] } }) }; });
+    return { houses, tasks, taskCount: tasks.length, doneCount: tasks.filter(t => t.done).length,
+      cur: { ...cur, waterBorder: cur.warn ? 'border-color:#E7B98C' : '', ratioStyle: 'font-size:12px;color:' + (cur.warn ? '#A35200' : '#1D7044') } };
+  }
+}
+</script>
+</body>
+</html>

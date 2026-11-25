@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Состояния экранов оператора</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.ph{width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;border-radius:28px;overflow:hidden;border:1px solid #D5DBE0;box-sizing:border-box}
+.sk{background:#DDE3E7;border-radius:6px}
+.cap{font-size:15px;font-weight:600;color:#52606D}
+.btn{min-height:56px;border-radius:12px;border:0;font:inherit;font-size:17px;font-weight:600;cursor:pointer}
+.q{display:flex;gap:12px;align-items:center;padding:12px 16px;background:#FFFFFF;border-top:1px solid #D5DBE0;min-height:56px}
+</style>
+</helmet>
+<div style="width:1250px;height:844px;display:flex;gap:40px;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B">
+
+  <div class="ph" aria-label="Загрузка">
+    <div style="background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #D5DBE0">
+      <div class="sk" style="width:140px;height:14px"></div>
+      <div class="sk" style="width:120px;height:22px"></div>
+      <div class="sk" style="width:200px;height:40px"></div>
+      <div class="sk" style="width:100%;height:6px"></div>
+    </div>
+    <div style="padding:12px 16px;display:flex;flex-direction:column;gap:12px">
+      <div class="sk" style="height:64px;border-radius:12px"></div>
+      <div class="sk" style="height:64px;border-radius:12px;background:#C9D6DE"></div>
+    </div>
+    <div style="background:#FFFFFF;border-top:1px solid #D5DBE0">
+      <div style="padding:16px;display:flex;gap:12px;border-bottom:1px solid #D5DBE0"><div class="sk" style="width:26px;height:26px"></div><div class="sk" style="flex:1;height:18px"></div></div>
+      <div style="padding:16px;display:flex;gap:12px;border-bottom:1px solid #D5DBE0"><div class="sk" style="width:26px;height:26px"></div><div class="sk" style="flex:1;height:18px"></div></div>
+      <div style="padding:16px;display:flex;gap:12px"><div class="sk" style="width:26px;height:26px"></div><div class="sk" style="flex:1;height:18px"></div></div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="padding:16px;text-align:center;font-size:13px;color:#52606D">Загрузка задач П-2… Показаны данные за 08:15</div>
+  </div>
+
+  <div class="ph" aria-label="Нет активной партии">
+    <div style="background:#FFFFFF;padding:16px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column">
+      <span style="font-size:13px;color:#52606D">Санразрыв · Айгуль Т.</span>
+      <span style="font-size:20px;font-weight:600">Птичник П-2</span>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:24px">
+      <span style="font-size:22px;font-weight:600">В птичнике нет партии</span>
+      <span style="font-size:15px;color:#52606D;line-height:1.5">Санразрыв: день 6 из 14. Журнал откроется в день посадки, когда руководитель откроет новую партию.</span>
+      <a href="Main.dc.html" class="btn" style="background:#0D5C7D;color:#FFFFFF;display:flex;align-items:center;justify-content:center;text-decoration:none">Посмотреть прошлую партию</a>
+      <span style="font-size:13px;color:#52606D">Посадка запланирована: 06.12, 17 000 цыплят</span>
+    </div>
+  </div>
+
+  <div class="ph" aria-label="Нет сети, очередь отправки">
+    <div style="background:#E8EBF7;padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #B7C0E4">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3A4FA0" stroke-width="2" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0"/><path d="M3 3l18 18"/></svg>
+      <span style="font-size:15px;font-weight:600;color:#3A4FA0;flex:1">Нет сети · 3 записи ждут отправки</span>
+    </div>
+    <div style="padding:16px 16px 8px"><span class="cap">Очередь отправки</span></div>
+    <div class="q">
+      <span style="width:10px;height:10px;border-radius:50%;background:#3A4FA0;flex:none" aria-hidden="true"></span>
+      <div style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:500">Журнал 24.11</span><span class="num" style="font-size:13px;color:#52606D">сохранён 09:42 · ждёт связи</span></div>
+    </div>
+    <div class="q">
+      <span style="width:10px;height:10px;border-radius:50%;background:#3A4FA0;flex:none" aria-hidden="true"></span>
+      <div style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:500">Задача «Напор линий» выполнена</span><span class="num" style="font-size:13px;color:#52606D">09:55 · ждёт связи</span></div>
+    </div>
+    <div class="q">
+      <span style="width:10px;height:10px;border-radius:2px;background:#B3202A;flex:none" aria-hidden="true"></span>
+      <div style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:500">Фото подстилки, ряд 3</span><span style="font-size:13px;color:#B3202A">Не отправлено: файл 6 МБ, слабый сигнал</span></div>
+      <button class="btn" style="min-height:44px;font-size:14px;padding:0 12px;background:#FFFFFF;border:1px solid #B9C3CB;color:#18212B">Повторить</button>
+    </div>
+    <div style="padding:16px;font-size:13px;color:#52606D;line-height:1.5">Все записи хранятся на телефоне и не пропадут при выключении. Отправятся сами, когда появится сеть.</div>
+    <div style="flex:1"></div>
+    <div style="padding:16px 16px 28px;background:#FFFFFF;border-top:1px solid #D5DBE0">
+      <button class="btn" style="width:100%;background:#0D5C7D;color:#FFFFFF">Отправить сейчас</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1250,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

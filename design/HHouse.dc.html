@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Птичник П-2 — тренды</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EEF1F3}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.nav{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:8px;color:#C9D3DB;text-decoration:none;font-size:14px}
+.nav:hover{background:#24313E;color:#FFFFFF}
+.navon{background:#24313E;color:#FFFFFF;font-weight:600}
+.sub{padding-left:28px;font-size:13px;min-height:34px}
+.panel{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:14px 16px;box-sizing:border-box}
+.ch{flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.cht{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.seg{min-height:32px;padding:0 12px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:13px;color:#18212B;cursor:pointer}
+.segon{background:#0D5C7D;color:#FFFFFF;border-color:#0D5C7D}
+.seg:focus-visible,.btn:focus-visible{outline:3px solid #0D5C7D;outline-offset:2px}
+.btn{min-height:36px;padding:0 14px;border-radius:8px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.ev{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #EEF1F3;font-size:13px}
+svg text{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:11px;fill:#52606D}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;background:#EEF1F3">
+  <aside style="flex:1 1 220px;max-width:230px;background:#18212B;padding:16px 12px;display:flex;flex-direction:column;gap:2px;box-sizing:border-box">
+    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма</div>
+    <a class="nav navon" href="HFarm.dc.html">Ферма</a>
+    <a class="nav" href="HBatch.dc.html">Партия</a>
+    <a class="nav sub" href="HBatch.dc.html">Посадка</a>
+    <a class="nav sub" href="HCatch.dc.html">Отлов и продажа</a>
+    <a class="nav" href="HCosts.dc.html">Корм и затраты</a>
+    <a class="nav" href="HReport.dc.html">Отчёты</a>
+    <a class="nav" href="HSettings.dc.html">Настройки</a>
+  </aside>
+
+  <main style="flex:999 1 560px;min-width:0;padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+    <header style="display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between">
+      <div style="display:flex;flex-direction:column">
+        <a href="HFarm.dc.html" style="font-size:13px">← Все птичники</a>
+        <h1 style="margin:0;font-size:28px;font-weight:600;display:flex;align-items:center;gap:12px">П-2 · день 23 <span style="font-size:14px;font-weight:600;color:#B3202A;border:1px solid #B3202A;border-radius:999px;padding:2px 10px">■ тревога</span></h1>
+        <span class="num" style="font-size:13px;color:#52606D">1 000 м² · 16 661 живых · плотность 16,7 кг/м² · работник Айгуль Т. · ниппели, чашечные кормушки</span>
+      </div>
+      <div style="display:flex" role="group" aria-label="Период">
+        <button class="{{p7cls}}" onClick="{{set7}}" style="border-radius:8px 0 0 8px" aria-pressed="{{is7}}">7 дней</button>
+        <button class="{{pAllcls}}" onClick="{{setAll}}" style="border-radius:0 8px 8px 0;border-left:0" aria-pressed="{{isAll}}">Вся партия</button>
+      </div>
+    </header>
+
+    <div style="display:flex;flex-wrap:wrap;gap:16px">
+      <section class="panel ch">
+        <div class="cht"><h2 style="margin:0;font-size:15px">Падёж + брак, гол./сут</h2><span class="num" style="font-size:13px;color:#B3202A;font-weight:600">сегодня 38 · норма ≤ 17</span></div>
+        <svg viewBox="0 0 600 170" role="img" aria-label="Падёж по дням: резкий рост в день 23" style="width:100%;height:auto">
+          <line x1="30" y1="150" x2="590" y2="150" stroke="#D5DBE0"/>
+          <line x1="30" y1="{{mortNormY}}" x2="590" y2="{{mortNormY}}" stroke="#1D7044" stroke-dasharray="4 4"/>
+          <text x="34" y="{{mortNormLabelY}}">норма 0,10% ≈ 17</text>
+          <sc-for list="{{mortBars}}" as="b" hint-placeholder-count="23">
+            <rect x="{{b.x}}" y="{{b.y}}" width="{{b.w}}" height="{{b.h}}" fill="{{b.fill}}" rx="1"></rect>
+          </sc-for>
+          <sc-for list="{{xTicks}}" as="t" hint-placeholder-count="5"><text x="{{t.x}}" y="166">{{t.l}}</text></sc-for>
+        </svg>
+      </section>
+
+      <section class="panel ch">
+        <div class="cht"><h2 style="margin:0;font-size:15px">Вода : корм</h2><span class="num" style="font-size:13px;color:#A35200;font-weight:600">сегодня 1,41 · норма 1,6–1,8</span></div>
+        <svg viewBox="0 0 600 170" role="img" aria-label="Соотношение вода к корму, падение до 1,41" style="width:100%;height:auto">
+          <rect x="30" y="{{bandY}}" width="560" height="{{bandH}}" fill="#DCE9E2"></rect>
+          <text x="34" y="{{bandLabelY}}">норма</text>
+          <line x1="30" y1="150" x2="590" y2="150" stroke="#D5DBE0"/>
+          <polyline points="{{wfPts}}" fill="none" stroke="#0D5C7D" stroke-width="2.5"></polyline>
+          <circle cx="{{wfLastX}}" cy="{{wfLastY}}" r="5" fill="#A35200"></circle>
+          <sc-for list="{{xTicks}}" as="t" hint-placeholder-count="5"><text x="{{t.x}}" y="166">{{t.l}}</text></sc-for>
+        </svg>
+      </section>
+
+      <section class="panel ch">
+        <div class="cht"><h2 style="margin:0;font-size:15px">Корм, г/гол/сут</h2><span class="num" style="font-size:13px;color:#52606D">сегодня 118 · норма* 121</span></div>
+        <svg viewBox="0 0 600 170" role="img" aria-label="Потребление корма по дням против нормы" style="width:100%;height:auto">
+          <line x1="30" y1="150" x2="590" y2="150" stroke="#D5DBE0"/>
+          <polyline points="{{feedNormPts}}" fill="none" stroke="#1D7044" stroke-width="2" stroke-dasharray="5 4"></polyline>
+          <polyline points="{{feedPts}}" fill="none" stroke="#0D5C7D" stroke-width="2.5"></polyline>
+          <sc-for list="{{xTicks}}" as="t" hint-placeholder-count="5"><text x="{{t.x}}" y="166">{{t.l}}</text></sc-for>
+          <text x="470" y="20">— — норма*  —— факт</text>
+        </svg>
+      </section>
+
+      <section class="panel ch">
+        <div class="cht"><h2 style="margin:0;font-size:15px">Рабочая t, °C против цели AA</h2><span class="num" style="font-size:13px;color:#1D7044">22,4 · цель 22 ±1,5</span></div>
+        <svg viewBox="0 0 600 170" role="img" aria-label="Температура по дням в пределах цели" style="width:100%;height:auto">
+          <polygon points="{{tBand}}" fill="#DCE9E2"></polygon>
+          <line x1="30" y1="150" x2="590" y2="150" stroke="#D5DBE0"/>
+          <polyline points="{{tPts}}" fill="none" stroke="#0D5C7D" stroke-width="2.5"></polyline>
+          <sc-for list="{{xTicks}}" as="t" hint-placeholder-count="5"><text x="{{t.x}}" y="166">{{t.l}}</text></sc-for>
+          <text x="34" y="20">цель по Табл. 2 ±1,5 °C</text>
+        </svg>
+      </section>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+      <section class="panel" style="flex:1 1 420px;min-width:0">
+        <h2 style="margin:0 0 8px;font-size:15px">Масса по неделям, г</h2>
+        <div style="overflow-x:auto">
+          <table style="border-collapse:collapse;width:100%;font-size:14px">
+            <thead><tr style="color:#52606D;font-size:12px;text-align:right"><th style="text-align:left;font-weight:500;padding:6px 8px">День</th><th style="font-weight:500;padding:6px 8px">Факт</th><th style="font-weight:500;padding:6px 8px">Норма*</th><th style="font-weight:500;padding:6px 8px">Откл.</th><th style="font-weight:500;padding:6px 8px">CV%</th><th style="font-weight:500;padding:6px 8px">Метод</th></tr></thead>
+            <tbody class="num">
+              <tr style="text-align:right;border-top:1px solid #EEF1F3"><td style="text-align:left;padding:8px">0</td><td>41</td><td>42</td><td>−1</td><td>7,9</td><td>1 коробка</td></tr>
+              <tr style="text-align:right;border-top:1px solid #EEF1F3"><td style="text-align:left;padding:8px">7</td><td>178</td><td>190</td><td style="color:#A35200;font-weight:600">−12</td><td>—</td><td>групповое</td></tr>
+              <tr style="text-align:right;border-top:1px solid #EEF1F3"><td style="text-align:left;padding:8px">14</td><td>506</td><td>510</td><td>−4</td><td>—</td><td>групповое</td></tr>
+              <tr style="text-align:right;border-top:1px solid #EEF1F3"><td style="text-align:left;padding:8px">21</td><td>1 004</td><td>1 000</td><td style="color:#1D7044">+4</td><td>9,6</td><td>индивид. 167</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <span style="font-size:12px;color:#52606D">День 7: 178 г = 4,3× суточной массы (норма ≥ 4×) · * норма — заглушка до AA Performance Objectives</span>
+      </section>
+
+      <section class="panel" style="flex:1 1 420px;min-width:0">
+        <h2 style="margin:0 0 4px;font-size:15px">События партии</h2>
+        <div class="ev"><span class="num" style="width:76px;color:#52606D;flex:none">24.11 10:30</span><span><b style="color:#B3202A">Лечение</b> · Амоксициллин 10%, 5 дн., ожидание 7 дн. → убой не ранее 06.12 · по назначению ветврача</span></div>
+        <div class="ev"><span class="num" style="width:76px;color:#52606D;flex:none">24.11 09:42</span><span><b style="color:#B3202A">Возможна болезнь</b> · падёж 38 гол., вода −18% · отмечено: «ветврач приедет в 14:00»</span></div>
+        <div class="ev"><span class="num" style="width:76px;color:#52606D;flex:none">19.11</span><span>Переход на гранулу 3,5 мм (день 18) · отмечено работником</span></div>
+        <div class="ev"><span class="num" style="width:76px;color:#52606D;flex:none">15.11</span><span>Вакцинация · болезнь Гамборо, с водой, серия IBD-1108</span></div>
+        <div class="ev"><span class="num" style="width:76px;color:#52606D;flex:none">11.11</span><span>Рацион старт → рост (день 10)</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;padding-top:10px">
+          <a class="btn" href="HTreat.dc.html" style="background:#0D5C7D;color:#FFFFFF;border-color:#0D5C7D;text-decoration:none;display:inline-flex;align-items:center">Записать лечение</a>
+          <button class="btn">Исправить журнал</button>
+          <button class="btn">Экспорт XLSX</button>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { all: true }; }
+  renderVals() {
+    const all = this.state.all;
+    const from = all ? 0 : 17, to = 23, span = to - from + 1;
+    const X = (d) => 30 + (d - from + 0.5) * (560 / span);
+    const mort = [0, 22, 18, 15, 12, 10, 9, 8, 8, 7, 7, 8, 9, 8, 9, 10, 9, 10, 11, 12, 11, 12, 15, 38];
+    const yM = (v) => 150 - v / 45 * 140;
+    const bw = Math.max(4, 560 / span - 6);
+    const mortBars = [];
+    for (let d = from; d <= to; d++) { const v = mort[d]; mortBars.push({ x: X(d) - bw / 2, w: bw, y: yM(v), h: 150 - yM(v), fill: v > 17 ? '#B3202A' : '#8FB3C4' }); }
+    const wf = [1.8, 1.82, 1.78, 1.76, 1.75, 1.77, 1.74, 1.76, 1.73, 1.75, 1.72, 1.74, 1.73, 1.71, 1.74, 1.72, 1.7, 1.73, 1.72, 1.71, 1.7, 1.69, 1.6, 1.41];
+    const yW = (v) => 150 - (v - 1.2) / 0.8 * 140;
+    const pts = (fn) => { const a = []; for (let d = from; d <= to; d++) a.push(X(d).toFixed(1) + ',' + fn(d).toFixed(1)); return a.join(' '); };
+    const yF = (v) => 150 - v / 140 * 140;
+    const feedAct = (d) => 13 + 4.57 * d + (d === 23 ? -0.5 : Math.sin(d) * 1.5);
+    const tTarget = (d) => { const T = [[0, 30], [3, 28], [6, 27], [9, 26], [12, 25], [15, 24], [18, 23], [21, 22], [24, 21]]; for (let i = 0; i < T.length - 1; i++) { if (d <= T[i + 1][0]) { const [a, va] = T[i], [b, vb] = T[i + 1]; return va + (vb - va) * (d - a) / (b - a); } } return 21; };
+    const yT = (v) => 150 - (v - 18) / 15 * 140;
+    const up = [], dn = [];
+    for (let d = from; d <= to; d++) { up.push(X(d).toFixed(1) + ',' + yT(tTarget(d) + 1.5).toFixed(1)); dn.unshift(X(d).toFixed(1) + ',' + yT(tTarget(d) - 1.5).toFixed(1)); }
+    const xTicks = []; const step = all ? 5 : 1;
+    for (let d = from; d <= to; d += step) xTicks.push({ x: X(d) - 4, l: String(d) });
+    return {
+      mortBars, mortNormY: yM(17), mortNormLabelY: yM(17) - 4, xTicks,
+      bandY: yW(1.8), bandH: yW(1.6) - yW(1.8), bandLabelY: yW(1.8) + 12,
+      wfPts: pts(d => yW(wf[d])), wfLastX: X(23), wfLastY: yW(1.41),
+      feedPts: pts(d => yF(feedAct(d))), feedNormPts: pts(d => yF(14 + 4.65 * d)),
+      tBand: up.concat(dn).join(' '), tPts: pts(d => yT(tTarget(d) + Math.sin(d * 1.7) * 0.6 + 0.3)),
+      is7: !all, isAll: all, p7cls: all ? 'seg' : 'seg segon', pAllcls: all ? 'seg segon' : 'seg',
+      set7: () => this.setState({ all: false }), setAll: () => this.setState({ all: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Ферма — руководитель, телефон</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.hr{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 16px;border:0;border-top:1px solid #D5DBE0;background:#FFFFFF;font:inherit;color:#18212B;text-align:left;cursor:pointer;box-sizing:border-box}
+.hr:focus-visible,.tab:focus-visible,.btn:focus-visible{outline:3px solid #0D5C7D;outline-offset:-3px}
+.det{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;padding:4px 16px 14px 42px;background:#FFFFFF;font-size:13px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;font-size:12px;color:#52606D;text-decoration:none}
+.btn{min-height:48px;border-radius:10px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:15px;font-weight:600;color:#18212B;display:flex;align-items:center;justify-content:center;text-decoration:none;flex:1}
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden">
+  <header style="background:#FFFFFF;padding:14px 16px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column;gap:6px">
+    <span style="font-size:13px;color:#52606D">Партия 06/2026 · обновлено 11:05</span>
+    <div style="display:flex;align-items:baseline;gap:10px">
+      <span class="num" style="font-size:34px;font-weight:600;line-height:1">День 23</span>
+      <span class="num" style="font-size:15px;color:#52606D">66 748 птиц · 98,2%</span>
+    </div>
+  </header>
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
+    <section style="margin:0 16px;background:#FFFFFF;border:2px solid #B3202A;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;gap:10px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B3202A" stroke-width="2" aria-hidden="true" style="flex:none"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-size:15px;font-weight:600;color:#B3202A">П-2 · Возможна болезнь</span>
+          <span class="num" style="font-size:13px;color:#52606D;line-height:1.4">Падёж 38 (×3,5) и вода −18% сегодня. Позвоните ветврачу.</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a class="btn" href="HTreat.dc.html" style="background:#0D5C7D;color:#FFFFFF;border-color:#0D5C7D">Записать лечение</a>
+        <a class="btn" href="HHouse.dc.html">Птичник</a>
+      </div>
+    </section>
+    <span style="margin:0 16px;font-size:13px;color:#52606D">Ещё 4 «внимание» · нажмите на птичник</span>
+    <section style="border-bottom:1px solid #D5DBE0">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+        <button class="hr" onClick="{{r.toggle}}" aria-expanded="{{r.open}}">
+          <span style="{{r.mark}}" aria-hidden="true">{{r.sym}}</span>
+          <span style="flex:1;display:flex;flex-direction:column">
+            <span style="font-size:17px;font-weight:600">{{r.h}} <span style="font-size:13px;font-weight:400;color:#52606D">· {{r.who}}</span></span>
+            <span style="{{r.noteS}}">{{r.note}}</span>
+          </span>
+          <span class="num" style="font-size:15px">{{r.dead}}</span>
+        </button>
+        <sc-if value="{{r.open}}" hint-placeholder-val="{{false}}">
+          <div class="det num">
+            <span>Живых: {{r.alive}}</span><span>Вода:корм: {{r.w}}</span>
+            <span>t раб.: {{r.t}}</span><span>CV%: {{r.cv}}</span>
+            <span>Корма: {{r.b}} дн.</span><span>Журнал: {{r.log}}</span>
+          </div>
+        </sc-if>
+      </sc-for>
+    </section>
+  </main>
+  <nav aria-label="Основное меню" style="display:flex;background:#FFFFFF;border-top:1px solid #D5DBE0;padding-bottom:20px">
+    <a href="HFarmPhone.dc.html" class="tab" style="color:#0D5C7D;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/></svg>Ферма</a>
+    <a href="HBatch.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Партия</a>
+    <a href="HCosts.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16v12H4z"/><path d="M8 7V5h8v2M12 11v4M10 13h4"/></svg>Затраты</a>
+    <a href="HReport.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Отчёты</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { open: 3 }; }
+  renderVals() {
+    const C = { ok: '#1D7044', warn: '#A35200', crit: '#B3202A' };
+    const R = [
+      ['П-1', 'Айгуль Т.', 'ok', 'всё в норме', '9', '16 742', '1,74', '22,3', '8,9', '3,1', '08:12'],
+      ['П-2', 'Айгуль Т.', 'crit', 'падёж ×3,5 · вода −18%', '38', '16 661', '1,41', '22,4', '9,6', '2,4', '09:42'],
+      ['П-3', 'Нурлан Ж.', 'warn', 'CV 11,2% · t 23,6 °C', '10', '16 733', '1,69', '23,6', '11,2', '2,7', '08:40'],
+      ['П-4', 'Нурлан Ж.', 'warn', 'нет журнала · корма на 1,6 дня', '—', '16 612', '—', '—', '9,4', '1,6', 'нет']
+    ];
+    const o = this.state.open;
+    const rows = R.map((r, i) => ({ h: r[0], who: r[1], sym: r[2] === 'ok' ? '●' : r[2] === 'warn' ? '▲' : '■', mark: 'color:' + C[r[2]] + ';font-size:14px;width:16px',
+      note: r[3], noteS: 'font-size:13px;color:' + (r[2] === 'ok' ? '#52606D' : C[r[2]]), dead: r[4], alive: r[5], w: r[6], t: r[7], cv: r[8], b: r[9], log: r[10],
+      open: o === i, toggle: () => this.setState({ open: o === i ? -1 : i }) }));
+    return { rows };
+  }
+}
+</script>
+</body>
+</html>

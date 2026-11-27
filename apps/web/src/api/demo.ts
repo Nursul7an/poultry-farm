@@ -25,7 +25,7 @@ const KEY = 'farm-demo-v1';
 const SESSION_KEY = 'farm-demo-session';
 
 export const DEMO_ACCOUNTS = [
-  { label: 'Руководитель', phone: '+996 700 000 001', pin: '111111' },
+  { label: 'Директор', phone: '+996 700 000 001', pin: '111111' },
   { label: 'Айгуль Т. (П-1, П-2)', phone: '+996 700 000 002', pin: '222222' },
   { label: 'Нурлан Ж. (П-3, П-4)', phone: '+996 700 000 003', pin: '333333' },
 ];
@@ -63,7 +63,7 @@ function seed(now = new Date()): DemoState {
     v: 1, farm, houses, hbs, logs,
     batch: { id: 'batch-6', name: '06/2026', status: 'open' },
     users: [
-      { id: 'u-head', role: 'head', displayName: 'Руководитель', phone: '+996700000001', pin: '111111', houseIds: [], active: true },
+      { id: 'u-head', role: 'head', displayName: 'Директор', phone: '+996700000001', pin: '111111', houseIds: [], active: true },
       { id: 'u-aigul', role: 'worker', displayName: 'Айгуль Т.', phone: '+996700000002', pin: '222222', houseIds: ['house-1', 'house-2'], active: true },
       { id: 'u-nurlan', role: 'worker', displayName: 'Нурлан Ж.', phone: '+996700000003', pin: '333333', houseIds: ['house-3', 'house-4'], active: true },
     ],

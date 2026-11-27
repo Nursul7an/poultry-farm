@@ -159,7 +159,7 @@ begin
   where hb.id = new.house_batch_id;
 
   if v_status = 'closed' then
-    raise exception 'BATCH_CLOSED' using hint = 'Партия закрыта — сообщите руководителю';
+    raise exception 'BATCH_CLOSED' using hint = 'Партия закрыта — сообщите директору';
   end if;
 
   if tg_op = 'INSERT' then
@@ -169,7 +169,7 @@ begin
     end if;
     -- A worker may fill a forgotten day, but not older than 2 production days back.
     if not v_head and new.production_day < v_today - 2 then
-      raise exception 'DAY_TOO_OLD' using hint = 'Старые дни заполняет руководитель';
+      raise exception 'DAY_TOO_OLD' using hint = 'Старые дни заполняет директор';
     end if;
     new.created_by := auth.uid();
     new.created_at := now();
@@ -180,7 +180,7 @@ begin
     end if;
     if now() - old.created_at > interval '48 hours' then
       if not v_head then
-        raise exception 'EDIT_WINDOW' using hint = 'Прошло больше 48 часов — исправить может только руководитель';
+        raise exception 'EDIT_WINDOW' using hint = 'Прошло больше 48 часов — исправить может только директор';
       end if;
       if coalesce(trim(new.edit_reason), '') = '' then
         raise exception 'REASON_REQUIRED';

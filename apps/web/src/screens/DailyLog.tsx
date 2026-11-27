@@ -108,7 +108,7 @@ export default function DailyLog() {
         <main className="content">
           <div className={`banner ${o?.status === 'rejected' ? 'bad' : o ? 'info' : 'ok'}`} role="status" aria-live="polite">
             <strong style={{ fontSize: 18 }}>{o?.status === 'rejected' ? 'Не принято сервером' : o ? 'Сохранено на телефоне' : 'Журнал сохранён и отправлен'}</strong><br />
-            {o?.status === 'rejected' ? o.error : o ? 'Отправится автоматически, когда появится связь.' : 'Руководитель видит данные.'}
+            {o?.status === 'rejected' ? o.error : o ? 'Отправится автоматически, когда появится связь.' : 'Директор видит данные.'}
           </div>
           {stored && (
             <div className="section">
@@ -134,7 +134,7 @@ export default function DailyLog() {
       <main className="content" style={{ gap: 0 }}>
         {readOnly && (
           <div className="banner warn" style={{ margin: '0 16px 12px' }} role="status">
-            {future ? 'Этот день ещё не наступил.' : tooOld ? 'Старые дни заполняет руководитель.' : 'Прошло больше 48 часов — исправить может только руководитель.'}
+            {future ? 'Этот день ещё не наступил.' : tooOld ? 'Старые дни заполняет директор.' : 'Прошло больше 48 часов — исправить может только директор.'}
           </div>
         )}
         <fieldset disabled={readOnly} style={{ border: 0, margin: 0, padding: 0, display: 'flex', flexDirection: 'column' }}>

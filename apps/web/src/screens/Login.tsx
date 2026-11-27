@@ -30,7 +30,7 @@ export default function Login() {
     <div className="shell">
       <main className="content pad" style={{ justifyContent: 'center', gap: 16, paddingBottom: 24 }}>
         <h1 style={{ margin: 0, fontSize: 28 }}>Птичник</h1>
-        <p className="muted" style={{ margin: 0 }}>Вход по номеру телефона и PIN, который дал руководитель.</p>
+        <p className="muted" style={{ margin: 0 }}>Вход по номеру телефона и PIN, который дал директор.</p>
         <form onSubmit={(e) => { e.preventDefault(); void submit(); }} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <label className="field"><span>Номер телефона</span>
             <input className="input text" type="tel" inputMode="tel" autoComplete="tel" placeholder="+996 700 000 000" value={phone} onChange={(e) => setPhone(e.target.value)} required />

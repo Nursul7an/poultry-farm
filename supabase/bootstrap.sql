@@ -7,7 +7,7 @@ with f as (
   insert into public.farm (name) values ('<Название фермы>') returning id
 )
 insert into public.app_user (id, farm_id, role, display_name, phone)
-select u.id, f.id, 'head', '<Имя руководителя>', '<+996...>'
+select u.id, f.id, 'head', '<Имя директора>', '<+996...>'
 from auth.users u, f
 where u.email = 'p<phone digits>@phone.farm.local';
 

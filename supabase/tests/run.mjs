@@ -63,7 +63,7 @@ const hb = { p1: uuid(), p2: uuid(), p3: uuid() };
 await db.query(`insert into public.farm (id, name) values ($1, 'Ферма'), ($2, 'Чужая ферма')`, [F, F2]);
 for (const [id, e] of [[H, 'h'], [A, 'a'], [N, 'n'], [H2, 'h2']]) await db.query('insert into auth.users values ($1, $2)', [id, e]);
 await db.query(`insert into public.app_user (id, farm_id, role, display_name, phone) values
-  ($1, $5, 'head', 'Руководитель', '+996700000001'), ($2, $5, 'worker', 'Айгуль Т.', '+996700000002'),
+  ($1, $5, 'head', 'Директор', '+996700000001'), ($2, $5, 'worker', 'Айгуль Т.', '+996700000002'),
   ($3, $5, 'worker', 'Нурлан Ж.', '+996700000003'), ($4, $6, 'head', 'Чужой', '+996700000004')`, [H, A, N, H2, F, F2]);
 await db.query(`insert into public.house (id, farm_id, name, area_m2) values ($1, $4, 'П-1', 1000), ($2, $4, 'П-2', 1000), ($3, $4, 'П-3', 1000)`, [houses.p1, houses.p2, houses.p3, F]);
 await db.query(`insert into public.house_worker values ($1, $3), ($2, $3), ($4, $5)`, [houses.p1, houses.p2, A, houses.p3, N]);

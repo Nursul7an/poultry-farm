@@ -95,12 +95,12 @@ test('48-hour rule: worker cannot edit an old log; head must give a reason', asy
   await signIn(page, /Айгуль/);
   await page.getByRole('link', { name: 'Журнал' }).click();
   await page.getByRole('link').filter({ hasText: 'д. 22' }).click();
-  await expect(page.getByText('Прошло больше 48 часов — исправить может только руководитель')).toBeVisible();
+  await expect(page.getByText('Прошло больше 48 часов — исправить может только директор')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Сохранить журнал' })).toHaveCount(0);
 
   await page.getByRole('link', { name: /Отправка/ }).click();
   await page.getByRole('button', { name: /Выйти/ }).click();
-  await signIn(page, /Руководитель/);
+  await signIn(page, /Директор/);
   await page.getByRole('link', { name: 'Журналы' }).first().click();
   const day22 = await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('farm-demo-v1')!); return s.logs.find((l: any) => l.id === 'seed-hb-1-22').productionDay; });
   await page.goto(`/log/hb-1/${day22}`);
@@ -112,7 +112,7 @@ test('48-hour rule: worker cannot edit an old log; head must give a reason', asy
 });
 
 test('head sees all 4 houses with today status', async ({ page }) => {
-  await signIn(page, /Руководитель/);
+  await signIn(page, /Директор/);
   const rows = page.locator('table.data tbody tr');
   await expect(rows).toHaveCount(4);
   await expect(rows.first()).toContainText('П-1');

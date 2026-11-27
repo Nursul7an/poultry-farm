@@ -57,7 +57,7 @@ npm run test:e2e     # browser tests on a production build: offline save → rel
    For «Помощник» add the secret `ANTHROPIC_API_KEY` (Edge Functions → Secrets). Optional: `ASSISTANT_MODEL` (default `claude-opus-5-5`), `ASSISTANT_DAILY_LIMIT` (default 30 per person).
    Or run everything at once with `scripts/supabase-setup.mjs` (see its header).
 6. The first worker who records a placement («Ещё → Посадка») opens the batch.
-7. `apps/web/.env.local`: `VITE_SUPABASE_URL=…` and `VITE_SUPABASE_ANON_KEY=…`, then `npm run build -w apps/web` and host `apps/web/dist` on any static HTTPS host (Cloudflare Pages, Netlify, Vercel).
+7. Hosting: **Vercel** — import the repo, keep the project root at the repository root; `vercel.json` sets the build. The Supabase URL and public key come from `apps/web/.env.production`.
 
 ## Knowledge
 

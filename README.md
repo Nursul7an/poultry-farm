@@ -7,26 +7,23 @@ An offline-capable app for a 4-house broiler farm. House workers log each house'
 - Screen designs: [`docs/design/`](docs/design/)
 - Domain knowledge (Arbor Acres norms): [`docs/knowledge/`](docs/knowledge/)
 
-## Status: Phase 1 — offline daily log
+## Status
 
-| Ticket | What | State |
-|---|---|---|
-| T-01 | PWA skeleton (React + TS + Vite), design tokens, CI | done |
-| T-02 | **Spike on the workers' real phones** | **needs you** → [`docs/PHASE1-PHONE-TEST.md`](docs/PHASE1-PHONE-TEST.md) |
-| T-03 | Supabase project and secrets | **needs you** (see below) |
-| T-04 | Schema v1 (farm, users, houses, batch, house_batch, daily_log, edit_history) | done, tested |
-| T-05 | Row Level Security: worker = own houses, head = farm | done, tested |
-| T-06 | Sign-in by phone + 6-digit PIN; head adds workers | done (invite function untested: needs Supabase) |
-| T-07 | Settings: houses, worker ↔ house assignment | done |
-| T-08 | On-device storage (IndexedDB), drafts, outbox | done, tested |
-| T-09 | Sync engine (idempotent upsert, retry, "не принято" queue) | done, tested |
-| T-10 | Worker «Сегодня» | done |
-| T-11 | Worker «Журнал дня»: steppers, bags → kg, water meter, new meter, "Это верно?" check | done |
-| T-12 | Server rules: production day, 48 h edit window, edit history, water litres | done, tested |
-| T-13 | Head farm table (phone + laptop) | done |
-| T-14 | Offline E2E tests | done |
+**Role model v2.1** (docs/BLUEPRINT.md §0.2): workers record every operation of their own houses; the director sees everything, can correct anything and alone sees money. Nothing waits for approval.
 
-Not in Phase 1 (by plan): norm warnings, Telegram, weighing, reminders (Phase 2); batch opening, feed, costs, treatments, catch, sales, report (Phase 3). Until Phase 3 the batch and placement are created in SQL (see below).
+| Area | Worker (own houses, offline) | Director | State |
+|---|---|---|---|
+| Daily log | ✔ record, fix ≤ 48 h | ✔ see, fix any (reason after 48 h) | done |
+| Feed: deliveries, bin stock, phase change | ✔ tonnes, no price | ✔ price per tonne in «Деньги» | done |
+| Health: treatment, vaccination, post-mortem | ✔ with earliest-slaughter date | ✔ sees in «События», prices medicine | done |
+| Placement (first one opens the batch), crop fill | ✔ | ✔ chick price | done |
+| Weighing (individual → CV%, group) | ✔ | ✔ | done |
+| Catch plan with withdrawal block, handover | ✔ override needs a reason | ✔ sees override at once; price per kg, payments | done |
+| Money: prices, costs, payments, profit per kg | ✗ never (server-enforced) | ✔ | done |
+| Event feed (instead of approvals) | — | ✔ «События», panel on «Ферма» | done |
+| Norm warnings, Telegram, reminders engine | | | Phase 2 |
+| Batch report and close/lock, export | | | Phase 3 |
+| Real-phone test (T-02), Supabase project, hosting | | | **needs you** — see below and `docs/PHASE1-PHONE-TEST.md` |
 
 ## Run it
 
@@ -41,8 +38,8 @@ npm run dev          # http://localhost:5173 — demo mode if no Supabase keys
 
 ```bash
 npm run typecheck
-npm test             # core rules + sync engine (Vitest)
-npm run test:db      # schema, RLS, edit window on a throwaway local Postgres 16 (or DATABASE_URL)
+npm test             # core rules, money, sync engine (Vitest)
+npm run test:db      # schema, RLS, money invisible to workers, withdrawal block… on a throwaway Postgres 16 (or DATABASE_URL)
 npm run test:e2e     # browser tests on a production build: offline save → reload → sync once, 48 h rule…
 ```
 
@@ -53,12 +50,7 @@ npm run test:e2e     # browser tests on a production build: offline save → rel
 3. Run `supabase/migrations/*.sql` in the SQL editor (or `supabase db push`).
 4. Create the head user (Authentication → Users → Add user) with email `p<phone digits>@phone.farm.local` (e.g. `p996700000001@phone.farm.local`) and a 6-digit PIN as password, then run `supabase/bootstrap.sql` with your values.
 5. Deploy the invite function: `supabase functions deploy invite-worker`.
-6. Until Phase 3, open a batch in SQL:
-   ```sql
-   insert into batch (farm_id, name) select id, '06/2026' from farm;
-   insert into house_batch (batch_id, house_id, placed_on, placed)
-   select b.id, h.id, '2026-11-01', 17000 from batch b, house h where b.status = 'open';
-   ```
+6. The first worker who records a placement («Ещё → Посадка») opens the batch.
 7. `apps/web/.env.local`: `VITE_SUPABASE_URL=…` and `VITE_SUPABASE_ANON_KEY=…`, then `npm run build -w apps/web` and host `apps/web/dist` on any static HTTPS host (Cloudflare Pages, Netlify, Vercel).
 
 ## Layout

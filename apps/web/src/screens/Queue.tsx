@@ -6,6 +6,14 @@ import { fmtDayShort, fmtTime } from '../ui/format';
 import { PIN_RE } from '../api/phone';
 import { ApiError } from '../api/types';
 
+const KIND_RU: Record<string, string> = { log: 'Журнал', feed: 'Поставка корма', health: 'Здоровье', weighing: 'Взвешивание', handover: 'Сдача', placement: 'Посадка', phase: 'Смена рациона', catch: 'План отлова' };
+/** One line describing any queued record (logs and every other operation). */
+function describe(kind: string, p: any, name: (hb: string) => string) {
+  const hb = p?.houseBatchId ?? p?.id ?? '';
+  const day = p?.productionDay ?? p?.deliveredOn ?? p?.eventOn ?? p?.weighedOn ?? p?.handedOn ?? p?.placedOn ?? p?.since ?? null;
+  return `${KIND_RU[kind] ?? kind} ${name(hb)}${day ? ` · ${fmtDayShort(day)}` : ''}`;
+}
+
 /** Sync queue + device diagnostics (the T-02 spike checklist reads these values). */
 export default function Queue() {
   const { db, sync, session, api } = useSignedIn();
@@ -45,7 +53,7 @@ export default function Queue() {
               <div className="row" key={o.seq}>
                 <span className={`dot`} style={{ background: o.status === 'rejected' ? 'var(--color-status-critical)' : 'var(--color-status-info)', borderRadius: o.status === 'rejected' ? 2 : '50%' }} aria-hidden="true" />
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontWeight: 500 }}>Журнал {name(o.payload.houseBatchId)} · {fmtDayShort(o.payload.productionDay)}</span>
+                  <span style={{ fontWeight: 500 }}>{describe(o.kind, o.payload, name)}</span>
                   <span className={`small ${o.status === 'rejected' ? 'bad-t' : 'muted'}`}>{o.status === 'rejected' ? `Не принято: ${o.error}` : `ждёт связи · попыток ${o.attempts}`}</span>
                 </div>
                 {o.status === 'rejected' && (

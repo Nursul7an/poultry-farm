@@ -1,12 +1,13 @@
 /** On-device storage (IndexedDB). One database per signed-in user, so two people on one phone never mix data. */
 import Dexie, { type Table } from 'dexie';
-import type { HouseBatchInfo, LogRecord } from '../api/types';
+import type { FeedDelivery, Handover, HealthEvent, HouseBatchInfo, LogRecord, MyHouse, OpKind, Weighing } from '../api/types';
 
 export interface OutboxItem {
   seq?: number;
-  kind: 'log';
+  kind: OpKind;
+  /** Record id (log, feed…), or `${kind}:${houseBatchId}` for placement/phase/catch. Newer saves of the same id replace older ones. */
   logId: string;
-  payload: LogRecord;
+  payload: any;
   status: 'pending' | 'rejected';
   errorCode?: string;
   error?: string;
@@ -22,6 +23,11 @@ export class LocalDb extends Dexie {
   outbox!: Table<OutboxItem, number>;
   drafts!: Table<Draft, string>;
   meta!: Table<{ key: string; value: unknown }, string>;
+  feed!: Table<FeedDelivery, string>;
+  health!: Table<HealthEvent, string>;
+  weighings!: Table<Weighing, string>;
+  handovers!: Table<Handover, string>;
+  myHouses!: Table<MyHouse, string>;
 
   constructor(name: string) {
     super(name);
@@ -31,6 +37,13 @@ export class LocalDb extends Dexie {
       outbox: '++seq, logId, status',
       drafts: 'key',
       meta: 'key',
+    });
+    this.version(2).stores({
+      feed: 'id, houseBatchId',
+      health: 'id, houseBatchId',
+      weighings: 'id, houseBatchId',
+      handovers: 'id, houseBatchId',
+      myHouses: 'houseId',
     });
   }
 

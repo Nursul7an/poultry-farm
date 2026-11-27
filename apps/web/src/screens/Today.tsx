@@ -1,14 +1,17 @@
 import { Link } from 'react-router-dom';
-import { addDays } from '@farm/core';
+import { addDays, daysBetween } from '@farm/core';
 import { useLive, useSignedIn } from '../app';
 import { AgeRuler, Icon, TopBar } from '../ui/parts';
 import { fmtDayLong, fmtInt, fmtNum, fmtTime } from '../ui/format';
-import { houseFigures, useHouseLogs, useHouses } from './useHouses';
+import { houseFigures, useHouseLogs, useHouseOps, useHouses } from './useHouses';
+import { feedDueTask } from './Feed';
+import { activeTreatments, catchDay } from './Health';
 
 export default function Today() {
   const { session, db, today } = useSignedIn();
   const { houses, current, select } = useHouses();
   const logs = useHouseLogs(current?.houseBatchId);
+  const ops = useHouseOps(current?.houseBatchId);
   const outbox = useLive(() => db.outbox.toArray(), [db], []);
   const day = today();
 
@@ -33,6 +36,21 @@ export default function Today() {
   const pending = todayLog && outbox.some((o) => o.logId === todayLog.id);
   const missing = [1, 2].map((n) => addDays(day, -n)).filter((d) => d >= current.placedOn && !logs.some((l) => l.productionDay === d));
   const ratio = y?.waterL != null && y.feedKg ? y.waterL / y.feedKg : null;
+
+  // Today's tasks come from what is recorded for the house (treatments, feed phase, weighing, catch plan).
+  const tasks: { to: string; title: string; sub: string }[] = [];
+  for (const { e, dayN } of activeTreatments(ops.health, day)) tasks.push({ to: '/health', title: `Лечение: ${e.product}, день ${dayN} из ${e.courseDays}`, sub: [e.dose, e.method].filter(Boolean).join(' · ') || 'по назначению ветврача' });
+  const fd = feedDueTask(current.feedPhase, age, day);
+  if (fd) tasks.push({ to: '/feed', ...fd });
+  const lastW = [...ops.weighings].sort((a, b) => b.weighedOn.localeCompare(a.weighedOn))[0];
+  if (age >= 7 && age % 7 <= 1 && (!lastW || daysBetween(lastW.weighedOn, day) > 3)) tasks.push({ to: '/weighing', title: `Взвешивание, день ${age}`, sub: age < 21 ? 'Группой, 100 гол. или 1%' : 'По одной, для CV%' });
+  const cd = catchDay(current.catchAt, session.farm.tz);
+  if (cd) {
+    const left = daysBetween(day, cd);
+    if (left === 3) tasks.push({ to: '/catch', title: 'Свет 23 ч до отлова', sub: `Отлов ${cd.slice(8, 10)}.${cd.slice(5, 7)}` });
+    if (left === 2) tasks.push({ to: '/catch', title: 'Убрать цельное зерно', sub: 'За 2 дня до отлова' });
+    if (left === 0) tasks.push({ to: '/catch', title: 'Сегодня отлов: снять корм вовремя', sub: 'Вода без ограничений' });
+  }
 
   return (
     <>
@@ -70,6 +88,14 @@ export default function Today() {
             <Link to={`/log/${current.houseBatchId}/${day}`} className="btn primary big block"><Icon name="edit" />Записать день · {current.houseName}</Link>
           )}
         </div>
+
+        {tasks.length > 0 && (
+          <section className="section" aria-label="Задачи на сегодня">
+            {tasks.map((t) => (
+              <Link key={t.title} to={t.to} className="row"><span style={{ flex: 1, display: 'flex', flexDirection: 'column' }}><span style={{ fontWeight: 500 }}>{t.title}</span><span className="small muted">{t.sub}</span></span><span aria-hidden="true">›</span></Link>
+            ))}
+          </section>
+        )}
 
         <section className="pad" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <h2 className="muted" style={{ margin: 0, fontSize: 15 }}>Вчера, день {age - 1}</h2>

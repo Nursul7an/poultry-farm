@@ -13,6 +13,12 @@ const paths: Record<string, string> = {
   offline: 'M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0M3 3l18 18',
   warn: 'M12 3l10 18H2L12 3zM12 10v5M12 18v.5',
   edit: 'M4 20h4L19 9l-4-4L4 16v4z',
+  feed: 'M6 4h12l-2 6H8zM8 10v9h8v-9',
+  health: 'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10zM9 11h6M12 8v6',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  events: 'M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0',
+  money: 'M4 7h16v12H4zM8 7V5h8v2M12 11v4M10 13h4',
+  houses: 'M3 11l9-7 9 7v9H3zM9 20v-6h6v6',
 };
 export function Icon({ name, size = 24 }: { name: keyof typeof paths; size?: number }) {
   return (
@@ -59,9 +65,10 @@ export function BottomNav() {
     return (
       <nav className="bottomnav" aria-label="Основное меню">
         <NavLink to="/farm"><Icon name="farm" />Ферма</NavLink>
-        <NavLink to="/today"><Icon name="log" />Журналы</NavLink>
-        <NavLink to="/settings"><Icon name="settings" />Настройки</NavLink>
-        <NavLink to="/queue"><Icon name="queue" />Отправка {badge}</NavLink>
+        <NavLink to="/events"><Icon name="events" />События</NavLink>
+        <NavLink to="/money"><Icon name="money" />Деньги</NavLink>
+        <NavLink to="/today"><Icon name="houses" />Птичники</NavLink>
+        <NavLink to="/more"><Icon name="more" />Ещё {badge}</NavLink>
       </nav>
     );
   }
@@ -69,7 +76,9 @@ export function BottomNav() {
     <nav className="bottomnav" aria-label="Основное меню">
       <NavLink to="/today"><Icon name="today" />Сегодня</NavLink>
       <NavLink to="/history"><Icon name="log" />Журнал</NavLink>
-      <NavLink to="/queue"><Icon name="queue" />Отправка {badge}</NavLink>
+      <NavLink to="/feed"><Icon name="feed" />Корм</NavLink>
+      <NavLink to="/health"><Icon name="health" />Здоровье</NavLink>
+      <NavLink to="/more"><Icon name="more" />Ещё {badge}</NavLink>
     </nav>
   );
 }

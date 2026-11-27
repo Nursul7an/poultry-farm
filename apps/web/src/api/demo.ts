@@ -4,24 +4,32 @@
  * (access per house, future/old days, 48-hour edit window, water litres, one log per house per day).
  * The real rules live in SQL; keep the two in step when changing either.
  */
-import { addDays, productionDay, withinWorkerEditWindow } from '@farm/core';
-import type { Api, House, HouseBatchInfo, HouseToday, LogRecord, Session, Worker } from './types';
+import { addDays, earliestSlaughter, localParts, productionDay, weighingStats, withinWorkerEditWindow } from '@farm/core';
+import type { Api, BatchInfo, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError } from './types';
 import { normalizePhone } from './phone';
 
 interface DemoUser { id: string; role: 'head' | 'worker'; displayName: string; phone: string; pin: string; houseIds: string[]; active: boolean }
-interface DemoHB { id: string; houseId: string; placedOn: string; placed: number }
+type DemoHB = Omit<HouseBatchInfo, 'houseBatchId' | 'houseName' | 'hasWaterMeter' | 'batchName'> & { id: string; createdBy?: string };
 interface DemoState {
-  v: 1;
+  v: 2;
   farm: Session['farm'];
   users: DemoUser[];
   houses: House[];
   batch: { id: string; name: string; status: 'open' | 'closed' };
   hbs: DemoHB[];
   logs: LogRecord[];
+  feed: FeedDelivery[];
+  health: HealthEvent[];
+  weighings: Weighing[];
+  handovers: Handover[];
+  prices: Price[];
+  costs: Cost[];
+  payments: Payment[];
+  overrides: { at: string; houseBatchId: string; by: string; reason: string; catchAt: string; earliest: string }[];
 }
 
-const KEY = 'farm-demo-v1';
+const KEY = 'farm-demo-v2';
 const SESSION_KEY = 'farm-demo-session';
 
 export const DEMO_ACCOUNTS = [
@@ -38,7 +46,11 @@ function seed(now = new Date()): DemoState {
     id: `house-${i + 1}`, name, areaM2: 1000, hasWaterMeter: i !== 3, drinkerType: 'ниппели', feederType: i < 2 ? 'чашки' : 'цепной',
   }));
   const placed = [17050, 16980, 17020, 16950];
-  const hbs = houses.map((h, i) => ({ id: `hb-${i + 1}`, houseId: h.id, placedOn, placed: placed[i]! }));
+  const created0 = new Date(Date.parse(placedOn + 'T03:00:00Z')).toISOString();
+  const hbs: DemoHB[] = houses.map((h, i) => ({ id: `hb-${i + 1}`, houseId: h.id, placedOn, placed: placed[i]!, batchId: 'batch-6',
+    waybillCount: placed[i]! + 10, transportDead: 10, hatchery: 'Инкубаторий', parentAgeWeeks: i < 2 ? 34 : 48, day0WeightG: 41 + i * 0.6,
+    cropFill: { '24': [96, 97, 95, 93][i]! }, feedPhase: 'grower', feedPhaseSince: addDays(placedOn, 10), catchAt: null, feedOffAt: null,
+    catchOverrideReason: null, createdAt: created0, createdBy: i < 2 ? 'u-aigul' : 'u-nurlan' }));
   const mort = [0, 22, 18, 15, 12, 10, 9, 8, 8, 7, 7, 8, 9, 8, 9, 10, 9, 10, 11, 12, 11, 12, 13];
   const logs: LogRecord[] = [];
   const created = new Date(now.getTime() - 60 * 3_600_000).toISOString();
@@ -59,8 +71,27 @@ function seed(now = new Date()): DemoState {
       });
     }
   });
+  const by = (i: number) => (i < 2 ? 'u-aigul' : 'u-nurlan');
+  const feed: FeedDelivery[] = [], health: HealthEvent[] = [], weighings: Weighing[] = [], prices: Price[] = [{ kind: 'chick', refId: 'batch-6', unitPrice: 70 }];
+  hbs.forEach((hb, i) => {
+    ([[0, 'starter', 6.5], [8, 'grower', 7.5], [15, 'grower', 8], [21, 'grower', 8]] as const).forEach(([d, t, tn]) => {
+      const id = `feed-${hb.id}-${d}`;
+      feed.push({ id, houseBatchId: hb.id, deliveredOn: addDays(placedOn, d), feedType: t, tonnes: tn, createdAt: created, createdBy: by(i) });
+      if (!(i === 2 && d === 21)) prices.push({ kind: 'feed', refId: id, unitPrice: t === 'starter' ? 42000 : 38000 });
+    });
+    health.push({ id: `vac-${hb.id}-0`, houseBatchId: hb.id, kind: 'vaccination', eventOn: placedOn, product: 'Ньюкасл + ИБ', method: 'спрей', createdAt: created, createdBy: by(i) });
+    health.push({ id: `vac-${hb.id}-14`, houseBatchId: hb.id, kind: 'vaccination', eventOn: addDays(placedOn, 14), product: 'Гамборо', method: 'с водой', createdAt: created, createdBy: by(i) });
+    const spread = i === 2 ? 0.2 : 0.15;
+    const samples = Array.from({ length: 120 }, (_, k) => Math.round(1000 * (1 + spread * Math.sin(k * 12.9898 + i) * 0.85)));
+    const st = weighingStats(samples);
+    weighings.push({ id: `w-${hb.id}-21`, houseBatchId: hb.id, weighedOn: addDays(placedOn, 21), method: 'individual', samplesG: samples, n: st.n, meanG: Math.round(st.mean), sdG: st.sd, cv: st.cv, createdAt: created, createdBy: by(i) });
+  });
   return {
-    v: 1, farm, houses, hbs, logs,
+    v: 2, farm, houses, hbs, logs, feed, health, weighings, prices, handovers: [], costs: [
+      { id: 'c1', batchId: 'batch-6', category: 'energy', amount: 620000, spentOn: addDays(placedOn, 10), comment: 'газ, уголь' },
+      { id: 'c2', batchId: 'batch-6', category: 'wages', amount: 450000, spentOn: addDays(placedOn, 15), comment: null },
+      { id: 'c3', batchId: 'batch-6', category: 'litter', amount: 180000, spentOn: addDays(placedOn, -2), comment: 'опилки' },
+    ], payments: [], overrides: [],
     batch: { id: 'batch-6', name: '06/2026', status: 'open' },
     users: [
       { id: 'u-head', role: 'head', displayName: 'Директор', phone: '+996700000001', pin: '111111', houseIds: [], active: true },
@@ -120,7 +151,7 @@ export class DemoApi implements Api {
       const u = this.me();
       return this.visibleHbs(u).map((hb) => {
         const h = this.s.houses.find((x) => x.id === hb.houseId)!;
-        return { houseBatchId: hb.id, houseId: h.id, houseName: h.name, placedOn: hb.placedOn, placed: hb.placed, hasWaterMeter: h.hasWaterMeter, batchName: this.s.batch.name };
+        return this.hbInfo(hb, h);
       }).sort((a, b) => a.houseName.localeCompare(b.houseName));
     });
   }
@@ -220,4 +251,112 @@ export class DemoApi implements Api {
   changePin(newPin: string) {
     return this.net(() => { const u = this.me(); u.pin = newPin; this.save(); });
   }
+
+  // ------------------------------------------------------------ operations (mirror supabase/migrations/*operations*)
+  private hbInfo(hb: DemoHB, h = this.s.houses.find((x) => x.id === hb.houseId)!): HouseBatchInfo {
+    const { id, createdBy: _c, ...rest } = hb;
+    return { ...rest, houseBatchId: id, houseName: h.name, hasWaterMeter: h.hasWaterMeter, batchName: this.s.batch.name };
+  }
+  private canHb(u: DemoUser, hbId: string) { return this.visibleHbs(u).some((h) => h.id === hbId); }
+  private checkWindow(u: DemoUser, existing: { createdAt?: string } | undefined, reason?: string | null) {
+    if (!existing?.createdAt || withinWorkerEditWindow(new Date(existing.createdAt), new Date())) return;
+    if (u.role !== 'head') throw new ApiError('EDIT_WINDOW');
+    if (!reason?.trim()) throw new ApiError('REASON_REQUIRED');
+  }
+  myHouses() {
+    return this.net((): MyHouse[] => {
+      const u = this.me();
+      return this.s.houses.filter((h) => u.role === 'head' || u.houseIds.includes(h.id)).map((h) => ({ houseId: h.id, houseName: h.name, hasWaterMeter: h.hasWaterMeter }));
+    });
+  }
+  ops(ids: string[]) {
+    return this.net((): OpsBundle => {
+      const ok = (r: { houseBatchId: string }) => ids.includes(r.houseBatchId) && this.canHb(this.me(), r.houseBatchId);
+      const c = <T,>(xs: T[]) => xs.map((x) => ({ ...x }));
+      return { feed: c(this.s.feed.filter(ok)), health: c(this.s.health.filter(ok)), weighings: c(this.s.weighings.filter(ok)), handovers: c(this.s.handovers.filter(ok)) };
+    });
+  }
+  push(kind: 'feed' | 'health' | 'weighing' | 'handover' | 'placement' | 'phase' | 'catch', p: any) {
+    return this.net(() => {
+      const u = this.me();
+      if (this.s.batch.status === 'closed' && kind !== 'placement') throw new ApiError('BATCH_CLOSED');
+      const now = new Date().toISOString();
+      const upsert = <T extends { id: string; houseBatchId: string; createdAt?: string; createdBy?: string | null; editReason?: string | null }>(list: T[], rec: T, fix: (r: T) => T = (r) => r) => {
+        if (!this.canHb(u, rec.houseBatchId)) throw new ApiError('FORBIDDEN');
+        const ex = list.find((x) => x.id === rec.id);
+        this.checkWindow(u, ex, rec.editReason);
+        const stored = fix({ ...rec, createdAt: ex?.createdAt ?? now, createdBy: ex?.createdBy ?? u.id });
+        const i = list.findIndex((x) => x.id === rec.id);
+        if (i >= 0) list[i] = stored; else list.push(stored);
+        this.save();
+        return { ...stored };
+      };
+      switch (kind) {
+        case 'feed': return upsert(this.s.feed, p as FeedDelivery);
+        case 'handover': return upsert(this.s.handovers, p as Handover);
+        case 'health': return upsert(this.s.health, p as HealthEvent, (r) => ({ ...r, earliestSlaughter: r.kind === 'treatment' ? earliestSlaughter(r.eventOn, r.courseDays ?? 1, r.withdrawalDays ?? 0) : null }));
+        case 'weighing': return upsert(this.s.weighings, p as Weighing, (r) => {
+          if (r.method === 'group') return { ...r, n: r.groupBirds, meanG: r.groupTotalG! / r.groupBirds!, sdG: null, cv: null };
+          const st = weighingStats(r.samplesG); return { ...r, n: st.n, meanG: st.mean, sdG: st.sd, cv: st.cv };
+        });
+        case 'placement': {
+          if (!(u.role === 'head' || u.houseIds.includes(p.houseId))) throw new ApiError('FORBIDDEN');
+          const ex = this.s.hbs.find((h) => h.id === p.id || (h.batchId === this.s.batch.id && h.houseId === p.houseId));
+          if (ex && u.role !== 'head' && ex.createdAt && !withinWorkerEditWindow(new Date(ex.createdAt), new Date())) throw new ApiError('EDIT_WINDOW');
+          const fields = { placedOn: p.placedOn, hatchery: p.hatchery, waybillCount: p.waybillCount, transportDead: p.transportDead ?? 0, placed: p.placed,
+            parentAgeWeeks: p.parentAgeWeeks, day0WeightG: p.day0WeightG, cloacalT: p.cloacalT, cropFill: p.cropFill ?? {} };
+          let hb: DemoHB;
+          if (ex) { Object.assign(ex, fields); hb = ex; }
+          else { hb = { id: p.id, houseId: p.houseId, batchId: this.s.batch.id, feedPhase: 'starter', feedPhaseSince: p.placedOn, catchAt: null, feedOffAt: null, catchOverrideReason: null, createdAt: now, createdBy: u.id, ...fields }; this.s.hbs.push(hb); }
+          this.save(); return this.hbInfo(hb);
+        }
+        case 'phase': {
+          if (!this.canHb(u, p.houseBatchId)) throw new ApiError('FORBIDDEN');
+          const hb = this.s.hbs.find((h) => h.id === p.houseBatchId)!; hb.feedPhase = p.phase; hb.feedPhaseSince = p.since; this.save(); return this.hbInfo(hb);
+        }
+        case 'catch': {
+          if (!this.canHb(u, p.houseBatchId)) throw new ApiError('FORBIDDEN');
+          const hb = this.s.hbs.find((h) => h.id === p.houseBatchId)!;
+          const until = this.s.health.filter((e) => e.houseBatchId === hb.id && e.kind === 'treatment').map((e) => e.earliestSlaughter!).sort().pop();
+          const lp = localParts(new Date(p.catchAt), this.s.farm.tz);
+          const catchDay = `${lp.y}-${String(lp.m).padStart(2, '0')}-${String(lp.d).padStart(2, '0')}`; // calendar day at the farm, as in SQL
+          const inside = !!until && catchDay < until;
+          if (inside && !p.reason?.trim()) throw new ApiError('WITHDRAWAL');
+          if (inside) this.s.overrides.push({ at: now, houseBatchId: hb.id, by: u.id, reason: p.reason, catchAt: p.catchAt, earliest: until! });
+          hb.catchAt = p.catchAt; hb.feedOffAt = p.feedOffAt; hb.catchOverrideReason = inside ? p.reason : null; this.save(); return this.hbInfo(hb);
+        }
+      }
+    });
+  }
+  events(sinceIso: string) {
+    return this.net((): FarmEvent[] => {
+      const u = this.me();
+      const vis = new Set(this.visibleHbs(u).map((h) => h.id));
+      const name = (hbId: string) => this.s.houses.find((h) => h.id === this.s.hbs.find((x) => x.id === hbId)?.houseId)?.name ?? '';
+      const who = (id?: string | null) => this.s.users.find((x) => x.id === id)?.displayName ?? null;
+      const ev: FarmEvent[] = [];
+      const push = (at: string | undefined, hb: string, kind: string, refId: string, by: string | null | undefined, data: Record<string, any>) => {
+        if (at && at >= sinceIso && vis.has(hb)) ev.push({ at, houseBatchId: hb, houseName: name(hb), who: who(by), kind, refId, data });
+      };
+      this.s.logs.forEach((l) => push(l.updatedAt, l.houseBatchId, 'log', l.id, l.createdBy, { day: l.productionDay, deaths: l.deaths, culls: l.culls, feed_kg: l.feedKg, water_l: l.waterL }));
+      this.s.feed.forEach((f) => push(f.createdAt, f.houseBatchId, 'feed', f.id, f.createdBy, { feed_type: f.feedType, tonnes: f.tonnes, on: f.deliveredOn }));
+      this.s.health.forEach((e) => push(e.createdAt, e.houseBatchId, 'health_' + e.kind, e.id, e.createdBy, { product: e.product, course_days: e.courseDays, withdrawal_days: e.withdrawalDays, earliest_slaughter: e.earliestSlaughter, findings: e.findings, on: e.eventOn }));
+      this.s.weighings.forEach((w) => push(w.createdAt, w.houseBatchId, 'weighing', w.id, w.createdBy, { n: w.n, mean_g: w.meanG, cv: w.cv, on: w.weighedOn }));
+      this.s.handovers.forEach((h) => push(h.createdAt, h.houseBatchId, 'handover', h.id, h.createdBy, { buyer: h.buyer, birds: h.birds, kg: h.kg, on: h.handedOn }));
+      this.s.hbs.forEach((h) => push(h.createdAt, h.id, 'placement', h.id, h.createdBy, { placed: h.placed, transport_dead: h.transportDead, on: h.placedOn }));
+      if (u.role === 'head') this.s.overrides.forEach((o) => push(o.at, o.houseBatchId, 'catch_override', o.houseBatchId, o.by, { reason: o.reason, catch_at: o.catchAt, earliest_slaughter: o.earliest }));
+      return ev.sort((a, b) => b.at.localeCompare(a.at));
+    });
+  }
+  // ------------------------------------------------------------ finance: director only; workers get nothing (FR-23)
+  private isHead() { return this.me().role === 'head'; }
+  currentBatch() { return this.net((): BatchInfo | null => ({ ...this.s.batch, status: this.s.batch.status })); }
+  prices() { return this.net(() => (this.isHead() ? this.s.prices.map((p) => ({ ...p })) : [])); }
+  setPrice(p: Price) {
+    return this.net(() => { this.head(); this.s.prices = this.s.prices.filter((x) => !(x.kind === p.kind && x.refId === p.refId)).concat(p); this.save(); });
+  }
+  costs(batchId: string) { return this.net(() => (this.isHead() ? this.s.costs.filter((c) => c.batchId === batchId).map((c) => ({ ...c })) : [])); }
+  addCost(c: Omit<Cost, 'id'>) { return this.net(() => { this.head(); this.s.costs.push({ ...c, id: `c-${Date.now()}` }); this.save(); }); }
+  payments() { return this.net(() => (this.isHead() ? this.s.payments.map((p) => ({ ...p })) : [])); }
+  addPayment(p: Omit<Payment, 'id'>) { return this.net(() => { this.head(); this.s.payments.push({ ...p, id: `pay-${Date.now()}` }); this.save(); }); }
 }

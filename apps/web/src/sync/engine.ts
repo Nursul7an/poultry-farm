@@ -6,7 +6,7 @@
  *   (edit window, closed batch…) mark it "не принято" with the reason, and the record stays on the phone.
  */
 import { addDays } from '@farm/core';
-import type { Api, LogRecord } from '../api/types';
+import type { Api, CatchPlan, HouseBatchInfo, LogRecord, OpKind, PhaseChange, Placement } from '../api/types';
 import { ApiError } from '../api/types';
 import type { LocalDb, OutboxItem } from '../db/local';
 
@@ -49,6 +49,44 @@ export class SyncEngine {
     void this.syncNow();
   }
 
+  private table(kind: OpKind) {
+    return ({ feed: this.db.feed, health: this.db.health, weighing: this.db.weighings, handover: this.db.handovers } as Record<string, any>)[kind];
+  }
+
+  /** Save any other operation locally (optimistically) and queue it. */
+  async saveOp(kind: Exclude<OpKind, 'log'>, payload: any): Promise<void> {
+    const key = kind === 'placement' || kind === 'phase' || kind === 'catch' ? `${kind}:${payload.houseBatchId ?? payload.id}` : payload.id;
+    await this.db.transaction('rw', [this.db.outbox, this.db.houseBatches, this.db.myHouses, this.db.feed, this.db.health, this.db.weighings, this.db.handovers], async () => {
+      const t = this.table(kind);
+      if (t) await t.put(payload);
+      else await this.applyToHouseBatch(kind, payload);
+      await this.db.outbox.where('logId').equals(key).delete();
+      await this.db.outbox.add({ kind, logId: key, payload, status: 'pending', attempts: 0, createdAt: new Date().toISOString() });
+    });
+    await this.emit();
+    void this.syncNow();
+  }
+
+  /** Optimistic local update of the house batch for placement / phase / catch. */
+  private async applyToHouseBatch(kind: OpKind, p: any) {
+    if (kind === 'placement') {
+      const pl = p as Placement;
+      const house = await this.db.myHouses.get(pl.houseId);
+      const cur = await this.db.houseBatches.get(pl.id);
+      await this.db.houseBatches.put({
+        ...(cur ?? { houseBatchId: pl.id, houseId: pl.houseId, houseName: house?.houseName ?? '', hasWaterMeter: house?.hasWaterMeter ?? true, batchName: 'новая партия', feedPhase: 'starter', feedPhaseSince: pl.placedOn }),
+        placedOn: pl.placedOn, placed: pl.placed, hatchery: pl.hatchery, waybillCount: pl.waybillCount, transportDead: pl.transportDead,
+        parentAgeWeeks: pl.parentAgeWeeks, day0WeightG: pl.day0WeightG, cloacalT: pl.cloacalT, cropFill: pl.cropFill,
+      } as HouseBatchInfo);
+    } else if (kind === 'phase') {
+      const ph = p as PhaseChange;
+      await this.db.houseBatches.update(ph.houseBatchId, { feedPhase: ph.phase, feedPhaseSince: ph.since });
+    } else if (kind === 'catch') {
+      const c = p as CatchPlan;
+      await this.db.houseBatches.update(c.houseBatchId, { catchAt: c.catchAt, feedOffAt: c.feedOffAt, catchOverrideReason: c.reason });
+    }
+  }
+
   /** Push the outbox. Safe to call any time; concurrent calls share one run. */
   syncNow(): Promise<void> {
     if (this.running) { this.rerun = true; return this.running; }
@@ -64,6 +102,25 @@ export class SyncEngine {
     const items = await this.db.outbox.where('status').equals('pending').sortBy('seq');
     for (const item of items) {
       try {
+        if (item.kind !== 'log') {
+          const stored = await this.api.push(item.kind, item.payload);
+          await this.db.transaction('rw', [this.db.outbox, this.db.houseBatches, this.db.feed, this.db.health, this.db.weighings, this.db.handovers], async () => {
+            const still = await this.db.outbox.get(item.seq!);
+            if (!still) return;
+            const newer = await this.db.outbox.where('logId').equals(item.logId).filter((o) => o.seq! > item.seq!).count();
+            if (!newer && stored) {
+              const t = this.table(item.kind);
+              if (t) await t.put(stored);
+              else if (stored.houseBatchId) {
+                if (item.kind === 'placement' && stored.houseBatchId !== item.payload.id) await this.db.houseBatches.delete(item.payload.id);
+                const cur = await this.db.houseBatches.get(stored.houseBatchId);
+                await this.db.houseBatches.put({ ...(cur ?? {}), ...stored });
+              }
+            }
+            await this.db.outbox.delete(item.seq!);
+          });
+          continue;
+        }
         const stored = await this.api.upsertLog(item.payload);
         await this.db.transaction('rw', this.db.logs, this.db.outbox, async () => {
           const still = await this.db.outbox.get(item.seq!);
@@ -89,14 +146,25 @@ export class SyncEngine {
 
   /** Download houses and the current batch's logs. Local unsent edits always win over downloaded copies. */
   async refresh(): Promise<void> {
-    const hbs = await this.api.myHouseBatches();
+    const [hbs, mine] = await Promise.all([this.api.myHouseBatches(), this.api.myHouses()]);
     // The whole current batch is small (≤ ~45 days × 4 houses), so cache all of it: live birds need every day.
     const since = hbs.length ? hbs.map((h) => h.placedOn).sort()[0]! : addDays(this.today(), -CACHE_DAYS);
     const logs = await this.api.recentLogs(hbs.map((h) => h.houseBatchId), since);
-    const pendingIds = new Set((await this.db.outbox.toArray()).map((o) => o.logId));
-    await this.db.transaction('rw', this.db.houseBatches, this.db.logs, async () => {
+    const ops = await this.api.ops(hbs.map((h) => h.houseBatchId));
+    const outbox = await this.db.outbox.toArray();
+    const pendingIds = new Set(outbox.map((o) => o.logId));
+    const pendingHb = new Set(outbox.filter((o) => ['placement', 'phase', 'catch'].includes(o.kind)).map((o) => o.payload.houseBatchId ?? o.payload.id));
+    await this.db.transaction('rw', [this.db.houseBatches, this.db.logs, this.db.myHouses, this.db.feed, this.db.health, this.db.weighings, this.db.handovers], async () => {
+      await this.db.myHouses.clear();
+      await this.db.myHouses.bulkPut(mine);
+      const keep = (await this.db.houseBatches.toArray()).filter((h) => pendingHb.has(h.houseBatchId));
       await this.db.houseBatches.clear();
-      await this.db.houseBatches.bulkPut(hbs);
+      await this.db.houseBatches.bulkPut(hbs.filter((h) => !pendingHb.has(h.houseBatchId)).concat(keep));
+      for (const [t, rows] of [[this.db.feed, ops.feed], [this.db.health, ops.health], [this.db.weighings, ops.weighings], [this.db.handovers, ops.handovers]] as const) {
+        const local = await (t as any).toArray();
+        await (t as any).bulkDelete(local.filter((r: any) => !pendingIds.has(r.id)).map((r: any) => r.id));
+        await (t as any).bulkPut((rows as any[]).filter((r) => !pendingIds.has(r.id)));
+      }
       const visible = new Set(hbs.map((h) => h.houseBatchId));
       // Drop cached logs of houses no longer assigned (unless unsent).
       const stale = await this.db.logs.filter((l) => !visible.has(l.houseBatchId) && !pendingIds.has(l.id)).primaryKeys();

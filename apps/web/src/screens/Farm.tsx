@@ -4,6 +4,8 @@ import { useOnline, useSignedIn } from '../app';
 import type { HouseToday } from '../api/types';
 import { ApiError } from '../api/types';
 import { AgeRuler, TopBar } from '../ui/parts';
+import type { FarmEvent } from '../api/types';
+import { eventText } from './eventText';
 import { fmtDayLong, fmtInt, fmtNum, fmtTime } from '../ui/format';
 
 const CACHE = 'farm-today-cache';
@@ -15,12 +17,14 @@ export default function Farm() {
   const [rows, setRows] = useState<HouseToday[] | null>(() => { try { return JSON.parse(localStorage.getItem(CACHE) ?? 'null')?.rows ?? null; } catch { return null; } });
   const [at, setAt] = useState<string | null>(() => { try { return JSON.parse(localStorage.getItem(CACHE) ?? 'null')?.at ?? null; } catch { return null; } });
   const [err, setErr] = useState<string | null>(null);
+  const [events, setEvents] = useState<FarmEvent[]>([]);
 
   const load = useCallback(async () => {
     try {
       const r = await api.houseToday();
       const now = new Date().toISOString();
       setRows(r); setAt(now); setErr(null);
+      setEvents(await api.events(new Date(Date.now() - 24 * 3_600_000).toISOString()));
       try { localStorage.setItem(CACHE, JSON.stringify({ rows: r, at: now })); } catch { /* ignore */ }
     } catch (e) { setErr(e instanceof ApiError ? e.message : 'Ошибка загрузки'); }
   }, [api]);
@@ -73,6 +77,13 @@ export default function Farm() {
                   </tbody>
                 </table>
               </div>
+            </div>
+            <div className="pad" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}><h2 style={{ margin: 0, fontSize: 17 }}>За сутки от работников</h2><Link to="/events">Все события</Link></div>
+            <div className="section">
+              {events.filter((e) => e.kind !== 'log').slice(0, 8).map((e) => { const t = eventText(e); return (
+                <div className="row" key={e.kind + e.refId + e.at} style={{ alignItems: 'flex-start' }}><span className="num small muted" style={{ width: 48, flex: 'none' }}>{fmtTime(e.at)}</span><span className={t.cls} aria-hidden="true">{t.mark}</span><span style={{ flex: 1, fontSize: 14 }}><b>{e.houseName}</b> · {e.who ?? '—'} — {t.text}</span></div>
+              ); })}
+              {!events.some((e) => e.kind !== 'log') && <div className="row muted">Новых записей нет</div>}
             </div>
             <p className="pad small muted">Предупреждения по нормам Arbor Acres (падёж, вода, температура) — фаза 2. Нажмите на птичник, чтобы открыть или исправить журнал.</p>
           </>

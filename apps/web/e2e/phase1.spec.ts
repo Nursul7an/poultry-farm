@@ -3,11 +3,12 @@ import { test, expect, type Page } from '@playwright/test';
 async function signIn(page: Page, who: RegExp) {
   await page.goto('/');
   await page.getByRole('button', { name: who }).click();
+  await expect(page.getByRole('navigation', { name: 'Основное меню' })).toBeVisible();
 }
 /** Number of logs the demo "server" holds for a house on a given day. */
 async function serverLogs(page: Page, hb: string) {
   return page.evaluate((hb) => {
-    const s = JSON.parse(localStorage.getItem('farm-demo-v1')!);
+    const s = JSON.parse(localStorage.getItem('farm-demo-v2')!);
     return s.logs.filter((l: any) => l.houseBatchId === hb && !String(l.id).startsWith('seed-'));
   }, hb);
 }
@@ -98,11 +99,10 @@ test('48-hour rule: worker cannot edit an old log; head must give a reason', asy
   await expect(page.getByText('Прошло больше 48 часов — исправить может только директор')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Сохранить журнал' })).toHaveCount(0);
 
-  await page.getByRole('link', { name: /Отправка/ }).click();
+  await page.goto('/queue');
   await page.getByRole('button', { name: /Выйти/ }).click();
   await signIn(page, /Директор/);
-  await page.getByRole('link', { name: 'Журналы' }).first().click();
-  const day22 = await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('farm-demo-v1')!); return s.logs.find((l: any) => l.id === 'seed-hb-1-22').productionDay; });
+  const day22 = await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('farm-demo-v2')!); return s.logs.find((l: any) => l.id === 'seed-hb-1-22').productionDay; });
   await page.goto(`/log/hb-1/${day22}`);
   await page.getByRole('button', { name: 'Сохранить журнал' }).click();
   await expect(page.getByRole('alert')).toContainText('укажите причину');

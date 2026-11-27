@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { dayOfAge, liveBirds } from '@farm/core';
 import { useLive, useSignedIn } from '../app';
-import type { HouseBatchInfo, LogRecord } from '../api/types';
+import type { FeedDelivery, Handover, HealthEvent, HouseBatchInfo, LogRecord, Weighing } from '../api/types';
 
 const KEY = 'farm-selected-house';
 
@@ -24,4 +24,15 @@ export function useHouseLogs(houseBatchId: string | undefined) {
 
 export function houseFigures(h: HouseBatchInfo, logs: LogRecord[], today: string) {
   return { day: dayOfAge(h.placedOn, today), live: liveBirds(h.placed, logs) };
+}
+
+export function useHouseOps(houseBatchId: string | undefined) {
+  const { db } = useSignedIn();
+  const q = <T,>(t: { where(k: string): { equals(v: string): { toArray(): Promise<T[]> } } }) =>
+    () => (houseBatchId ? t.where('houseBatchId').equals(houseBatchId).toArray() : Promise.resolve([] as T[]));
+  const feed = useLive(q(db.feed as any) as () => Promise<FeedDelivery[]>, [db, houseBatchId], [] as FeedDelivery[]);
+  const health = useLive(q(db.health as any) as () => Promise<HealthEvent[]>, [db, houseBatchId], [] as HealthEvent[]);
+  const weighings = useLive(q(db.weighings as any) as () => Promise<Weighing[]>, [db, houseBatchId], [] as Weighing[]);
+  const handovers = useLive(q(db.handovers as any) as () => Promise<Handover[]>, [db, houseBatchId], [] as Handover[]);
+  return { feed, health, weighings, handovers };
 }

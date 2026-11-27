@@ -11,6 +11,14 @@ import DailyLog from './screens/DailyLog';
 import Queue from './screens/Queue';
 import Farm from './screens/Farm';
 import Settings from './screens/Settings';
+import Feed from './screens/Feed';
+import Health from './screens/Health';
+import More from './screens/More';
+import Placement from './screens/Placement';
+import Weighing from './screens/Weighing';
+import Catch from './screens/Catch';
+import Events from './screens/Events';
+import Money from './screens/Money';
 import './styles.css';
 
 registerSW({ immediate: true });
@@ -30,6 +38,14 @@ function Shell() {
           <Route path="/history" element={<History />} />
           <Route path="/log/:hb/:day" element={<DailyLog />} />
           <Route path="/queue" element={<Queue />} />
+          <Route path="/feed" element={<Feed />} />
+          <Route path="/health" element={<Health />} />
+          <Route path="/more" element={<More />} />
+          <Route path="/placement" element={<Placement />} />
+          <Route path="/weighing" element={<Weighing />} />
+          <Route path="/catch" element={<Catch />} />
+          {head && <Route path="/events" element={<Events />} />}
+          {head && <Route path="/money" element={<Money />} />}
           {head && <Route path="/farm" element={<Farm />} />}
           {head && <Route path="/settings" element={<Settings />} />}
           <Route path="*" element={<Navigate to={head ? '/farm' : '/today'} replace />} />

@@ -14,7 +14,52 @@ export interface HouseBatchInfo {
   placed: number;
   hasWaterMeter: boolean;
   batchName: string;
+  batchId?: string;
+  feedPhase?: 'starter' | 'grower' | 'finisher';
+  feedPhaseSince?: string | null;
+  catchAt?: string | null;
+  feedOffAt?: string | null;
+  catchOverrideReason?: string | null;
+  hatchery?: string | null;
+  waybillCount?: number | null;
+  transportDead?: number;
+  parentAgeWeeks?: number | null;
+  day0WeightG?: number | null;
+  cloacalT?: number | null;
+  cropFill?: Record<string, number>;
+  createdAt?: string;
 }
+
+/** A house the user may work in (also when it has no current batch: needed for placement). */
+export interface MyHouse { houseId: string; houseName: string; hasWaterMeter: boolean }
+
+export interface FeedDelivery { id: string; houseBatchId: string; deliveredOn: string; feedType: 'starter' | 'grower' | 'finisher'; tonnes: number; note?: string | null; editReason?: string | null; createdAt?: string; createdBy?: string | null }
+export interface HealthEvent {
+  id: string; houseBatchId: string; kind: 'vaccination' | 'treatment' | 'post_mortem'; eventOn: string;
+  product?: string | null; dose?: string | null; lot?: string | null; method?: string | null;
+  courseDays?: number | null; withdrawalDays?: number | null; birdsExamined?: number | null; findings?: string | null;
+  earliestSlaughter?: string | null; note?: string | null; editReason?: string | null; createdAt?: string; createdBy?: string | null;
+}
+export interface Weighing { id: string; houseBatchId: string; weighedOn: string; method: 'individual' | 'group'; samplesG: number[]; groupTotalG?: number | null; groupBirds?: number | null; n?: number | null; meanG?: number | null; sdG?: number | null; cv?: number | null; editReason?: string | null; createdAt?: string; createdBy?: string | null }
+export interface Handover { id: string; houseBatchId: string; handedOn: string; buyer: string; birds: number; kg: number; transportDead: number; note?: string | null; editReason?: string | null; createdAt?: string; createdBy?: string | null }
+export interface Placement {
+  id: string; houseId: string; placedOn: string; hatchery?: string | null; waybillCount?: number | null; transportDead: number; placed: number;
+  parentAgeWeeks?: number | null; day0WeightG?: number | null; cloacalT?: number | null; cropFill: Record<string, number>; editReason?: string | null;
+}
+export interface PhaseChange { houseBatchId: string; phase: 'starter' | 'grower' | 'finisher'; since: string }
+export interface CatchPlan { houseBatchId: string; catchAt: string; feedOffAt: string | null; reason: string | null }
+
+/** Operation kinds that go through the offline outbox. */
+export type OpKind = 'log' | 'feed' | 'health' | 'weighing' | 'handover' | 'placement' | 'phase' | 'catch';
+export interface OpsBundle { feed: FeedDelivery[]; health: HealthEvent[]; weighings: Weighing[]; handovers: Handover[] }
+
+export interface FarmEvent { at: string; houseBatchId: string; houseName: string; who: string | null; kind: string; refId: string; data: Record<string, any> }
+
+/** Finance (director only; the server returns nothing to workers). */
+export interface Price { kind: 'chick' | 'feed' | 'medicine' | 'sale'; refId: string; unitPrice: number }
+export interface Cost { id: string; batchId: string; category: 'energy' | 'wages' | 'litter' | 'vet' | 'transport' | 'other'; amount: number; spentOn: string; comment: string | null }
+export interface Payment { id: string; handoverId: string; amount: number; paidOn: string; comment: string | null }
+export interface BatchInfo { id: string; name: string; status: 'open' | 'catching' | 'closed' }
 
 /** One daily log, in the app's shape. */
 export interface LogRecord {
@@ -56,7 +101,7 @@ export interface Worker { id: string; displayName: string; phone: string; houseI
 /** Error codes the server can return (see supabase/migrations). */
 export type ApiErrorCode =
   | 'NETWORK' | 'AUTH' | 'FORBIDDEN' | 'EDIT_WINDOW' | 'REASON_REQUIRED' | 'BATCH_CLOSED'
-  | 'DAY_IN_FUTURE' | 'DAY_TOO_OLD' | 'METER_BACKWARDS' | 'VALIDATION' | 'UNKNOWN';
+  | 'DAY_IN_FUTURE' | 'DAY_TOO_OLD' | 'METER_BACKWARDS' | 'WITHDRAWAL' | 'VALIDATION' | 'UNKNOWN';
 
 export const ERROR_TEXT: Record<ApiErrorCode, string> = {
   NETWORK: 'Нет связи с сервером',
@@ -68,6 +113,7 @@ export const ERROR_TEXT: Record<ApiErrorCode, string> = {
   DAY_IN_FUTURE: 'Дата ещё не наступила',
   DAY_TOO_OLD: 'Старые дни заполняет директор',
   METER_BACKWARDS: 'Показание меньше прошлого — отметьте «новый счётчик»',
+  WITHDRAWAL: 'Отлов раньше конца срока ожидания — укажите причину',
   VALIDATION: 'Проверьте значения',
   UNKNOWN: 'Ошибка сервера',
 };
@@ -93,12 +139,26 @@ export interface Api {
   inviteWorker(w: { displayName: string; phone: string; pin: string; houseIds: string[] }): Promise<void>;
   setWorkerHouses(workerId: string, houseIds: string[]): Promise<void>;
   changePin(newPin: string): Promise<void>;
+  // Operations (worker on own houses, director on all)
+  myHouses(): Promise<MyHouse[]>;
+  ops(houseBatchIds: string[]): Promise<OpsBundle>;
+  /** Saves one queued operation; idempotent by id. Returns the stored record (placement/phase/catch: the house batch). */
+  push(kind: Exclude<OpKind, 'log'>, payload: any): Promise<any>;
+  events(sinceIso: string): Promise<FarmEvent[]>;
+  // Finance (director only)
+  currentBatch(): Promise<BatchInfo | null>;
+  prices(): Promise<Price[]>;
+  setPrice(p: Price): Promise<void>;
+  costs(batchId: string): Promise<Cost[]>;
+  addCost(c: Omit<Cost, 'id'>): Promise<void>;
+  payments(): Promise<Payment[]>;
+  addPayment(p: Omit<Payment, 'id'>): Promise<void>;
 }
 
 /** Map a raw server error message to a code. */
 export function errorCodeFrom(message: string | undefined): ApiErrorCode {
   const m = message ?? '';
-  for (const c of ['EDIT_WINDOW', 'REASON_REQUIRED', 'BATCH_CLOSED', 'DAY_IN_FUTURE', 'DAY_TOO_OLD', 'METER_BACKWARDS', 'FORBIDDEN'] as const) {
+  for (const c of ['EDIT_WINDOW', 'REASON_REQUIRED', 'BATCH_CLOSED', 'DAY_IN_FUTURE', 'DAY_TOO_OLD', 'METER_BACKWARDS', 'WITHDRAWAL', 'FORBIDDEN'] as const) {
     if (m.includes(c)) return c;
   }
   if (/row-level security|permission denied/i.test(m)) return 'FORBIDDEN';

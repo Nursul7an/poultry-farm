@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "//": "Used when the Vercel project's Root Directory is apps/web. npm still installs the whole workspace (packages/core).",
+  "//": "Used when the Vercel project root is apps/web. npm still installs the whole workspace (packages/core). Pushes by a non-member author are blocked on Hobby plans.",
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",

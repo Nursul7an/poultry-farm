@@ -107,6 +107,7 @@ test('worker records weighing (director sees it); an old placement edit is refus
 
   await page.goto('/queue');
   await page.getByRole('button', { name: /Выйти/ }).click();
+  await page.getByRole('button', { name: 'Всё равно выйти' }).click(); // the refused record stays on the phone
   await signIn(page, /Директор/);
   await page.goto('/events');
   await expect(page.getByText(/Взвешивание: 1\s000 г, 5 гол\., CV 7,2%/)).toBeVisible();

@@ -19,6 +19,7 @@ test('phone: «Ещё» shows who is signed in and «Выйти» signs out for 
   await expect(page).toHaveURL(/\/login$/);
   await page.reload();
   await expect(page.getByRole('button', { name: /Войти/ })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Основное меню' })).toHaveCount(0);
   await page.goto('/farm');
   await expect(page).toHaveURL(/\/login$/);
 });
@@ -33,11 +34,15 @@ test('worker with unsent records is warned before signing out', async ({ page, c
   await page.getByLabel('Тонн по накладной').fill('5');
   await page.getByRole('button', { name: 'Сохранить поставку' }).click();
   await page.getByRole('link', { name: /Ещё/ }).click();
-  let msg = '';
-  page.once('dialog', (d) => { msg = d.message(); void d.dismiss(); });
-  await page.getByRole('region', { name: 'Аккаунт' }).getByRole('button', { name: 'Выйти' }).click();
-  expect(msg).toMatch(/Не отправлено записей: 1/);
-  await expect(page).toHaveURL(/\/more$/); // cancelled: still signed in
+  const acc = page.getByRole('region', { name: 'Аккаунт' });
+  await acc.getByRole('button', { name: 'Выйти' }).click();
+  const ask = acc.getByRole('alertdialog', { name: 'Выйти?' });
+  await expect(ask).toContainText('Не отправлено записей: 1');
+  await ask.getByRole('button', { name: 'Отмена' }).click();
+  await expect(page).toHaveURL(/\/more$/); // still signed in
+  await acc.getByRole('button', { name: 'Выйти' }).click();
+  await acc.getByRole('button', { name: 'Всё равно выйти' }).click(); // works offline too
+  await expect(page).toHaveURL(/\/login$/);
   await context.setOffline(false);
 });
 

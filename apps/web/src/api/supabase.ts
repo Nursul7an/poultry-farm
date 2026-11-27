@@ -84,7 +84,12 @@ export class SupabaseApi implements Api {
     try { return await this.loadSession(data.session.user.id); } catch { return null; }
   }
 
-  async signOut() { localStorage.removeItem(SESSION_CACHE); await this.sb.auth.signOut(); }
+  /** Signs out on this device without waiting for the network (a slow line must not block «Выйти»). */
+  async signOut() {
+    localStorage.removeItem(SESSION_CACHE);
+    try { await Promise.race([this.sb.auth.signOut({ scope: 'local' }), new Promise((r) => setTimeout(r, 1500))]); } catch { /* cleared below */ }
+    for (const k of Object.keys(localStorage)) if (/^sb-.*-auth-token/.test(k)) localStorage.removeItem(k);
+  }
 
   async myHouseBatches(): Promise<HouseBatchInfo[]> {
     const rows = await this.call(() => this.sb.from('house_batch')

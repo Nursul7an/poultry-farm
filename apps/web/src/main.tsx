@@ -25,7 +25,17 @@ import Ask from './screens/Ask';
 import NormsEdit from './screens/NormsEdit';
 import './styles.css';
 
-registerSW({ immediate: true });
+// New versions install in the background; check on start, every 30 minutes and whenever the app comes back to the screen.
+// With autoUpdate the page reloads itself once the new version is active.
+registerSW({
+  immediate: true,
+  onRegisteredSW(_url, reg) {
+    if (!reg) return;
+    const check = () => { if (navigator.onLine) void reg.update().catch(() => {}); };
+    setInterval(check, 30 * 60_000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+  },
+});
 
 function Shell() {
   const { session } = useApp();

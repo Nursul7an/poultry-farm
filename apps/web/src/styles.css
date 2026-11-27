@@ -138,3 +138,12 @@ table.data th:first-child, table.data td:first-child { text-align: left; }
 .md code { font-size: 14px; }
 .answer { white-space: pre-wrap; line-height: 1.5; padding: 0 16px; font-size: 16px; }
 a.chip { text-decoration: none; color: inherit; }
+
+/* Account block in the navigation: desktop sidebar only (phones use the card in «Ещё»). */
+.nav-account { display: none; }
+@media (min-width: 1024px) {
+  .wide .nav-account { display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding: 12px; border-top: 1px solid #2C3A47; color: #C9D3DB; font-size: 14px; }
+  .wide .nav-account small { color: #8FA0AE; }
+  .wide .nav-account-exit { min-height: 40px; border-radius: 8px; border: 1px solid #3A4A58; background: transparent; color: #fff; font: inherit; cursor: pointer; }
+  .wide .nav-account-exit:hover { background: #24313E; }
+}

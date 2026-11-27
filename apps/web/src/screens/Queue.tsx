@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useApp, useLive, useOnline, useSignedIn, useSyncStatus } from '../app';
+import { useLive, useOnline, useSignedIn, useSyncStatus } from '../app';
 import { TopBar } from '../ui/parts';
+import { useSignOut } from '../ui/account';
 import { fmtDayShort, fmtTime } from '../ui/format';
 import { PIN_RE } from '../api/phone';
 import { ApiError } from '../api/types';
@@ -17,10 +17,9 @@ function describe(kind: string, p: any, name: (hb: string) => string) {
 /** Sync queue + device diagnostics (the T-02 spike checklist reads these values). */
 export default function Queue() {
   const { db, sync, session, api } = useSignedIn();
-  const { setSession } = useApp();
-  const nav = useNavigate();
   const online = useOnline();
   const st = useSyncStatus();
+  const signOut = useSignOut();
   const items = useLive(() => db.outbox.orderBy('seq').toArray(), [db], []);
   const houses = useLive(() => db.houseBatches.toArray(), [db], []);
   const [pin, setPin] = useState('');
@@ -86,10 +85,7 @@ export default function Queue() {
           <button className="btn" disabled={!online}>Сохранить новый PIN</button>
         </form>
         <div className="pad">
-          <button className="btn block" onClick={async () => {
-            if (st?.pending && !confirm('Есть неотправленные записи. Они останутся на телефоне и отправятся после следующего входа. Выйти?')) return;
-            await api.signOut(); setSession(null); nav('/login', { replace: true });
-          }}>Выйти ({session.displayName})</button>
+          <button className="btn block" onClick={() => void signOut()}>Выйти ({session.displayName})</button>
         </div>
       </main>
     </>

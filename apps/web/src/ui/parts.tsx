@@ -1,3 +1,4 @@
+import { NavAccount } from './account';
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useApp, useOnline, useSyncStatus } from '../app';
@@ -69,6 +70,7 @@ export function BottomNav() {
         <NavLink to="/money"><Icon name="money" />Деньги</NavLink>
         <NavLink to="/today"><Icon name="houses" />Птичники</NavLink>
         <NavLink to="/more"><Icon name="more" />Ещё {badge}</NavLink>
+        <NavAccount />
       </nav>
     );
   }
@@ -79,6 +81,7 @@ export function BottomNav() {
       <NavLink to="/feed"><Icon name="feed" />Корм</NavLink>
       <NavLink to="/health"><Icon name="health" />Здоровье</NavLink>
       <NavLink to="/more"><Icon name="more" />Ещё {badge}</NavLink>
+      <NavAccount />
     </nav>
   );
 }

@@ -21,7 +21,11 @@ An offline-capable app for a 4-house broiler farm. House workers log each house'
 | Catch plan with withdrawal block, handover | ✔ override needs a reason | ✔ sees override at once; price per kg, payments | done |
 | Money: prices, costs, payments, profit per kg | ✗ never (server-enforced) | ✔ | done |
 | Event feed (instead of approvals) | — | ✔ «События», panel on «Ферма» | done |
-| Norm warnings, Telegram, reminders engine | | | Phase 2 |
+| Norm check of each saved daily log (mortality, week 1, temperature vs. age and humidity, water:feed, humidity) | ✔ offline | ✔ | done |
+| «Справочник»: 90 handbook articles + today's norms per house, search | ✔ offline | ✔ | done |
+| Farm norms (Arbor Acres by default) | read | ✔ edit / reset to AA | done |
+| «Помощник»: questions answered by Claude from the handbook, with sources | ✔ online, 30/day | ✔ sees all questions | done (needs API key) |
+| Reminders engine (notifications are in-app only, no Telegram) | | | Phase 2 |
 | Batch report and close/lock, export | | | Phase 3 |
 | Real-phone test (T-02), Supabase project, hosting | | | **needs you** — see below and `docs/PHASE1-PHONE-TEST.md` |
 
@@ -49,16 +53,26 @@ npm run test:e2e     # browser tests on a production build: offline save → rel
 2. Authentication → Providers → Email: **disable "Confirm email"**; check the minimum password length allows 6 characters (PINs are 6 digits).
 3. Run `supabase/migrations/*.sql` in the SQL editor (or `supabase db push`).
 4. Create the head user (Authentication → Users → Add user) with email `p<phone digits>@phone.farm.local` (e.g. `p996700000001@phone.farm.local`) and a 6-digit PIN as password, then run `supabase/bootstrap.sql` with your values.
-5. Deploy the invite function: `supabase functions deploy invite-worker`.
+5. Deploy the functions: `supabase functions deploy invite-worker` and `supabase functions deploy ask`.
+   For «Помощник» add the secret `ANTHROPIC_API_KEY` (Edge Functions → Secrets). Optional: `ASSISTANT_MODEL` (default `claude-opus-5-5`), `ASSISTANT_DAILY_LIMIT` (default 30 per person).
+   Or run everything at once with `scripts/supabase-setup.mjs` (see its header).
 6. The first worker who records a placement («Ещё → Посадка») opens the batch.
 7. `apps/web/.env.local`: `VITE_SUPABASE_URL=…` and `VITE_SUPABASE_ANON_KEY=…`, then `npm run build -w apps/web` and host `apps/web/dist` on any static HTTPS host (Cloudflare Pages, Netlify, Vercel).
+
+## Knowledge
+
+One source, two outputs. Edit `packages/core/src/norms/aa-norms.json` (norm numbers) or `docs/knowledge/*.md` (handbook), then run `npm run gen:knowledge`: it regenerates the database seed (`supabase/migrations/20261127000003_knowledge_seed.sql`) and the demo copy (`apps/web/src/api/knowledge.generated.json`). CI fails if they are out of date.
+
+- Phones cache the norms and the handbook (IndexedDB), so checks and «Справочник» work with no signal.
+- The director's changes to norms are stored per farm (`norm` rows with `farm_id`) and override Arbor Acres on every phone after sync.
+- «Помощник» (`supabase/functions/ask`): full-text search picks the 6 best articles; Claude answers in Russian from them and the farm's norms, citing [n]. Server-side refusal fallback is on (`fallbacks: "default"`). Every question is logged in `assistant_question` (the director can read them). Rough cost: about 5–8 US cents per question with the default model; set `ASSISTANT_MODEL` to a cheaper model to lower it.
 
 ## Layout
 
 ```
 apps/web          PWA: screens, offline storage (Dexie), sync engine, demo + Supabase backends
 packages/core     shared rules: production day, day of age, water litres, plausibility, 48 h window
-supabase/         migrations (schema + RLS + triggers), invite-worker function, DB tests
+supabase/         migrations (schema + RLS + triggers + knowledge), invite-worker and ask functions, DB tests
 docs/             plan, spec, designs, knowledge base
 ```
 

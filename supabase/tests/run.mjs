@@ -23,7 +23,7 @@ async function connect() {
     return isRoot ? execFileSync('runuser', ['-u', 'postgres', '--', join(bin, cmd), ...args], { stdio: 'pipe' })
                   : execFileSync(join(bin, cmd), args, { stdio: 'pipe' });
   };
-  asPg('initdb', ['-D', join(dir, 'data'), '-A', 'trust', '-U', 'postgres']);
+  asPg('initdb', ['-D', join(dir, 'data'), '-A', 'trust', '-U', 'postgres', '-E', 'UTF8', '--locale=C.UTF-8']); // UTF-8 like Supabase: needed for Russian search
   asPg('pg_ctl', ['-D', join(dir, 'data'), '-o', `-p 54329 -k ${dir} -c listen_addresses=''`, '-w', 'start', '-l', join(dir, 'log')]);
   stopCluster = () => { try { asPg('pg_ctl', ['-D', join(dir, 'data'), '-m', 'fast', 'stop']); } catch {} };
   return new pg.Client({ host: dir, port: 54329, user: 'postgres', database: 'postgres' });
@@ -248,6 +248,45 @@ await test('worker places chicks only in own houses; first placement opens a new
   eq([again.id, again.placed], [r.id, 17040]);
   await db.query(`delete from public.batch where id = $1`, [r.batch_id]);
   await db.query(`update public.batch set status = 'open' where id = $1`, [B]);
+});
+
+console.log('Knowledge: AA norms and handbook');
+await test('everyone reads the Arbor Acres defaults and the handbook', async () => {
+  eq((await as(A, () => db.query(`select count(*)::int c from public.norm where farm_id is null`))).rows[0].c, 15);
+  const t2 = (await as(A, () => db.query(`select data from public.norm where code = 'temp_by_age' and farm_id is null`))).rows[0].data;
+  eq([t2.rows[0].day, t2.rows[0].whole, t2.rows[0].spot_edge, t2.rows[0].spot_2m], [0, 30, 32, 29]);
+  if ((await as(N, () => db.query(`select count(*)::int c from public.knowledge_article`))).rows[0].c < 50) throw new Error('articles missing');
+});
+await test('Russian full-text search finds the temperature table', async () => {
+  const r = await as(A, () => db.query(`select title from public.search_knowledge('температура по возрасту', 3)`));
+  if (!r.rows.some((x) => /Температура по возрасту/.test(x.title))) throw new Error(JSON.stringify(r.rows));
+});
+await test('only the director overrides norms for the farm; other farms keep defaults', async () => {
+  await expectError('row-level security', () => as(A, () => db.query(`insert into public.norm (farm_id, code, data) values ($1, 'mortality', '{}')`, [F])));
+  await expectError('row-level security', () => as(A, () => db.query(`insert into public.norm (farm_id, code, data) values (null, 'mortality', '{}')`)));
+  await as(H, () => db.query(`insert into public.norm (farm_id, code, data) values ($1, 'mortality', '{"daily_max_pct":0.2}')`, [F]));
+  eq((await as(A, () => db.query(`select count(*)::int c from public.norm where code = 'mortality'`))).rows[0].c, 2);
+  eq((await as(H2, () => db.query(`select count(*)::int c from public.norm where code = 'mortality'`))).rows[0].c, 1);
+  await expectError('row-level security', () => as(H, () => db.query(`update public.norm set data = '{}' where farm_id is null and code = 'air' returning id`).then((r) => { if (!r.rowCount) throw new Error('row-level security: 0 rows'); })));
+});
+await test('director adds a farm note to the handbook; workers read it', async () => {
+  await as(H, () => db.query(`insert into public.knowledge_article (id, farm_id, section, title, body_md) values ('farm-note-1', $1, 'Наша ферма', 'Ветврач', 'Телефон ветврача на доске в конторе')`, [F]));
+  eq((await as(A, () => db.query(`select count(*)::int c from public.knowledge_article where id = 'farm-note-1'`))).rows[0].c, 1);
+  eq((await as(H2, () => db.query(`select count(*)::int c from public.knowledge_article where id = 'farm-note-1'`))).rows[0].c, 0);
+});
+
+await test('assistant search matches any word of a natural question', async () => {
+  const r = await as(A, () => db.query(`select title from public.search_knowledge_any('Какая температура нужна цыплятам на десятый день?', 6)`));
+  if (!r.rows.length) throw new Error('no hits');
+  eq((await as(A, () => db.query(`select count(*)::int c from public.search_knowledge_any('?!', 6)`))).rows[0].c, 0);
+});
+await test('assistant questions: each person logs and sees own; director sees the farm; other farms nothing', async () => {
+  await as(A, () => db.query(`insert into public.assistant_question (question, answer) values ('Сколько воды?', 'Ответ')`));
+  await expectError('row-level security', () => as(A, () => db.query(`insert into public.assistant_question (user_id, question) values ($1, 'чужой')`, [N])));
+  eq((await as(A, () => db.query(`select count(*)::int c from public.assistant_question`))).rows[0].c, 1);
+  eq((await as(N, () => db.query(`select count(*)::int c from public.assistant_question`))).rows[0].c, 0);
+  eq((await as(H, () => db.query(`select count(*)::int c from public.assistant_question`))).rows[0].c, 1);
+  eq((await as(H2, () => db.query(`select count(*)::int c from public.assistant_question`))).rows[0].c, 0);
 });
 
 await test('anon role cannot read anything', async () => {

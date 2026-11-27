@@ -4,10 +4,11 @@
  * (access per house, future/old days, 48-hour edit window, water litres, one log per house per day).
  * The real rules live in SQL; keep the two in step when changing either.
  */
-import { addDays, earliestSlaughter, localParts, productionDay, weighingStats, withinWorkerEditWindow } from '@farm/core';
-import type { Api, BatchInfo, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
+import { AA_NORMS, addDays, earliestSlaughter, localParts, productionDay, weighingStats, withinWorkerEditWindow } from '@farm/core';
+import type { Api, Article, AskAnswer, AskContext, BatchInfo, NormRow, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError } from './types';
 import { normalizePhone } from './phone';
+import { searchArticles } from './search';
 
 interface DemoUser { id: string; role: 'head' | 'worker'; displayName: string; phone: string; pin: string; houseIds: string[]; active: boolean }
 type DemoHB = Omit<HouseBatchInfo, 'houseBatchId' | 'houseName' | 'hasWaterMeter' | 'batchName'> & { id: string; createdBy?: string };
@@ -27,6 +28,8 @@ interface DemoState {
   costs: Cost[];
   payments: Payment[];
   overrides: { at: string; houseBatchId: string; by: string; reason: string; catchAt: string; earliest: string }[];
+  /** The director's changes to the Arbor Acres norms (code -> data). */
+  normOverrides?: Record<string, unknown>;
 }
 
 const KEY = 'farm-demo-v2';
@@ -359,4 +362,34 @@ export class DemoApi implements Api {
   addCost(c: Omit<Cost, 'id'>) { return this.net(() => { this.head(); this.s.costs.push({ ...c, id: `c-${Date.now()}` }); this.save(); }); }
   payments() { return this.net(() => (this.isHead() ? this.s.payments.map((p) => ({ ...p })) : [])); }
   addPayment(p: Omit<Payment, 'id'>) { return this.net(() => { this.head(); this.s.payments.push({ ...p, id: `pay-${Date.now()}` }); this.save(); }); }
+  // ------------------------------------------------------------ knowledge
+  norms() {
+    return this.net((): NormRow[] => {
+      this.me();
+      const aa: NormRow[] = Object.entries(AA_NORMS).filter(([k]) => k !== '_source').map(([code, data]) => ({ code, data, farm: false }));
+      return aa.concat(Object.entries(this.s.normOverrides ?? {}).map(([code, data]) => ({ code, data, farm: true })));
+    });
+  }
+  async articles(): Promise<Article[]> {
+    this.me();
+    // Loaded on demand so the Supabase build does not carry the handbook in its main bundle.
+    const raw = (await import('./knowledge.generated.json')).default as { id: string; section: string; title: string; body_md: string; source: string | null; sort: number }[];
+    return this.net(() => raw.map((a) => ({ id: a.id, section: a.section, title: a.title, bodyMd: a.body_md, source: a.source, sort: a.sort })));
+  }
+  setNorm(code: string, data: unknown) {
+    return this.net(() => { this.head(); this.s.normOverrides = { ...this.s.normOverrides, [code]: data }; this.save(); });
+  }
+  resetNorm(code: string) {
+    return this.net(() => { this.head(); const o = { ...this.s.normOverrides }; delete o[code]; this.s.normOverrides = o; this.save(); });
+  }
+  /** Demo has no AI: it answers with the best-matching handbook articles. */
+  async ask(question: string, _context: AskContext | null): Promise<AskAnswer> {
+    const hits = searchArticles(await this.articles(), question).slice(0, 3);
+    return this.net(() => ({
+      answer: hits.length
+        ? `Демо-режим: ИИ-помощник работает только с сервером. Вот что есть в справочнике:\n\n${hits.map((a, i) => `[${i + 1}] ${a.title}`).join('\n')}`
+        : 'Демо-режим: в справочнике ничего не нашлось. Попробуйте другие слова.',
+      sources: hits.map((a) => ({ id: a.id, title: a.title })),
+    }));
+  }
 }

@@ -1,6 +1,6 @@
 /** On-device storage (IndexedDB). One database per signed-in user, so two people on one phone never mix data. */
 import Dexie, { type Table } from 'dexie';
-import type { FeedDelivery, Handover, HealthEvent, HouseBatchInfo, LogRecord, MyHouse, OpKind, Weighing } from '../api/types';
+import type { Article, NormRow, FeedDelivery, Handover, HealthEvent, HouseBatchInfo, LogRecord, MyHouse, OpKind, Weighing } from '../api/types';
 
 export interface OutboxItem {
   seq?: number;
@@ -28,6 +28,8 @@ export class LocalDb extends Dexie {
   weighings!: Table<Weighing, string>;
   handovers!: Table<Handover, string>;
   myHouses!: Table<MyHouse, string>;
+  norms!: Table<NormRow & { key: string }, string>;
+  articles!: Table<Article, string>;
 
   constructor(name: string) {
     super(name);
@@ -45,6 +47,7 @@ export class LocalDb extends Dexie {
       handovers: 'id, houseBatchId',
       myHouses: 'houseId',
     });
+    this.version(3).stores({ norms: 'key, code', articles: 'id, section' });
   }
 
   logFor(houseBatchId: string, day: string) {

@@ -362,7 +362,7 @@ If two or more fire for one house on the same day, they are shown as one **"Во
 | Feed deliveries + costs → profit | 3 | 5 | 4 | 2 | 30 | Must |
 | Weekly weighing | 4 | 4 | 5 | 2 | 40 | Must |
 | Age reminders | 4 | 3 | 4 | 1 | 48 | Should |
-| Telegram notifications | 2 | 3 | 4 | 1 | 24 | Should |
+| In-app notifications («События») | 2 | 3 | 4 | 1 | 24 | Should |
 | Buyer debts tracking | 1 | 3 | 4 | 1 | 12 | Could (v1) |
 | Cleanout checklist | 2 | 3 | 4 | 1 | 24 | Could (v1) |
 | Batch-to-batch comparison | 1 | 4 | 4 | 2 | 8 | v1 |
@@ -371,7 +371,7 @@ If two or more fire for one house on the same day, they are shown as one **"Во
 ### 6.2 Releases ⚠️ assumes 1–2 developers
 | Release | Goal | Content | Exit criterion | Size |
 |---|---|---|---|---|
-| **Test (before build)** | will workers log daily? | Telegram bot or Google Form, 1 house | ≥ 12 of 14 days logged | 2 weeks |
+| **Test (before build)** | will workers log daily? | Google Form or paper copy, 1 house | ≥ 12 of 14 days logged | 2 weeks |
 | **MVP** | one full batch in the app, including profit | screens 1–11, 8 warnings, reminders | 4 houses, ≥ 95% logs for a full batch; report matches a manual check within 1% | ~8 weeks |
 | **Pilot batch** | prove it | run, fix, measure | director stops paper/Excel | ~6 weeks |
 | **v1** | learn across batches | batch comparison, cleanout checklist, buyer debts, Kyrgyz UI | EPEF ↑ over 2 batches | ~4 weeks |
@@ -397,7 +397,7 @@ If two or more fire for one house on the same day, they are shown as one **"Во
 ### 6.5 Risks & assumptions
 | Risk | If wrong | Cheapest test |
 |---|---|---|
-| Workers won't log daily | no data → no value | 2-week Telegram-bot test, 1 house |
+| Workers won't log daily | no data → no value | 2-week Google-Form test, 1 house |
 | Each house has a water meter | lose the best early signal | check; install (cheap) |
 | Feed can be counted per house | no FCR per house | ask how feed reaches each bin |
 | AA weight norms available | no weight warning | ask the Aviagen rep / hatchery |
@@ -447,7 +447,7 @@ Build if none fits. For a farm this size, the most common case is a custom build
   - Sale (buyer, birds, kg, price, paid)
   - Reminder
   - edit history
-- **Integrations:** Telegram bot (notifications), PDF/XLSX export. Nothing else in MVP.
+- **Integrations:** PDF/XLSX export; Claude API for the knowledge assistant. **No Telegram** (decided 27.11): notifications live in the app («События»).
 - **Non-functional:**
   - offline-first on Android 8+ low-end phones
   - Russian UI, i18n-ready

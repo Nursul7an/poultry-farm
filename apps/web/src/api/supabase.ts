@@ -1,6 +1,6 @@
 /** Real backend: Supabase (Postgres + RLS). Server rules: supabase/migrations. */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Api, BatchInfo, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
+import type { Api, Article, AskAnswer, AskContext, BatchInfo, NormRow, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError, errorCodeFrom } from './types';
 import { normalizePhone, phoneToEmail } from './phone';
 
@@ -206,5 +206,32 @@ export class SupabaseApi implements Api {
   }
   async addPayment(p: Omit<Payment, 'id'>) {
     await this.call(() => this.sb.from('payment').insert({ handover_id: p.handoverId, amount: p.amount, paid_on: p.paidOn, comment: p.comment }));
+  }
+  // ------------------------------------------------------------ knowledge
+  async norms(): Promise<NormRow[]> {
+    const rows = await this.call(() => this.sb.from('norm').select('code, data, farm_id'));
+    return (rows as Row[]).map((r) => ({ code: r.code, data: r.data, farm: r.farm_id != null }));
+  }
+  async articles(): Promise<Article[]> {
+    const rows = await this.call(() => this.sb.from('knowledge_article').select('id, section, title, body_md, source, sort, farm_id').order('sort'));
+    return (rows as Row[]).map((r) => ({ id: r.id, section: r.section, title: r.title, bodyMd: r.body_md, source: r.source, sort: r.sort, farm: r.farm_id != null }));
+  }
+  private farmId() { return (JSON.parse(localStorage.getItem(SESSION_CACHE) ?? '{}') as Partial<Session>).farm?.id; }
+  async setNorm(code: string, data: unknown) {
+    await this.call(() => this.sb.from('norm').upsert({ farm_id: this.farmId(), code, data, updated_at: new Date().toISOString() }, { onConflict: 'farm_id,code' }));
+  }
+  async resetNorm(code: string) {
+    await this.call(() => this.sb.from('norm').delete().eq('farm_id', this.farmId()).eq('code', code));
+  }
+  async ask(question: string, context: AskContext | null): Promise<AskAnswer> {
+    let res;
+    try { res = await this.sb.functions.invoke('ask', { body: { question, context } }); }
+    catch (e: any) { throw new ApiError('NETWORK', e?.message); }
+    if (res.error) {
+      let msg: string | undefined;
+      try { msg = (await (res.error as any).context?.json?.())?.error; } catch { /* not JSON */ }
+      throw new ApiError(/fetch|network/i.test(res.error.message) ? 'NETWORK' : 'UNKNOWN', msg);
+    }
+    return res.data as AskAnswer;
   }
 }

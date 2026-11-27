@@ -44,7 +44,7 @@ An offline-capable web app (installable PWA) for one broiler farm with 4 houses 
   - sales with paid/owed
   - batch report (production + money + reconciliation)
   - PDF/XLSX export
-  - Telegram notifications for the director
+  - in-app notifications for the director («События» feed + badge); no Telegram
   - Russian UI
 - **Out of scope (explicit):**
   - vet and storekeeper roles
@@ -76,7 +76,7 @@ Roles: **W** = worker (only assigned houses; all operations; **no money**), **H*
 | FR-7 | On save the app shows the norm check on the device (works offline): deaths %, water:feed vs norm, working t vs target, RH | Must | AC-7.1 Same inputs → same result offline and on the server (shared rule code, see §7). |
 | FR-8 | **Weighing:** W or H enters individual weights (keypad) or group weighing (crate kg + count); the app shows n, average, SD, CV%, deviation vs the norm, and a sample target = max(100, 1% of live birds) | Must | AC-8.1 Weights 2550-mean / SD 250 → CV 9.8% (handbook example). AC-8.2 Group weighing shows the average only (no CV). AC-8.3 Weights outside ±15% of the mean are highlighted. |
 | FR-9 | **Warnings:** the server evaluates 8 rules after each synced log/weighing and on schedule; thresholds editable by H (defaults below) | Must | see §5.4 rule table; AC-9.x per rule. |
-| FR-10 | Deduplication: at most one warning per rule per house per production day; if ≥ 2 rules fire for one house on one day, they are shown as one **"Возможна болезнь"** critical warning that lists the triggers | Must | AC-10.1 Mortality spike + water drop on П-2 → one critical warning with both triggers, one Telegram message. |
+| FR-10 | Deduplication: at most one warning per rule per house per production day; if ≥ 2 rules fire for one house on one day, they are shown as one **"Возможна болезнь"** critical warning that lists the triggers | Must | AC-10.1 Mortality spike + water drop on П-2 → one critical warning with both triggers, one entry in «События». |
 | FR-11 | H notes an action on a warning (free text). A warning auto-closes after 24 h back within the norm; a critical one closes only by H | Must | AC-11.1 Note is visible on the farm screen and in the house history. |
 | FR-12 | **Health:** W (or H) records vaccinations, treatments (product, dose, lot, start date, course days, withdrawal days) and post-mortem findings for their house. The app computes earliest slaughter = last dose date + withdrawal days + 1, creates daily dosing tasks, and **notifies H immediately**. H may add the medicine cost (finance) | Must | AC-12.1 Start 24.11, 5 days, withdrawal 7 → earliest slaughter 06.12. AC-12.2 W sees "Лечение, день N из 5" on Сегодня each day. |
 | FR-13 | **Catch plan:** W (or H) sets the catch date/time per house; if it is earlier than any active treatment's earliest slaughter date it is **blocked**; W or H can override with a reason (stored in history) and **H is notified immediately** — no approval step | Must | AC-13.1 П-2 catch 04.12 with earliest 06.12 → red block with "Перенести на 06.12". AC-13.2 Override with reason saves, appears in the history and sends H a notification. |
@@ -87,7 +87,7 @@ Roles: **W** = worker (only assigned houses; all operations; **no money**), **H*
 | FR-18 | **Batch report** (H sees all; W sees the production part for their houses, never money): survival, deaths %, culls %, average kg, ADG, FCR (final = (delivered − bin stock at close) / kg sold), adjusted FCR (only if \|target − actual\| ≤ 0.227 kg), EPEF, per-house table, revenue, costs by category, profit, per kg and per bird, owed, bird and feed reconciliation | Must | AC-18.1 Handbook examples reproduce: EPEF(42 d, 2.652 kg, 2.80%, 1.75) = 351; adjusted FCR(1.215, 1.350, 1.290) = 1.228. AC-18.2 Unexplained birds > 0.2% or feed > 1% → warning line in the report. |
 | FR-19 | H closes the batch → the report is locked (read-only); H can reopen with a reason; versions are kept | Must | AC-19.1 Closed batch: all its logs, costs and sales are read-only for everyone. |
 | FR-20 | Export the report to PDF and XLSX | Should | AC-20.1 The XLSX contains sheets: Summary, Houses, Costs, Sales, Daily logs. |
-| FR-21 | Telegram notifications to H: immediately — each critical warning, each new treatment, each catch override inside withdrawal, each edit older than 48 h; a 18:00 daily summary (warnings + the day's deliveries, placements, weighings); "нет журнала" at 11:00 | Should | AC-21.1 H links Telegram by sending a one-time code to the bot. AC-21.2 If Telegram fails, the warning is still in the app. |
+| FR-21 | **In-app notifications** to H (no Telegram, decided 27.11): the «События» feed and a badge on Ферма/События show immediately each critical warning, new treatment, catch override inside withdrawal and edit older than 48 h; «нет журнала» appears at 11:00 | Must | AC-21.1 A treatment saved by W appears in H's «События» within one sync. AC-21.2 The badge count drops when H opens «События». |
 | FR-22 | Director screens work on phone (390 px) and laptop (≥ 1280 px) from one app; worker screens are phone-first | Must | AC-22.1 Every director screen in `design/` exists in both widths. |
 | FR-23 | **Money is invisible to workers.** Prices, costs, sums, revenue, profit, payments and debts are stored in finance tables that RLS makes readable and writable by H only; worker-facing views and API responses contain no money fields | Must | AC-23.1 With a W token, selecting from any finance table returns 0 rows and inserting is refused. AC-23.2 No worker screen shows a currency amount. |
 
@@ -120,7 +120,6 @@ Roles: **W** = worker (only assigned houses; all operations; **no money**), **H*
 - **Batch closed while a worker has unsent logs:** sync is refused with "партия закрыта — сообщите руководителю"; the record stays on the phone and H sees it in "не принятые записи".
 - **Catch date moved after reminders were generated:** the catch-relative reminders are regenerated; done ones are kept.
 - **A treatment added after the catch is planned:** re-check → the catch plan is blocked if it is now inside the withdrawal period.
-- **Telegram down or chat not linked:** warnings are still created in the app; the sending is retried.
 - **Time:**
   - the production day boundary is 08:00 local
   - the server stores UTC and computes in the farm timezone
@@ -147,7 +146,6 @@ sequenceDiagram
   participant W as Worker phone (PWA)
   participant L as Local DB (IndexedDB)
   participant S as Server (Postgres + functions)
-  participant T as Telegram
   participant H as Director (phone/laptop)
   W->>L: Save daily log (UUID, house, day)
   L-->>W: Saved, "не отправлено"
@@ -156,8 +154,7 @@ sequenceDiagram
   L->>S: Sync outbox when online (upsert)
   S->>S: Validate access + edit window, store, history
   S->>S: Evaluate R1–R7, dedupe, combine
-  S->>T: Critical → send message
-  T-->>H: "П-2 · Возможна болезнь"
+  S-->>H: «События»: "П-2 · Возможна болезнь"
   H->>S: Open farm screen, note action / record treatment
   S-->>W: Treatment tasks appear on Сегодня
 ```
@@ -179,7 +176,6 @@ flowchart LR
     CRON["Scheduler: 11:00 no-log, 18:00 summary"]
     ST["Storage: photos"]
   end
-  TG["Telegram Bot API"]
   UI --> RULES
   UI --> IDB
   IDB -->|sync| PG
@@ -187,7 +183,6 @@ flowchart LR
   PG -->|on change| FN
   CRON --> FN
   FN --> PG
-  FN --> TG
   UI --> ST
 ```
 
@@ -213,7 +208,7 @@ flowchart LR
 | Charts | **Recharts** or plain SVG | Chart.js, ECharts | 4 simple charts; plain SVG is acceptable | — |
 | i18n | **i18next** | FormatJS | Russian now, Kyrgyz v1 | — |
 | Export | **XLSX: SheetJS** in a function or client; **PDF: print stylesheet** (browser "Save as PDF") | server PDF rendering | Simplest reliable path for a 1-page report | Check the SheetJS license for the chosen distribution |
-| Notifications | **Telegram Bot API** | Web Push | The director already lives in Telegram; push on Android PWAs works but is less reliable for a critical alert **(?)** | Bot creation; message rate limits are irrelevant at this volume |
+| Notifications | **In-app «События» feed + badge** | Telegram bot, Web Push | Decided 27.11: no Telegram; everything stays inside the app | — |
 | Hosting (PWA) | Static hosting (Cloudflare Pages / Netlify / Vercel) | Supabase Storage | Free tier is enough; HTTPS | — |
 | Tests | Vitest (rules, calc), Playwright (critical flows, offline mode) | Jest, Cypress | Fast; Playwright can emulate offline | — |
 | Errors | Sentry (or similar) | none | Know about sync failures before the director does | Pricing/free tier |
@@ -267,7 +262,7 @@ erDiagram
 - **edit_history**: entity, entity_id, user_id, at, field, old, new, reason
 
 **Integrations:**
-- Telegram Bot API (outbound messages; linking via `/start <code>`).
+- None outbound for notifications (decided: no Telegram).
 - No other external systems in the MVP.
 
 **Seed data:** AA Table 2 (temperature by age), Table 3 (RH adjustment), crop-fill targets, the minimum-ventilation table (v1 helper), reminder templates. **Weight/feed by age requires the AA Performance Objectives booklet**, which we don't have yet; until it arrives R6 runs on CV% only.
@@ -288,7 +283,7 @@ erDiagram
 ## 11. Implementation plan
 *Sizes are relative guides, not commitments. Assumes 1–2 developers.*
 
-- **Phase 0 — Adoption test (not dev work) · S:** a 2-week Telegram-bot or Google-Form daily log in one house, per the blueprint.
+- **Phase 0 — Adoption test (not dev work) · S:** a 2-week Google-Form (or paper-copy) daily log in one house, per the blueprint.
   - *Done when:* ≥ 12 of 14 days logged. If this fails, fix adoption before building.
 - **Phase 1 — Offline daily log on real phones (the main risk) · L:**
   - project setup, Supabase schema + RLS
@@ -299,9 +294,9 @@ erDiagram
   - *Done when:* 2 workers log their houses for 7 consecutive days on **their own phones inside the houses**, with 0 lost or duplicated logs (server rows = device records), and the median time to log < 2 min.
 - **Phase 2 — Norms, warnings, weighing · M:**
   - the `@farm/rules` package with golden tests
-  - norm seed, R1–R8 + combined, warning UI with notes, Telegram
+  - norm seed, R1–R8 + combined, warning UI with notes, in-app notifications
   - weighing, reminders, the director house screen with charts
-  - *Done when:* a replay of 23 days of the designs' example data produces exactly the warnings shown in `design/HFarm` (1 critical on П-2, 4 warnings), and a Telegram message arrives within 2 min of sync ⚠️.
+  - *Done when:* a replay of 23 days of the designs' example data produces exactly the warnings shown in `design/HFarm` (1 critical on П-2, 4 warnings), and each appears in «События» after one sync.
 - **Phase 3 — Batch & money · M:**
   - batch open + placement
   - treatments + withdrawal block, feed deliveries, costs
@@ -337,7 +332,7 @@ Dependencies: 0 → 1 → 2 → 3 → 4. Phase 3's UI work (placement, costs, sa
 | T-17 | Rules R1–R8 + combined R* in `@farm/rules` with boundary tests | 2 | M | T-15, T-16 | FR-9, FR-10 |
 | T-18 | Server function: evaluate rules on log/weighing change; dedupe; upsert warnings | 2 | M | T-17 | FR-9, FR-10 |
 | T-19 | Scheduler: 11:00 no-log (R8), 18:00 summary, 24 h auto-close | 2 | S | T-18 | FR-11, FR-21 |
-| T-20 | Telegram: bot, link code flow, send critical immediately + summary; retry | 2 | M | T-18 | FR-21 |
+| T-20 | In-app notifications: «События» badge (unseen count), mark seen | 2 | S | T-18 | FR-21 |
 | T-21 | On-device hint after save (shared rules, offline) | 2 | S | T-11, T-17 | FR-7 |
 | T-22 | Director: warnings panel with causes (AA Appendix 5 text), note action — phone + laptop | 2 | M | T-18 | FR-11 |
 | T-23 | Weighing screen: keypad, individual/group, live n/mean/SD/CV, sample target, outliers; sync | 2 | M | T-09, T-15 | FR-8 |
@@ -404,7 +399,6 @@ Dependencies: 0 → 1 → 2 → 3 → 4. Phase 3's UI work (placement, costs, sa
 - One farm, one site, one open batch at a time, all houses placed within 1–2 days.
 - Farm timezone Asia/Bishkek; currency сом; production day 08:00→08:00 (open in the blueprint).
 - Workers' phones run Android 8+ with Chrome and have mobile data at least near the office.
-- The director links a personal Telegram account for notifications.
 
 **To verify before or while building:**
 - PWA offline/persistence on the actual worker phones (T-02). This decides PWA vs Flutter.
@@ -429,4 +423,4 @@ Dependencies: 0 → 1 → 2 → 3 → 4. Phase 3's UI work (placement, costs, sa
 | Rule code drifts between phone and server | a single `@farm/rules` package, golden tests in CI | any mismatch in T-21 vs T-18 tests |
 | Placeholder weight norms mislead | label "норма*"; R6 uses CV% only until AA Performance Objectives are loaded | — |
 | Wrong data entry ruins reports | plausibility check, edit history, reconciliation lines in the report | unexplained feed > 1% |
-| Telegram not seen | in-app warnings remain the source of truth; 18:00 summary | warnings unnoted after 2 h |
+| Director misses a critical event | badge on Ферма/События; «нет журнала» at 11:00 | events unseen after 2 h |

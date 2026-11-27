@@ -6,7 +6,7 @@
 //   node scripts/supabase-setup.mjs
 //
 // Safe to re-run: every step checks whether it was already done.
-// Steps: schema migrations → auth settings → head account → farm + head profile → invite-worker function
+// Steps: schema migrations → auth settings → head account → farm + head profile → edge functions (invite-worker, ask)
 //        → apps/web/.env.production (project URL + public anon key).
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -36,12 +36,23 @@ const project = await mgmt('');
 console.log(`  ${project.name} · region ${project.region} · status ${project.status}`);
 
 step('Schema');
-const [{ exists }] = await sql(`select to_regclass('public.daily_log') is not null as exists`);
-if (exists) console.log('  already applied');
-else for (const f of readdirSync(join(root, 'supabase/migrations')).sort()) {
-  await sql(readFileSync(join(root, 'supabase/migrations', f), 'utf8'));
+// Applied migrations are recorded in public.app_migration, so re-running applies only new files.
+await sql(`create table if not exists public.app_migration (name text primary key, applied_at timestamptz not null default now());
+  revoke all on public.app_migration from anon, authenticated;`);
+const done = new Set((await sql(`select name from public.app_migration`)).map((r) => r.name));
+const files = readdirSync(join(root, 'supabase/migrations')).filter((f) => f.endsWith('.sql')).sort();
+if (!done.size) {
+  // A project set up before migrations were recorded: mark what is already there.
+  const [{ ops, knowledge }] = await sql(`select to_regclass('public.daily_log') is not null as ops, to_regclass('public.norm') is not null as knowledge`);
+  const pre = files.filter((f) => (ops && f < '20261127000002') || (knowledge && f < '20261127000004'));
+  for (const f of pre) { await sql(`insert into public.app_migration (name) values ('${f}') on conflict do nothing`); done.add(f); }
+}
+for (const f of files) {
+  if (done.has(f)) continue;
+  await sql(readFileSync(join(root, 'supabase/migrations', f), 'utf8') + `\ninsert into public.app_migration (name) values ('${f}');`);
   console.log(`  applied ${f}`);
 }
+console.log(`  ${files.length} migrations in place`);
 
 step('Auth settings: no email confirmation, 6-digit PINs allowed');
 await mgmt('/config/auth', { method: 'PATCH', body: JSON.stringify({ mailer_autoconfirm: true, password_min_length: 6 }) });
@@ -85,16 +96,25 @@ else {
   console.log('  created');
 }
 
-step('Edge function invite-worker');
-try {
-  const form = new FormData();
-  form.append('metadata', JSON.stringify({ name: 'invite-worker', entrypoint_path: 'index.ts', verify_jwt: true }));
-  form.append('file', new Blob([readFileSync(join(root, 'supabase/functions/invite-worker/index.ts'))], { type: 'application/typescript' }), 'index.ts');
-  const res = await fetch(`${api}/functions/deploy?slug=invite-worker`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
-  if (!res.ok) throw new Error(`${res.status}: ${(await res.text()).slice(0, 300)}`);
-  console.log('  deployed');
-} catch (e) {
-  console.log(`  NOT deployed (${e.message}).\n  Deploy it with the Supabase CLI: npx supabase functions deploy invite-worker --project-ref ${ref}`);
+// Edge functions: each is deployed with the shared helpers it imports.
+for (const [slug, extra] of [['invite-worker', []], ['ask', ['_shared/assistant.ts']]]) {
+  step(`Edge function ${slug}`);
+  try {
+    const form = new FormData();
+    form.append('metadata', JSON.stringify({ name: slug, entrypoint_path: `${slug}/index.ts`, verify_jwt: true }));
+    for (const f of [`${slug}/index.ts`, ...extra]) {
+      form.append('file', new Blob([readFileSync(join(root, 'supabase/functions', f))], { type: 'application/typescript' }), f);
+    }
+    const res = await fetch(`${api}/functions/deploy?slug=${slug}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
+    if (!res.ok) throw new Error(`${res.status}: ${(await res.text()).slice(0, 300)}`);
+    console.log('  deployed');
+  } catch (e) {
+    console.log(`  NOT deployed (${e.message}).\n  Deploy it with the Supabase CLI: npx supabase functions deploy ${slug} --project-ref ${ref}`);
+  }
+}
+const secrets = await mgmt('/secrets').catch(() => []);
+if (!secrets.some?.((x) => x.name === 'ANTHROPIC_API_KEY')) {
+  console.log('  «Помощник» needs ANTHROPIC_API_KEY: Supabase dashboard → Edge Functions → Secrets (the handbook works without it).');
 }
 
 step('apps/web/.env.production');

@@ -1,0 +1,60 @@
+{
+  "_source": "Arbor Acres Broiler Handbook (Aviagen, 2015, рус.) — docs/knowledge/. Значения по умолчанию; директор может изменить их для своей фермы.",
+  "temp_by_age": {
+    "title": "Температура воздуха по возрасту, °C (Табл. 2)",
+    "rows": [
+      { "day": 0, "whole": 30, "spot_edge": 32, "spot_2m": 29 },
+      { "day": 3, "whole": 28, "spot_edge": 30, "spot_2m": 27 },
+      { "day": 6, "whole": 27, "spot_edge": 28, "spot_2m": 25 },
+      { "day": 9, "whole": 26, "spot_edge": 27, "spot_2m": 25 },
+      { "day": 12, "whole": 25, "spot_edge": 26, "spot_2m": 25 },
+      { "day": 15, "whole": 24, "spot_edge": 25, "spot_2m": 24 },
+      { "day": 18, "whole": 23, "spot_edge": 24, "spot_2m": 24 },
+      { "day": 21, "whole": 22, "spot_edge": 23, "spot_2m": 23 },
+      { "day": 24, "whole": 21, "spot_edge": 22, "spot_2m": 22 },
+      { "day": 27, "whole": 20, "spot_edge": 20, "spot_2m": 20 }
+    ],
+    "tolerance": 1.5,
+    "note": "С 27 дня держать 20 °C или корректировать по поведению птицы."
+  },
+  "rh_adjust": {
+    "title": "Температура сухого термометра с поправкой на влажность, °C (Табл. 3)",
+    "rh": [40, 50, 60, 70, 80],
+    "rows": [
+      { "day": 0, "t": [36.0, 33.2, 30.8, 29.2, 27.0] },
+      { "day": 3, "t": [33.7, 31.2, 28.9, 27.3, 26.0] },
+      { "day": 6, "t": [32.5, 29.9, 27.7, 26.0, 24.0] },
+      { "day": 9, "t": [31.3, 28.6, 26.7, 25.0, 23.0] },
+      { "day": 12, "t": [30.2, 27.8, 25.7, 24.0, 23.0] },
+      { "day": 15, "t": [29.0, 26.8, 24.8, 23.0, 22.0] },
+      { "day": 18, "t": [27.7, 25.5, 23.6, 21.9, 21.0] },
+      { "day": 21, "t": [26.9, 24.7, 22.7, 21.3, 20.0] },
+      { "day": 24, "t": [25.7, 23.5, 21.7, 20.2, 19.0] },
+      { "day": 27, "t": [24.8, 22.7, 20.7, 19.3, 18.0] }
+    ]
+  },
+  "humidity": { "title": "Влажность", "min_until_day": 10, "min_pct": 50, "max_from_day": 18, "max_pct": 70, "placement_pct": [60, 70] },
+  "crop_fill": { "title": "Наполнение зоба, % (Табл. 4)", "rows": [ { "hours": 2, "min": 75 }, { "hours": 4, "min": 80 }, { "hours": 8, "min": 80 }, { "hours": 12, "min": 85 }, { "hours": 24, "min": 95 }, { "hours": 48, "min": 100 } ] },
+  "placement": { "title": "Посадка", "cloacal_min": 39.4, "cloacal_max": 40.5, "air_c": 30, "floor_c": [28, 30], "litter_cm": [5, 10], "paper_feed_g": 40, "day7_weight_x": 4 },
+  "feed_phases": { "title": "Фазы кормления", "rows": [ { "phase": "starter", "from_day": 0, "to_day": 10 }, { "phase": "grower", "from_day": 11, "to_day": 24 }, { "phase": "finisher", "from_day": 25, "to_day": null } ], "pellet_from_day": 18, "whole_wheat_stop_days_before_catch": 2 },
+  "water_feed": { "title": "Вода : корм (л на кг) при 21 °C", "bell": 1.8, "nipple_cup": 1.7, "nipple": 1.6, "ref_temp": 21, "per_degree": 0.065, "water_c": [15, 21] },
+  "mortality": { "title": "Отход", "week1_warn_pct": 0.7, "week1_crit_pct": 1.0, "daily_max_pct": 0.1, "spike_factor": 2 },
+  "weighing": { "title": "Взвешивание и однородность", "sample_min": 100, "sample_pct": 1, "cv_good": 8, "cv_max": 10, "group_until_day": 21 },
+  "light": { "title": "Освещение", "rows": [ { "from_day": 0, "to_day": 7, "dark_h": 1, "lux": "30–40" }, { "from_day": 7, "to_day": null, "dark_h": "4–6", "lux": "5–10" } ], "before_catch_days": 3, "before_catch_light_h": 23, "dark_lux_max": 0.4 },
+  "air": { "title": "Качество воздуха", "nh3_ppm": 10, "co2_ppm": 3000, "co_ppm": 10, "rh_pct": [50, 60] },
+  "density": { "title": "Плотность посадки, кг/м²", "eu": 33, "eu_high": 39, "eu_max": 42, "hot_controlled": 30, "hot_open": [20, 25] },
+  "catch": { "title": "Отлов", "feed_withdrawal_h": [8, 12], "light_before_days": 3 },
+  "min_ventilation": {
+    "title": "Минимальная вентиляция, м³/ч на голову (Прил. 6, наружная t −1…16 °C)",
+    "rows": [
+      { "kg": 0.05, "m3h": 0.074 }, { "kg": 0.1, "m3h": 0.125 }, { "kg": 0.2, "m3h": 0.21 }, { "kg": 0.3, "m3h": 0.285 },
+      { "kg": 0.4, "m3h": 0.353 }, { "kg": 0.5, "m3h": 0.417 }, { "kg": 0.6, "m3h": 0.479 }, { "kg": 0.7, "m3h": 0.537 },
+      { "kg": 0.8, "m3h": 0.594 }, { "kg": 0.9, "m3h": 0.649 }, { "kg": 1.0, "m3h": 0.702 }, { "kg": 1.2, "m3h": 0.805 },
+      { "kg": 1.4, "m3h": 0.904 }, { "kg": 1.6, "m3h": 0.999 }, { "kg": 1.8, "m3h": 1.091 }, { "kg": 2.0, "m3h": 1.181 },
+      { "kg": 2.2, "m3h": 1.268 }, { "kg": 2.4, "m3h": 1.354 }, { "kg": 2.6, "m3h": 1.437 }, { "kg": 2.8, "m3h": 1.52 },
+      { "kg": 3.0, "m3h": 1.6 }, { "kg": 3.2, "m3h": 1.68 }, { "kg": 3.4, "m3h": 1.758 }, { "kg": 3.6, "m3h": 1.835 },
+      { "kg": 3.8, "m3h": 1.911 }, { "kg": 4.0, "m3h": 1.986 }, { "kg": 4.2, "m3h": 2.06 }, { "kg": 4.4, "m3h": 2.133 }
+    ]
+  },
+  "weight_by_day": { "title": "Целевая масса по дням (AA Performance Objectives)", "rows": [], "note": "Нет в предоставленных документах — загрузите буклет Aviagen Performance Objectives." }
+}

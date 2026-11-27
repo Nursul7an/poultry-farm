@@ -8,12 +8,14 @@
   "scripts": {
     "dev": "npm run dev -w apps/web",
     "build": "npm run build -w packages/core && npm run build -w apps/web",
-    "test": "npm test -w packages/core && npm test -w apps/web",
+    "test": "npm test -w packages/core && npm test -w apps/web && vitest run --root supabase/functions",
     "test:db": "node supabase/tests/run.mjs",
     "test:e2e": "npm run e2e -w apps/web",
-    "typecheck": "npm run typecheck -w packages/core && npm run typecheck -w apps/web"
+    "typecheck": "npm run typecheck -w packages/core && npm run typecheck -w apps/web && tsc -p supabase/functions/tsconfig.json",
+    "gen:knowledge": "node scripts/gen-knowledge.mjs"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
     "pg": "^8.23.1"
   }
 }

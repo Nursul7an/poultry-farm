@@ -19,6 +19,9 @@ import Weighing from './screens/Weighing';
 import Catch from './screens/Catch';
 import Events from './screens/Events';
 import Money from './screens/Money';
+import Handbook, { HandbookArticle } from './screens/Handbook';
+import Ask from './screens/Ask';
+import NormsEdit from './screens/NormsEdit';
 import './styles.css';
 
 registerSW({ immediate: true });
@@ -44,6 +47,10 @@ function Shell() {
           <Route path="/placement" element={<Placement />} />
           <Route path="/weighing" element={<Weighing />} />
           <Route path="/catch" element={<Catch />} />
+          <Route path="/handbook" element={<Handbook />} />
+          <Route path="/handbook/:id" element={<HandbookArticle />} />
+          <Route path="/ask" element={<Ask />} />
+          {head && <Route path="/norms" element={<NormsEdit />} />}
           {head && <Route path="/events" element={<Events />} />}
           {head && <Route path="/money" element={<Money />} />}
           {head && <Route path="/farm" element={<Farm />} />}

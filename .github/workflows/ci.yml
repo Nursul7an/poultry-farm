@@ -20,6 +20,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Knowledge seed is generated from docs/knowledge and aa-norms.json
+        run: npm run gen:knowledge && git diff --exit-code -- supabase/migrations apps/web/src/api/knowledge.generated.json
       - run: npm run typecheck
       - run: npm test
       - name: Database tests (schema, RLS, edit window)

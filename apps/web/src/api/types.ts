@@ -59,6 +59,10 @@ export interface FarmEvent { at: string; houseBatchId: string; houseName: string
 export interface Price { kind: 'chick' | 'feed' | 'medicine' | 'sale'; refId: string; unitPrice: number }
 export interface Cost { id: string; batchId: string; category: 'energy' | 'wages' | 'litter' | 'vet' | 'transport' | 'other'; amount: number; spentOn: string; comment: string | null }
 export interface Payment { id: string; handoverId: string; amount: number; paidOn: string; comment: string | null }
+/** Knowledge: norm rows (defaults + farm overrides) and handbook articles. */
+export interface NormRow { code: string; data: unknown; farm: boolean }
+export interface Article { id: string; section: string; title: string; bodyMd: string; source: string | null; sort: number; farm?: boolean }
+
 export interface BatchInfo { id: string; name: string; status: 'open' | 'catching' | 'closed' }
 
 /** One daily log, in the app's shape. */
@@ -153,7 +157,17 @@ export interface Api {
   addCost(c: Omit<Cost, 'id'>): Promise<void>;
   payments(): Promise<Payment[]>;
   addPayment(p: Omit<Payment, 'id'>): Promise<void>;
+  // Knowledge (everyone reads; the director edits the farm's norms)
+  norms(): Promise<NormRow[]>;
+  articles(): Promise<Article[]>;
+  setNorm(code: string, data: unknown): Promise<void>;
+  resetNorm(code: string): Promise<void>;
+  /** Ask the knowledge assistant (needs a connection). */
+  ask(question: string, context: AskContext | null): Promise<AskAnswer>;
 }
+
+export interface AskContext { houseName: string; dayOfAge: number; liveBirds: number; recent: string }
+export interface AskAnswer { answer: string; sources: { id: string; title: string }[] }
 
 /** Map a raw server error message to a code. */
 export function errorCodeFrom(message: string | undefined): ApiErrorCode {

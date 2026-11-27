@@ -177,6 +177,21 @@ export class SyncEngine {
       }
     });
     await this.emit();
+    void this.refreshKnowledge().catch(() => {});
+  }
+
+  /** Norms and the handbook are cached on the phone so checks and «Справочник» work offline. */
+  async refreshKnowledge(force = false): Promise<void> {
+    // Norms are small and change when the director edits them: every refresh. The handbook (~160 KB): twice a day.
+    const KEY = 'farm-articles-at';
+    const stale = force || !(await this.db.articles.count()) || Date.now() - Number(localStorage.getItem(KEY) ?? 0) > 12 * 3_600_000;
+    const [norms, articles] = await Promise.all([this.api.norms(), stale ? this.api.articles() : Promise.resolve(null)]);
+    await this.db.transaction('rw', this.db.norms, this.db.articles, async () => {
+      await this.db.norms.clear();
+      await this.db.norms.bulkPut(norms.map((n) => ({ ...n, key: `${n.farm ? 'farm' : 'aa'}:${n.code}` })));
+      if (articles) { await this.db.articles.clear(); await this.db.articles.bulkPut(articles); }
+    });
+    if (articles) localStorage.setItem(KEY, String(Date.now()));
   }
 
   async rejected(): Promise<OutboxItem[]> { return this.db.outbox.where('status').equals('rejected').toArray(); }

@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { addDays, dayOfAge, liveBirds, plausibilityIssues, validationErrors, waterLitres, withinWorkerEditWindow, type CullReason, type PlausibilityIssue } from '@farm/core';
+import { addDays, checkLog, dayOfAge, liveBirds, plausibilityIssues, validationErrors, waterLitres, withinWorkerEditWindow, type CullReason, type PlausibilityIssue } from '@farm/core';
 import { useLive, useSignedIn } from '../app';
 import type { LogRecord } from '../api/types';
 import { Sheet, TopBar } from '../ui/parts';
 import { CULL_REASONS, fmtDayLong, fmtInt, fmtNum, parseNum } from '../ui/format';
 import { useHouseLogs } from './useHouses';
+import { useNorms } from '../ui/useNorms';
+import { NormChecks } from '../ui/NormChecks';
 
 interface Form {
   deaths: number; culls: number; cullReason: CullReason | null;
@@ -25,12 +27,14 @@ export default function DailyLog() {
   const { session, db, sync, today } = useSignedIn();
   const house = useLive(() => db.houseBatches.get(hb), [db, hb], undefined);
   const logs = useHouseLogs(hb);
+  const norms = useNorms();
   const existing = logs.find((l) => l.productionDay === day);
   const [form, setForm] = useState<Form | null>(null);
   const [confirm, setConfirm] = useState<PlausibilityIssue[] | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [savedId, setSavedId] = useState<string | null>(null);
-  const outbox = useLive(() => db.outbox.toArray(), [db], []);
+  // Outbox item of the log just saved; 'loading' until the query has run, so the screen never claims «sent» too early.
+  const queuedFor = useLive(() => (savedId ? db.outbox.where('logId').equals(savedId).first().then((item) => ({ id: savedId, item: item ?? null })) : Promise.resolve(null)), [db, savedId], null);
   const draftKey = `${hb}|${day}`;
 
   // Load: the stored log, else an autosaved draft, else empty.
@@ -100,16 +104,17 @@ export default function DailyLog() {
   const title = `Журнал · ${house.houseName} · день ${age}`;
 
   if (savedId) {
-    const o = outbox.find((x) => x.logId === savedId);
+    const checking = queuedFor?.id !== savedId;
+    const o = checking ? null : queuedFor!.item;
     const stored = logs.find((l) => l.productionDay === day);
     return (
       <>
         <TopBar title={title} sub={fmtDayLong(day)} back={back} />
         <main className="content">
-          <div className={`banner ${o?.status === 'rejected' ? 'bad' : o ? 'info' : 'ok'}`} role="status" aria-live="polite">
+          {checking ? <div className="banner info" role="status">Сохраняю…</div> : <div className={`banner ${o?.status === 'rejected' ? 'bad' : o ? 'info' : 'ok'}`} role="status" aria-live="polite">
             <strong style={{ fontSize: 18 }}>{o?.status === 'rejected' ? 'Не принято сервером' : o ? 'Сохранено на телефоне' : 'Журнал сохранён и отправлен'}</strong><br />
             {o?.status === 'rejected' ? o.error : o ? 'Отправится автоматически, когда появится связь.' : 'Директор видит данные.'}
-          </div>
+          </div>}
           {stored && (
             <div className="section">
               <div className="row"><span style={{ flex: 1 }}>Падёж + брак</span><span className="num">{stored.deaths} + {stored.culls}</span></div>
@@ -118,7 +123,11 @@ export default function DailyLog() {
               <div className="row"><span style={{ flex: 1 }}>t мин / макс · ОВ</span><span className="num">{fmtNum(stored.tMin)} / {fmtNum(stored.tMax)} · {fmtNum(stored.rh, 0)}%</span></div>
             </div>
           )}
-          <p className="pad small muted">Проверка по нормам Arbor Acres появится в фазе 2.</p>
+          {stored && <NormChecks house={house.houseName} checks={checkLog(norms, {
+            day: age, liveBirdsStart: live, placed: house.placed, deaths: stored.deaths, culls: stored.culls,
+            lossesToDate: logs.filter((l) => l.productionDay <= day).reduce((a, l) => a + l.deaths + l.culls, 0),
+            feedKg: stored.feedKg, waterL: stored.waterL, tMin: stored.tMin, tMax: stored.tMax, rh: stored.rh,
+          })} />}
           <div className="pad" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <Link className="btn primary block" to={back}>Готово</Link>
             <button className="btn block" onClick={() => { setSavedId(null); setForm(null); }}>Изменить</button>

@@ -20,13 +20,27 @@ const token = env('SUPABASE_ACCESS_TOKEN', false) || 'injected-by-proxy';
 const api = `https://api.supabase.com/v1/projects/${ref}`;
 const projectUrl = `https://${ref}.supabase.co`;
 
-async function mgmt(path, init = {}) {
+class Transient extends Error {}
+async function mgmtOnce(path, init = {}) {
   const res = await fetch(api + path, { ...init, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...(init.headers ?? {}) } });
   const text = await res.text();
+  if (res.status >= 500) throw new Transient(`${init.method ?? 'GET'} ${path} → ${res.status}`);
   if (!res.ok) throw new Error(`${init.method ?? 'GET'} ${path} → ${res.status}: ${text.slice(0, 400)}`);
   return text ? JSON.parse(text) : null;
 }
-const sql = (query) => mgmt('/database/query', { method: 'POST', body: JSON.stringify({ query }) });
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+/** Retries gateway errors (a new project's API is flaky for a while). `settled()` says whether a failed write landed anyway. */
+async function mgmt(path, init = {}, settled = null) {
+  for (let i = 0; ; i++) {
+    try { return await mgmtOnce(path, init); }
+    catch (e) {
+      if (!(e instanceof Transient) || i >= 7) throw e;
+      await sleep(3000 * (i + 1));
+      if (settled && (await settled())) return null;
+    }
+  }
+}
+const sql = (query, settled = null) => mgmt('/database/query', { method: 'POST', body: JSON.stringify({ query }) }, settled);
 const step = (s) => console.log(`\n▸ ${s}`);
 const digits = (p) => p.replace(/\D/g, '');
 const normPhone = (p) => (digits(p).length === 9 ? `+996${digits(p)}` : `+${digits(p)}`);
@@ -49,14 +63,21 @@ if (!done.size) {
 }
 for (const f of files) {
   if (done.has(f)) continue;
-  await sql(readFileSync(join(root, 'supabase/migrations', f), 'utf8') + `\ninsert into public.app_migration (name) values ('${f}');`);
+  await sql(readFileSync(join(root, 'supabase/migrations', f), 'utf8') + `\ninsert into public.app_migration (name) values ('${f}');`,
+    async () => (await sql(`select 1 from public.app_migration where name = '${f}'`)).length > 0);
   console.log(`  applied ${f}`);
 }
 console.log(`  ${files.length} migrations in place`);
 
 step('Auth settings: no email confirmation, 6-digit PINs allowed');
-await mgmt('/config/auth', { method: 'PATCH', body: JSON.stringify({ mailer_autoconfirm: true, password_min_length: 6 }) });
-console.log('  ok');
+// Not strictly needed (accounts are created confirmed; 6 is Supabase's default minimum), so a token without
+// auth_config_write only gets a note.
+try {
+  await mgmt('/config/auth', { method: 'PATCH', body: JSON.stringify({ mailer_autoconfirm: true, password_min_length: 6 }) });
+  console.log('  ok');
+} catch (e) {
+  console.log(`  skipped (${String(e.message).slice(0, 80)}). Check: Authentication → Sign In / Providers → Email, minimum password length 6.`);
+}
 
 step('API keys');
 const keys = await mgmt('/api-keys');

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
+import { SETUP_DONE_KEY } from './Setup';
 import { useOnline, useSignedIn } from '../app';
 import type { HouseToday } from '../api/types';
 import { ApiError } from '../api/types';
@@ -30,6 +31,13 @@ export default function Farm() {
   }, [api]);
   useEffect(() => { void load(); const t = setInterval(() => { if (navigator.onLine) void load(); }, 60_000); return () => clearInterval(t); }, [load, online]);
 
+  // Empty farm (no houses yet): first time → setup wizard; later → a button to it.
+  const [houseCount, setHouseCount] = useState<number | null>(null);
+  useEffect(() => { if (online && rows?.length === 0) api.listHouses().then((h) => setHouseCount(h.filter((x) => x.active !== false).length)).catch(() => {}); }, [api, online, rows]);
+  const loc = useLocation();
+  const setupDone = (() => { try { return localStorage.getItem(SETUP_DONE_KEY) === '1'; } catch { return true; } })();
+  if (houseCount === 0 && !setupDone) return <Navigate to="/setup" replace />;
+
   const day = today();
   const totals = rows?.reduce((a, r) => ({ placed: a.placed + r.placed, live: a.live + r.liveBirds }), { placed: 0, live: 0 });
   const age = rows?.[0]?.dayOfAge ?? 0;
@@ -40,7 +48,19 @@ export default function Farm() {
       <main className="content">
         {(err || !online) && <div className="banner warn" role="status">{!online ? 'Нет сети.' : err} {at ? `Показаны данные за ${fmtTime(at)}.` : ''}</div>}
         {rows === null && !err && <p className="pad muted">Загрузка…</p>}
-        {rows?.length === 0 && <div className="banner info">Нет открытой партии. Партия открывается в фазе 3; сейчас её создаёт администратор.</div>}
+        {(loc.state as { setupDone?: boolean } | null)?.setupDone && <div className="banner ok" role="status">Ферма настроена. Передайте работникам телефон и PIN.</div>}
+        {rows?.length === 0 && houseCount === 0 && (
+          <div className="banner info" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span>На ферме ещё нет птичников.</span>
+            <Link className="btn primary" to="/setup">Настроить ферму</Link>
+          </div>
+        )}
+        {rows?.length === 0 && houseCount !== 0 && (
+          <div className="banner info" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span>Нет открытой партии. Первая посадка открывает партию — её записывает работник птичника или вы.</span>
+            <Link className="btn" to="/placement">Записать посадку</Link>
+          </div>
+        )}
         {rows && rows.length > 0 && (
           <>
             <div className="pad"><AgeRuler day={age} /></div>

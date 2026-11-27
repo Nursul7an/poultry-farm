@@ -1,6 +1,6 @@
 /** Real backend: Supabase (Postgres + RLS). Server rules: supabase/migrations. */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Api, Article, AskAnswer, AskContext, BatchInfo, NormRow, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
+import type { Api, Article, AskAnswer, AskContext, BatchInfo, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError, errorCodeFrom } from './types';
 import { normalizePhone, phoneToEmail } from './phone';
 
@@ -67,6 +67,7 @@ export class SupabaseApi implements Api {
     let res;
     try { res = await this.sb.auth.signInWithPassword({ email: phoneToEmail(phone), password: pin }); }
     catch (e: any) { throw new ApiError('NETWORK', e?.message); }
+    if (res.error && ((res.error as any).code === 'user_banned' || /banned/i.test(res.error.message))) throw new ApiError('FORBIDDEN', 'Доступ закрыт. Обратитесь к директору.');
     if (res.error || !res.data.user) throw new ApiError(res.error && /fetch/i.test(res.error.message) ? 'NETWORK' : 'AUTH');
     return this.loadSession(res.data.user.id);
   }
@@ -119,15 +120,35 @@ export class SupabaseApi implements Api {
     }));
   }
 
+  async updateFarm(f: FarmSettings): Promise<Session['farm']> {
+    const id = this.farmId();
+    const r = await this.call(() => this.sb.from('farm').update({ name: f.name, tz: f.tz, day_start_hour: f.dayStartHour }).eq('id', id).select('id, name, tz, day_start_hour').single());
+    const farm = { id: (r as Row).id, name: (r as Row).name, tz: (r as Row).tz, dayStartHour: (r as Row).day_start_hour };
+    const cached = JSON.parse(localStorage.getItem(SESSION_CACHE) ?? 'null') as Session | null;
+    if (cached) localStorage.setItem(SESSION_CACHE, JSON.stringify({ ...cached, farm }));
+    return farm;
+  }
+
   async listHouses(): Promise<House[]> {
-    const rows = await this.call(() => this.sb.from('house').select('*').eq('active', true).order('name'));
-    return (rows as Row[]).map((r) => ({ id: r.id, name: r.name, areaM2: Number(r.area_m2), hasWaterMeter: r.has_water_meter, drinkerType: r.drinker_type, feederType: r.feeder_type }));
+    const rows = await this.call(() => this.sb.from('house').select('*').order('name'));
+    return (rows as Row[]).map((r) => ({ id: r.id, name: r.name, areaM2: Number(r.area_m2), hasWaterMeter: r.has_water_meter, drinkerType: r.drinker_type, feederType: r.feeder_type, active: r.active }));
   }
 
   async createHouse(h: Omit<House, 'id'>) {
-    const farmId = JSON.parse(localStorage.getItem(SESSION_CACHE) ?? '{}')?.farm?.id;
-    const r = await this.call(() => this.sb.from('house').insert({ farm_id: farmId, name: h.name, area_m2: h.areaM2, has_water_meter: h.hasWaterMeter, drinker_type: h.drinkerType, feeder_type: h.feederType }).select().single());
-    return { id: (r as Row).id, ...h };
+    const r = await this.call(() => this.sb.from('house').insert({ farm_id: this.farmId(), name: h.name, area_m2: h.areaM2, has_water_meter: h.hasWaterMeter, drinker_type: h.drinkerType, feeder_type: h.feederType }).select().single());
+    return { id: (r as Row).id, ...h, active: true };
+  }
+  async updateHouse(id: string, p: Partial<Omit<House, 'id'>>) {
+    const row: Row = {};
+    if (p.name !== undefined) row.name = p.name;
+    if (p.areaM2 !== undefined) row.area_m2 = p.areaM2;
+    if (p.hasWaterMeter !== undefined) row.has_water_meter = p.hasWaterMeter;
+    if (p.active !== undefined) row.active = p.active;
+    await this.call(() => this.sb.from('house').update(row).eq('id', id));
+  }
+  async deleteHouse(id: string) {
+    const rows = await this.call(() => this.sb.from('house').delete().eq('id', id).select('id'));
+    if (!(rows as Row[]).length) throw new ApiError('VALIDATION', 'У птичника есть история партий — его можно только отключить');
   }
 
   async listWorkers(): Promise<Worker[]> {
@@ -136,9 +157,31 @@ export class SupabaseApi implements Api {
     return (users as Row[]).map((u) => ({ id: u.id, displayName: u.display_name, phone: u.phone, active: u.active, houseIds: (links as Row[]).filter((l) => l.user_id === u.id).map((l) => l.house_id) }));
   }
 
+  /** Account actions run on the server (manage-worker): they change Supabase Auth, which the browser cannot. */
+  private async manage(body: Record<string, unknown>): Promise<any> {
+    let res;
+    try { res = await this.sb.functions.invoke('manage-worker', { body }); } catch (e: any) { throw new ApiError('NETWORK', e?.message); }
+    if (res.error) {
+      let msg: string | undefined;
+      try { msg = (await (res.error as any).context?.json?.())?.message; } catch { /* not JSON */ }
+      if (!msg && /fetch|network/i.test(res.error.message)) throw new ApiError('NETWORK');
+      throw new ApiError('VALIDATION', msg ?? 'Ошибка сервера');
+    }
+    return res.data;
+  }
   async inviteWorker(w: { displayName: string; phone: string; pin: string; houseIds: string[] }) {
-    const { error } = await this.sb.functions.invoke('invite-worker', { body: { display_name: w.displayName, phone: normalizePhone(w.phone), pin: w.pin, house_ids: w.houseIds } });
-    if (error) throw new ApiError('UNKNOWN', error.message);
+    const r = await this.manage({ action: 'create', display_name: w.displayName, phone: normalizePhone(w.phone), pin: w.pin, house_ids: w.houseIds });
+    return { id: r.id as string };
+  }
+  async resetWorkerPin(workerId: string, pin: string) { await this.manage({ action: 'reset_pin', user_id: workerId, pin }); }
+  async setWorkerActive(workerId: string, active: boolean) { await this.manage({ action: 'set_active', user_id: workerId, active }); }
+  async setWorkerPhone(workerId: string, phone: string) { await this.manage({ action: 'set_phone', user_id: workerId, phone: normalizePhone(phone) }); }
+  async renameWorker(workerId: string, displayName: string) {
+    await this.call(() => this.sb.from('app_user').update({ display_name: displayName }).eq('id', workerId));
+  }
+  async staffEvents(): Promise<StaffEvent[]> {
+    const rows = await this.call(() => this.sb.from('staff_event').select('at, kind, user:user_id (display_name), actor:actor_id (display_name)').order('at', { ascending: false }).limit(200));
+    return (rows as Row[]).map((r) => ({ at: r.at, kind: r.kind, userName: r.user?.display_name ?? '', actorName: r.actor?.display_name ?? '' }));
   }
 
   async setWorkerHouses(workerId: string, houseIds: string[]) {

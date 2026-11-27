@@ -10,7 +10,8 @@ import History from './screens/History';
 import DailyLog from './screens/DailyLog';
 import Queue from './screens/Queue';
 import Farm from './screens/Farm';
-import Settings from './screens/Settings';
+import People, { HouseCard, WorkerCard } from './screens/People';
+import Setup from './screens/Setup';
 import Feed from './screens/Feed';
 import Health from './screens/Health';
 import More from './screens/More';
@@ -54,7 +55,11 @@ function Shell() {
           {head && <Route path="/events" element={<Events />} />}
           {head && <Route path="/money" element={<Money />} />}
           {head && <Route path="/farm" element={<Farm />} />}
-          {head && <Route path="/settings" element={<Settings />} />}
+          {head && <Route path="/people" element={<People />} />}
+          {head && <Route path="/people/worker/:id" element={<WorkerCard />} />}
+          {head && <Route path="/people/house/:id" element={<HouseCard />} />}
+          {head && <Route path="/setup" element={<Setup />} />}
+          {head && <Route path="/settings" element={<Navigate to="/people" replace />} />}
           <Route path="*" element={<Navigate to={head ? '/farm' : '/today'} replace />} />
         </Routes>
       </div>

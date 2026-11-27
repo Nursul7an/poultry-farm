@@ -5,7 +5,7 @@
  * The real rules live in SQL; keep the two in step when changing either.
  */
 import { AA_NORMS, addDays, earliestSlaughter, localParts, productionDay, weighingStats, withinWorkerEditWindow } from '@farm/core';
-import type { Api, Article, AskAnswer, AskContext, BatchInfo, NormRow, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
+import type { Api, Article, AskAnswer, AskContext, BatchInfo, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError } from './types';
 import { normalizePhone } from './phone';
 import { searchArticles } from './search';
@@ -30,6 +30,7 @@ interface DemoState {
   overrides: { at: string; houseBatchId: string; by: string; reason: string; catchAt: string; earliest: string }[];
   /** The director's changes to the Arbor Acres norms (code -> data). */
   normOverrides?: Record<string, unknown>;
+  staffEvents?: { at: string; kind: StaffEvent['kind']; userId: string; actorId: string }[];
 }
 
 const KEY = 'farm-demo-v2';
@@ -136,8 +137,9 @@ export class DemoApi implements Api {
 
   signIn(phone: string, pin: string) {
     return this.net(() => {
-      const u = this.s.users.find((x) => x.phone === normalizePhone(phone) && x.pin === pin && x.active);
+      const u = this.s.users.find((x) => x.phone === normalizePhone(phone) && x.pin === pin);
       if (!u) throw new ApiError('AUTH');
+      if (!u.active) throw new ApiError('FORBIDDEN', 'Доступ закрыт. Обратитесь к директору.');
       localStorage.setItem(SESSION_KEY, u.id);
       return this.session(u);
     });
@@ -226,30 +228,99 @@ export class DemoApi implements Api {
   }
 
   private head(): DemoUser { const u = this.me(); if (u.role !== 'head') throw new ApiError('FORBIDDEN'); return u; }
-  listHouses() { return this.net(() => { this.head(); return this.s.houses.map((h) => ({ ...h })); }); }
+  // ------------------------------------------------------------ farm and people (mirror manage-worker + 20261128000001_people.sql)
+  updateFarm(f: FarmSettings) {
+    return this.net(() => { this.head(); this.s.farm = { ...this.s.farm, ...f }; this.save(); return { ...this.s.farm }; });
+  }
+  listHouses() { return this.net(() => { this.head(); return this.s.houses.map((h) => ({ ...h, active: h.active !== false })); }); }
   createHouse(h: Omit<House, 'id'>) {
     return this.net(() => {
       this.head();
-      if (this.s.houses.some((x) => x.name === h.name)) throw new ApiError('VALIDATION', 'Птичник с таким названием уже есть');
-      const house = { ...h, id: `house-${Date.now()}` };
+      if (this.s.houses.some((x) => x.name === h.name.trim())) throw new ApiError('VALIDATION', `Птичник ${h.name} уже есть`);
+      const house = { ...h, name: h.name.trim(), id: `house-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, active: true };
       this.s.houses.push(house); this.save();
       return house;
+    });
+  }
+  updateHouse(id: string, p: Partial<Omit<House, 'id'>>) {
+    return this.net(() => {
+      this.head();
+      const h = this.s.houses.find((x) => x.id === id);
+      if (!h) throw new ApiError('VALIDATION', 'Птичник не найден');
+      if (p.name && this.s.houses.some((x) => x.id !== id && x.name === p.name)) throw new ApiError('VALIDATION', `Птичник ${p.name} уже есть`);
+      Object.assign(h, p); this.save();
+    });
+  }
+  deleteHouse(id: string) {
+    return this.net(() => {
+      this.head();
+      if (this.s.hbs.some((hb) => hb.houseId === id)) throw new ApiError('VALIDATION', 'У птичника есть история партий — его можно только отключить');
+      this.s.houses = this.s.houses.filter((h) => h.id !== id);
+      this.s.users.forEach((u) => { u.houseIds = u.houseIds.filter((x) => x !== id); });
+      this.save();
     });
   }
   listWorkers() {
     return this.net((): Worker[] => { this.head(); return this.s.users.filter((u) => u.role === 'worker').map(({ id, displayName, phone, houseIds, active }) => ({ id, displayName, phone, houseIds: [...houseIds], active })); });
   }
+  private worker(id: string) {
+    const u = this.s.users.find((x) => x.id === id && x.role === 'worker');
+    if (!u) throw new ApiError('VALIDATION', 'Работник не найден');
+    return u;
+  }
+  private phoneFree(phone: string, except?: string) {
+    const other = this.s.users.find((u) => u.phone === phone && u.id !== except);
+    if (other) throw new ApiError('VALIDATION', `Этот номер уже есть у ${other.displayName}`);
+  }
+  private logStaff(userId: string, kind: StaffEvent['kind']) {
+    (this.s.staffEvents ??= []).push({ at: new Date().toISOString(), kind, userId, actorId: this.me().id });
+  }
   inviteWorker(w: { displayName: string; phone: string; pin: string; houseIds: string[] }) {
     return this.net(() => {
       this.head();
       const phone = normalizePhone(w.phone);
-      if (this.s.users.some((u) => u.phone === phone)) throw new ApiError('VALIDATION', 'Этот номер уже есть');
-      this.s.users.push({ id: `u-${Date.now()}`, role: 'worker', displayName: w.displayName, phone, pin: w.pin, houseIds: w.houseIds, active: true });
+      if (!/^\+996\d{9}$/.test(phone)) throw new ApiError('VALIDATION', 'Телефон: +996 и 9 цифр');
+      if (!/^\d{6}$/.test(w.pin)) throw new ApiError('VALIDATION', 'PIN — 6 цифр');
+      if (!w.displayName.trim()) throw new ApiError('VALIDATION', 'Укажите имя работника');
+      this.phoneFree(phone);
+      const id = `u-${Date.now()}`;
+      this.s.users.push({ id, role: 'worker', displayName: w.displayName.trim(), phone, pin: w.pin, houseIds: w.houseIds, active: true });
+      this.logStaff(id, 'created');
       this.save();
+      return { id };
     });
   }
   setWorkerHouses(workerId: string, houseIds: string[]) {
-    return this.net(() => { this.head(); const u = this.s.users.find((x) => x.id === workerId); if (u) u.houseIds = houseIds; this.save(); });
+    return this.net(() => { this.head(); this.worker(workerId).houseIds = houseIds; this.save(); });
+  }
+  renameWorker(workerId: string, displayName: string) {
+    return this.net(() => { this.head(); this.worker(workerId).displayName = displayName.trim(); this.save(); });
+  }
+  resetWorkerPin(workerId: string, pin: string) {
+    return this.net(() => {
+      this.head();
+      if (!/^\d{6}$/.test(pin)) throw new ApiError('VALIDATION', 'PIN — 6 цифр');
+      this.worker(workerId).pin = pin; this.logStaff(workerId, 'pin_reset'); this.save();
+    });
+  }
+  setWorkerActive(workerId: string, active: boolean) {
+    return this.net(() => { this.head(); this.worker(workerId).active = active; this.logStaff(workerId, active ? 'reactivated' : 'deactivated'); this.save(); });
+  }
+  setWorkerPhone(workerId: string, phone: string) {
+    return this.net(() => {
+      this.head();
+      const p = normalizePhone(phone);
+      if (!/^\+996\d{9}$/.test(p)) throw new ApiError('VALIDATION', 'Телефон: +996 и 9 цифр');
+      this.phoneFree(p, workerId);
+      this.worker(workerId).phone = p; this.logStaff(workerId, 'phone_changed'); this.save();
+    });
+  }
+  staffEvents() {
+    return this.net((): StaffEvent[] => {
+      this.head();
+      const name = (id: string) => this.s.users.find((u) => u.id === id)?.displayName ?? '';
+      return [...(this.s.staffEvents ?? [])].reverse().map((e) => ({ at: e.at, kind: e.kind, userName: name(e.userId), actorName: name(e.actorId) }));
+    });
   }
   changePin(newPin: string) {
     return this.net(() => { const u = this.me(); u.pin = newPin; this.save(); });
@@ -269,7 +340,7 @@ export class DemoApi implements Api {
   myHouses() {
     return this.net((): MyHouse[] => {
       const u = this.me();
-      return this.s.houses.filter((h) => u.role === 'head' || u.houseIds.includes(h.id)).map((h) => ({ houseId: h.id, houseName: h.name, hasWaterMeter: h.hasWaterMeter }));
+      return this.s.houses.filter((h) => h.active !== false && (u.role === 'head' || u.houseIds.includes(h.id))).map((h) => ({ houseId: h.id, houseName: h.name, hasWaterMeter: h.hasWaterMeter }));
     });
   }
   ops(ids: string[]) {

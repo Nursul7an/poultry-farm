@@ -99,7 +99,10 @@ export interface HouseToday {
   yesterdayDeaths: number | null;
 }
 
-export interface House { id: string; name: string; areaM2: number; hasWaterMeter: boolean; drinkerType: string | null; feederType: string | null }
+export interface House { id: string; name: string; areaM2: number; hasWaterMeter: boolean; drinkerType: string | null; feederType: string | null; active?: boolean }
+/** What the director did with accounts (no PINs). */
+export interface StaffEvent { at: string; kind: 'created' | 'pin_reset' | 'deactivated' | 'reactivated' | 'phone_changed'; userName: string; actorName: string }
+export type FarmSettings = Pick<Session['farm'], 'name' | 'tz' | 'dayStartHour'>;
 export interface Worker { id: string; displayName: string; phone: string; houseIds: string[]; active: boolean }
 
 /** Error codes the server can return (see supabase/migrations). */
@@ -137,11 +140,22 @@ export interface Api {
   recentLogs(houseBatchIds: string[], sinceDay: string): Promise<LogRecord[]>;
   upsertLog(rec: LogRecord): Promise<LogRecord>;
   houseToday(): Promise<HouseToday[]>;
+  // Farm and people (director; online only)
+  updateFarm(f: FarmSettings): Promise<Session['farm']>;
+  /** All houses of the farm, including deactivated ones (`active: false`). */
   listHouses(): Promise<House[]>;
   createHouse(h: Omit<House, 'id'>): Promise<House>;
+  updateHouse(id: string, patch: Partial<Omit<House, 'id'>>): Promise<void>;
+  /** Deletes a house with no batch history; throws VALIDATION otherwise (deactivate it instead). */
+  deleteHouse(id: string): Promise<void>;
   listWorkers(): Promise<Worker[]>;
-  inviteWorker(w: { displayName: string; phone: string; pin: string; houseIds: string[] }): Promise<void>;
+  inviteWorker(w: { displayName: string; phone: string; pin: string; houseIds: string[] }): Promise<{ id: string }>;
   setWorkerHouses(workerId: string, houseIds: string[]): Promise<void>;
+  renameWorker(workerId: string, displayName: string): Promise<void>;
+  resetWorkerPin(workerId: string, pin: string): Promise<void>;
+  setWorkerActive(workerId: string, active: boolean): Promise<void>;
+  setWorkerPhone(workerId: string, phone: string): Promise<void>;
+  staffEvents(): Promise<StaffEvent[]>;
   changePin(newPin: string): Promise<void>;
   // Operations (worker on own houses, director on all)
   myHouses(): Promise<MyHouse[]>;

@@ -27,7 +27,8 @@ An offline-capable app for a 4-house broiler farm. House workers log each house'
 | «Помощник»: questions answered by Claude from the handbook, with sources | ✔ online, 30/day | ✔ sees all questions | done (needs API key) |
 | Reminders engine (notifications are in-app only, no Telegram) | | | Phase 2 |
 | Batch report and close/lock, export | | | Phase 3 |
-| Real-phone test (T-02), Supabase project, hosting | | | **needs you** — see below and `docs/PHASE1-PHONE-TEST.md` |
+| Farm setup wizard (farm → houses → workers), «Ферма и люди»: new PIN, deactivate/reactivate, edit worker, house, farm | — | ✔ online | done — guide: `docs/DIRECTOR-GUIDE.md` |
+| Real-phone test (T-02) | | | **needs you** — `docs/PHASE1-PHONE-TEST.md` |
 
 ## Run it
 
@@ -53,10 +54,10 @@ npm run test:e2e     # browser tests on a production build: offline save → rel
 2. Authentication → Providers → Email: **disable "Confirm email"**; check the minimum password length allows 6 characters (PINs are 6 digits).
 3. Run `supabase/migrations/*.sql` in the SQL editor (or `supabase db push`).
 4. Create the head user (Authentication → Users → Add user) with email `p<phone digits>@phone.farm.local` (e.g. `p996700000001@phone.farm.local`) and a 6-digit PIN as password, then run `supabase/bootstrap.sql` with your values.
-5. Deploy the functions: `supabase functions deploy invite-worker` and `supabase functions deploy ask`.
+5. Deploy the functions: `supabase functions deploy manage-worker`, `invite-worker` (old alias) and `ask`.
    For «Помощник» add the secret `ANTHROPIC_API_KEY` (Edge Functions → Secrets). Optional: `ASSISTANT_MODEL` (default `claude-opus-5-5`), `ASSISTANT_DAILY_LIMIT` (default 30 per person).
    Or run everything at once with `scripts/supabase-setup.mjs` (see its header).
-6. The first worker who records a placement («Ещё → Посадка») opens the batch.
+6. The director signs in: an empty farm opens the setup wizard (houses, workers). The first placement («Ещё → Посадка») opens the batch.
 7. Hosting: **Vercel** — import the repo, keep the project root at the repository root; `vercel.json` sets the build. The Supabase URL and public key come from `apps/web/.env.production`.
 
 ## Knowledge
@@ -82,5 +83,5 @@ docs/             plan, spec, designs, knowledge base
 - **One log per house per day.** If two phones save the same day, the later save wins and the earlier version stays in `edit_history`.
 - **Workers can fill a missed day up to 2 days back** and edit their own log for 48 h; after that only the head, with a reason.
 - **Water litres are computed on the server** from the previous meter reading; a lower reading must be marked "новый счётчик".
-- **Sign-in:** the head sets the worker's first PIN (the spec said the worker sets it — simpler for the pilot; PIN change by the worker comes later).
+- **Sign-in:** phone + 6-digit PIN. The director creates workers (the app suggests the PIN), can issue a new PIN, deactivate, reactivate and change the phone (`supabase/functions/manage-worker`, service-role key only on the server). Workers change their own PIN in «Отправка и PIN».
 - **Styling:** plain CSS with the design tokens instead of Tailwind (fewer moving parts; same tokens).

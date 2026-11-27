@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Корм — работник</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;font-size:12px;color:#52606D;text-decoration:none}
+.sec{background:#FFFFFF;border-top:1px solid #D5DBE0;border-bottom:1px solid #D5DBE0;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.h2{margin:0;font-size:15px;font-weight:600}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;min-height:30px}
+.k{color:#52606D}
+.tile{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.tl{font-size:12px;color:#52606D}
+.tv{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.btn{min-height:48px;border-radius:10px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:15px;font-weight:600;color:#18212B;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;flex:1;padding:0 12px}
+.btnp{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.inp{height:52px;border-radius:10px;border:1px solid #B9C3CB;padding:0 12px;font:inherit;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;width:100%;box-sizing:border-box;color:#18212B;background:#FFFFFF}
+.lbl{font-size:13px;color:#52606D}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px;background:#FFFFFF;border-top:1px solid #D5DBE0;text-decoration:none;color:#18212B}
+.btn:focus-visible,.chip:focus-visible,.tab:focus-visible,.row:focus-visible,.inp:focus{outline:3px solid #0D5C7D;outline-offset:2px}
+.seg{flex:1;min-height:44px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:15px;font-weight:600;color:#18212B;cursor:pointer}
+.segon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.step{width:48px;height:48px;border-radius:10px;border:1px solid #B9C3CB;background:#F6F8F9;font:inherit;font-size:24px;cursor:pointer;color:#18212B}
+.seg:focus-visible,.step:focus-visible{outline:3px solid #0D5C7D;outline-offset:2px}
+
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden;position:relative">
+  <header style="background:#FFFFFF;padding:12px 16px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column;gap:4px">
+    <span style="font-size:13px;color:#52606D">Айгуль Т. · день 23</span>
+    <span style="font-size:20px;font-weight:600">Корм</span>
+  </header>
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
+    <div style="display:flex;margin:0 16px" role="group" aria-label="Птичник">
+      <button class="seg" style="border-radius:10px 0 0 10px">П-1</button><button class="seg segon" style="border-radius:0 10px 10px 0;border-left:0">П-2</button>
+    </div>
+    <section style="margin:0 16px;background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px">
+      <span class="tl">В бункере П-2</span>
+      <span class="num" style="font-size:34px;font-weight:600;line-height:1.1">{{stock}} т</span>
+      <span class="num" style="{{daysStyle}}">хватит на {{days}} дня · расход 1,97 т/сут</span>
+      <div style="height:8px;border-radius:4px;background:#EEF1F3"><div style="{{bar}}"></div></div>
+    </section>
+    <section style="margin:0 16px;background:#FFFFFF;border:1px solid #E7B98C;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+      <div class="kv"><span class="k">Рацион сейчас</span><span style="font-weight:600">{{phase}}</span></div>
+      <sc-if value="{{showSwitch}}" hint-placeholder-val="{{true}}">
+        <span style="font-size:14px;color:#A35200">Норма AA: финиш с 25-го дня — завтра. Отметьте, когда начнёте давать финишный корм.</span>
+        <button class="btn" onClick="{{switchPhase}}">Перешли на финиш</button>
+      </sc-if>
+    </section>
+    <div style="margin:0 16px"><button class="btn btnp" style="width:100%" onClick="{{open}}">Записать поставку</button></div>
+    <section class="sec" style="padding-bottom:4px">
+      <h2 class="h2">Поставки в П-2</h2>
+      <sc-for list="{{deliveries}}" as="d" hint-placeholder-count="3">
+        <div class="kv num"><span class="k">{{d.date}}</span><span>{{d.type}} · {{d.t}} т · {{d.photo}}</span></div>
+      </sc-for>
+    </section>
+    <span class="lbl" style="margin:0 16px">Цену корма вносит директор.</span>
+  </main>
+  <nav aria-label="Основное меню" style="display:flex;background:#FFFFFF;border-top:1px solid #D5DBE0;padding-bottom:20px">
+    <a href="Main.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Сегодня</a>
+    <a href="WLog.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>Журнал</a>
+    <a href="WFeed.dc.html" class="tab" style="color:#0D5C7D;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 4h12l-2 6H8z"/><path d="M8 10v9h8v-9"/></svg>Корм</a>
+    <a href="WHealth.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/><path d="M9 11h6M12 8v6"/></svg>Здоровье</a>
+    <a href="WMore.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Ещё</a>
+  </nav>
+  <sc-if value="{{sheet}}" hint-placeholder-val="{{false}}">
+    <div style="position:absolute;inset:0;background:rgba(24,33,43,0.45);display:flex;align-items:flex-end">
+      <div role="dialog" aria-label="Поставка корма" style="background:#FFFFFF;border-radius:16px 16px 0 0;padding:20px 16px 28px;display:flex;flex-direction:column;gap:12px;width:100%;box-sizing:border-box">
+        <span style="font-size:20px;font-weight:600">Поставка корма · П-2</span>
+        <span class="lbl">Рацион</span>
+        <div style="display:flex;gap:8px"><sc-for list="{{types}}" as="x" hint-placeholder-count="3"><button class="{{x.cls}}" onClick="{{x.pick}}" aria-pressed="{{x.on}}">{{x.label}}</button></sc-for></div>
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Тонн по накладной</span><input class="inp" inputmode="decimal" value="{{tIn}}" onInput="{{setT}}"></label>
+        <button class="btn">Сфотографировать накладную</button>
+        <button class="btn btnp" onClick="{{save}}">Сохранить</button>
+        <button class="btn" onClick="{{close}}">Отмена</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { sheet: false, type: 'Финиш', t: '8,0', stock: 4.7, phase: 'Рост · гранула 3,5 мм', switched: false,
+    list: [['21.11', 'Рост', '8,0', 'фото'], ['15.11', 'Рост', '7,5', 'фото'], ['09.11', 'Рост', '6,5', 'нет фото'], ['01.11', 'Старт', '6,5', 'фото']] }; }
+  renderVals() {
+    const s = this.state, days = s.stock / 1.97;
+    const f = (v) => v.toLocaleString('ru-RU', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    return {
+      stock: f(s.stock), days: f(days), phase: s.phase, showSwitch: !s.switched, sheet: s.sheet, tIn: s.t,
+      daysStyle: 'font-size:14px;font-weight:600;color:' + (days < 2 ? '#A35200' : '#1D7044'),
+      bar: 'height:8px;border-radius:4px;background:' + (days < 2 ? '#E08A2E' : '#0D5C7D') + ';width:' + Math.min(100, s.stock / 12 * 100) + '%',
+      deliveries: s.list.map(([date, type, t, photo]) => ({ date, type, t, photo })),
+      types: ['Старт', 'Рост', 'Финиш'].map(l => ({ label: l, on: s.type === l, cls: s.type === l ? 'chip chipon' : 'chip', pick: () => this.setState({ type: l }) })),
+      open: () => this.setState({ sheet: true }), close: () => this.setState({ sheet: false }),
+      setT: (e) => this.setState({ t: e.target.value }),
+      switchPhase: () => this.setState({ switched: true, phase: 'Финиш · гранула 3,5 мм' }),
+      save: () => { const v = parseFloat(String(s.t).replace(',', '.')) || 0; this.setState({ sheet: false, stock: s.stock + v, list: [['24.11', s.type, f(v), 'фото']].concat(s.list) }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

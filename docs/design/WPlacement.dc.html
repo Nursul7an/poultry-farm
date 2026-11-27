@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Посадка — работник</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.sec{background:#FFFFFF;border-top:1px solid #D5DBE0;border-bottom:1px solid #D5DBE0;padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.h{margin:0;font-size:15px;font-weight:600}
+.kv{display:flex;justify-content:space-between;font-size:15px;min-height:28px;align-items:center}
+.k{color:#52606D}
+.step{width:56px;height:56px;border-radius:10px;border:1px solid #B9C3CB;background:#F6F8F9;font:inherit;font-size:28px;cursor:pointer;color:#18212B}
+.step:focus-visible,.btn:focus-visible{outline:3px solid #0D5C7D;outline-offset:2px}
+.btn{min-height:56px;border-radius:12px;border:0;font:inherit;font-size:17px;font-weight:600;cursor:pointer;width:100%}
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden">
+  <header style="background:#FFFFFF;padding:12px 16px;border-bottom:1px solid #D5DBE0;display:flex;align-items:center;gap:8px">
+    <a href="WMore.dc.html" aria-label="Назад" style="width:44px;height:44px;margin-left:-10px;display:flex;align-items:center;justify-content:center;color:#18212B"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <div style="display:flex;flex-direction:column"><span style="font-size:13px;color:#52606D">Посадка · 01.11.2026 · 07:30 · Айгуль Т.</span><span style="font-size:20px;font-weight:600">П-2 · Партия 06/2026</span></div>
+  </header>
+
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
+    <section class="sec">
+      <h2 class="h">Приёмка цыплят</h2>
+      <div class="kv"><span class="k">Инкубаторий / РС</span><span>Инкубаторий · РС 34 нед.</span></div>
+      <div class="kv"><span class="k">По накладной</span><span class="num">16 990</span></div>
+      <div class="kv"><span class="k">Пало в дороге</span><span class="num">10 (0,06%)</span></div>
+      <div class="kv"><span class="k">Посажено</span><span class="num" style="font-weight:600">16 980</span></div>
+      <div class="kv"><span class="k">Клоачная t (15 гол.)</span><span class="num" style="color:#1D7044">39,8 °C · норма 39,4–40,5</span></div>
+      <div class="kv"><span class="k">Масса суточного, 1 коробка</span><span class="num">41,0 г · CV 7,9%</span></div>
+      <div class="kv"><span class="k">Качество</span><span style="color:#1D7044">Хорошее · 3 фото</span></div>
+      <div class="kv"><span class="k" style="font-size:13px">Цену цыплят вносит директор</span><span></span></div>
+    </section>
+
+    <section class="sec">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <h2 class="h">Наполнение зоба</h2>
+        <span style="font-size:13px;color:#52606D">30–40 цыплят, 3–4 точки</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px" role="list" aria-label="Контрольные часы">
+        <sc-for list="{{checks}}" as="c" hint-placeholder-count="6">
+          <div role="listitem" style="{{c.style}}">
+            <span style="font-size:12px">{{c.h}} ч</span>
+            <span class="num" style="font-size:15px;font-weight:600">{{c.val}}</span>
+            <span style="font-size:11px">≥{{c.norm}}%</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="border:2px solid #0D5C7D;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:15px;font-weight:600">Проверка через 12 ч · 18:40</span>
+        <div class="kv"><span class="k">Проверено цыплят</span><span class="num" style="font-weight:600">40</span></div>
+        <span class="k" style="font-size:15px">С полным мягким зобом</span>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="step" onClick="{{dec}}" aria-label="Минус один">−</button>
+          <span class="num" style="flex:1;text-align:center;font-size:32px;font-weight:600">{{full}}</span>
+          <button class="step" onClick="{{inc}}" aria-label="Плюс один">+</button>
+        </div>
+        <div style="{{resStyle}}">{{resText}}</div>
+      </div>
+    </section>
+  </main>
+  <div style="padding:12px 16px 28px;background:#FFFFFF;border-top:1px solid #D5DBE0">
+    <button class="btn" style="background:#0D5C7D;color:#FFFFFF">Сохранить проверку 12 ч</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { full: 32 }; }
+  renderVals() {
+    const full = this.state.full, pct = Math.round(full / 40 * 100), ok = pct >= 85;
+    const box = (bg, fg, bd) => 'display:flex;flex-direction:column;align-items:center;padding:6px 0;border-radius:8px;background:' + bg + ';color:' + fg + ';border:' + bd;
+    const checks = [
+      { h: 2, val: '78%', norm: 75, style: box('#E3F1E8', '#1D7044', '1px solid #9CCBAF') },
+      { h: 4, val: '83%', norm: 80, style: box('#E3F1E8', '#1D7044', '1px solid #9CCBAF') },
+      { h: 8, val: '85%', norm: 80, style: box('#E3F1E8', '#1D7044', '1px solid #9CCBAF') },
+      { h: 12, val: pct + '%', norm: 85, style: box('#FFFFFF', '#0D5C7D', '2px solid #0D5C7D') },
+      { h: 24, val: '—', norm: 95, style: box('#F6F8F9', '#52606D', '1px solid #D5DBE0') },
+      { h: 48, val: '—', norm: 100, style: box('#F6F8F9', '#52606D', '1px solid #D5DBE0') }
+    ];
+    return {
+      checks, full,
+      inc: () => this.setState({ full: Math.min(40, full + 1) }),
+      dec: () => this.setState({ full: Math.max(0, full - 1) }),
+      resText: ok ? pct + '% — норма (≥ 85% через 12 ч)' : pct + '% — ниже нормы 85%. Проверьте доступ к корму и воде, температуру и свет. Менеджер получит тревогу.',
+      resStyle: 'font-size:14px;line-height:1.4;padding:10px 12px;border-radius:8px;' + (ok ? 'background:#E3F1E8;color:#1D7044' : 'background:#FBEBDC;color:#A35200')
+    };
+  }
+}
+</script>
+</body>
+</html>

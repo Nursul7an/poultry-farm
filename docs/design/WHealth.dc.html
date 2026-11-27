@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Здоровье — работник</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;font-size:12px;color:#52606D;text-decoration:none}
+.sec{background:#FFFFFF;border-top:1px solid #D5DBE0;border-bottom:1px solid #D5DBE0;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.h2{margin:0;font-size:15px;font-weight:600}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;min-height:30px}
+.k{color:#52606D}
+.tile{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.tl{font-size:12px;color:#52606D}
+.tv{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.btn{min-height:48px;border-radius:10px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:15px;font-weight:600;color:#18212B;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;flex:1;padding:0 12px}
+.btnp{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.inp{height:52px;border-radius:10px;border:1px solid #B9C3CB;padding:0 12px;font:inherit;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;width:100%;box-sizing:border-box;color:#18212B;background:#FFFFFF}
+.lbl{font-size:13px;color:#52606D}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px;background:#FFFFFF;border-top:1px solid #D5DBE0;text-decoration:none;color:#18212B}
+.btn:focus-visible,.chip:focus-visible,.tab:focus-visible,.row:focus-visible,.inp:focus{outline:3px solid #0D5C7D;outline-offset:2px}
+.seg{flex:1;min-height:44px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:15px;font-weight:600;color:#18212B;cursor:pointer}
+.segon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.step{width:48px;height:48px;border-radius:10px;border:1px solid #B9C3CB;background:#F6F8F9;font:inherit;font-size:24px;cursor:pointer;color:#18212B}
+.seg:focus-visible,.step:focus-visible{outline:3px solid #0D5C7D;outline-offset:2px}
+
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden;position:relative">
+  <header style="background:#FFFFFF;padding:12px 16px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column;gap:4px">
+    <span style="font-size:13px;color:#52606D">П-2 · день 23 · Айгуль Т.</span>
+    <span style="font-size:20px;font-weight:600">Здоровье</span>
+  </header>
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
+    <div style="display:flex;margin:0 16px" role="group" aria-label="Раздел">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3"><button class="{{t.cls}}" style="{{t.r}}" onClick="{{t.pick}}" aria-pressed="{{t.on}}">{{t.label}}</button></sc-for>
+    </div>
+    <sc-if value="{{isTreat}}" hint-placeholder-val="{{true}}">
+      <section style="margin:0 16px;background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px">
+        <span class="tl">Идёт лечение · П-2</span>
+        <span style="font-size:17px;font-weight:600">Амоксициллин 10% · день 1 из 5</span>
+        <span class="num lbl">1 г / 1 л воды · серия AX-2411-07</span>
+        <span class="num" style="font-size:14px;color:#B3202A;font-weight:600">Убой не ранее 06.12 · ожидание до 05.12</span>
+        <button class="{{doseCls}}" onClick="{{dose}}">{{doseLabel}}</button>
+      </section>
+      <section class="sec">
+        <h2 class="h2">Новое лечение (по назначению ветврача)</h2>
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Препарат</span><input class="inp" style="font-size:17px;font-weight:400" value="Энрофлоксацин 10%"></label>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+          <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Доза</span><input class="inp" style="font-size:17px;font-weight:400" value="0,5 мл / 1 л"></label>
+          <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Серия</span><input class="inp" style="font-size:17px;font-weight:400" value="EN-1102"></label>
+        </div>
+        <div class="kv"><span>Курс, дней</span><span style="display:flex;align-items:center;gap:10px"><button class="step" onClick="{{decC}}" aria-label="Курс минус">−</button><b class="num" style="width:28px;text-align:center">{{course}}</b><button class="step" onClick="{{incC}}" aria-label="Курс плюс">+</button></span></div>
+        <div class="kv"><span>Ожидание, дней</span><span style="display:flex;align-items:center;gap:10px"><button class="step" onClick="{{decW}}" aria-label="Ожидание минус">−</button><b class="num" style="width:28px;text-align:center">{{wd}}</b><button class="step" onClick="{{incW}}" aria-label="Ожидание плюс">+</button></span></div>
+        <div style="{{resS}}">{{res}}</div>
+        <button class="btn btnp" onClick="{{saveT}}">Сохранить лечение</button>
+        <sc-if value="{{saved}}" hint-placeholder-val="{{false}}"><span style="font-size:14px;color:#1D7044">Сохранено. Директор уведомлён. Задачи на {{course}} дн. появятся на «Сегодня».</span></sc-if>
+      </section>
+    </sc-if>
+    <sc-if value="{{isVacc}}" hint-placeholder-val="{{false}}">
+      <section class="sec">
+        <h2 class="h2">Вакцинации партии</h2>
+        <div class="kv num"><span class="k">01.11 · д0</span><span>Ньюкасл + ИБ · спрей · ✔</span></div>
+        <div class="kv num"><span class="k">15.11 · д14</span><span>Гамборо · с водой · ✔</span></div>
+        <div class="kv num" style="color:#A35200"><span>27.11 · д26</span><span>Ньюкасл · с водой · запланирована</span></div>
+        <button class="btn btnp">Записать вакцинацию</button>
+        <span class="lbl">Вакцина, способ, серия, количество голов. Схему даёт ветврач.</span>
+      </section>
+    </sc-if>
+    <sc-if value="{{isPm}}" hint-placeholder-val="{{false}}">
+      <section class="sec">
+        <h2 class="h2">Вскрытие</h2>
+        <div class="kv"><span class="k">Голов вскрыто</span><b class="num">8</b></div>
+        <span class="lbl">Что нашли</span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{finds}}" as="f" hint-placeholder-count="6"><button class="{{f.cls}}" onClick="{{f.pick}}" aria-pressed="{{f.on}}">{{f.label}}</button></sc-for></div>
+        <button class="btn">Фото (2)</button>
+        <button class="btn btnp">Сохранить и отправить ветврачу</button>
+      </section>
+    </sc-if>
+  </main>
+  <nav aria-label="Основное меню" style="display:flex;background:#FFFFFF;border-top:1px solid #D5DBE0;padding-bottom:20px">
+    <a href="Main.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Сегодня</a>
+    <a href="WLog.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>Журнал</a>
+    <a href="WFeed.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 4h12l-2 6H8z"/><path d="M8 10v9h8v-9"/></svg>Корм</a>
+    <a href="WHealth.dc.html" class="tab" style="color:#0D5C7D;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/><path d="M9 11h6M12 8v6"/></svg>Здоровье</a>
+    <a href="WMore.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Ещё</a>
+  </nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { tab: 0, course: 5, wd: 8, saved: false, dosed: false, find: 'Энтерит' }; }
+  d(o) { const t = new Date(2026, 10, 24); t.setDate(t.getDate() + o); return String(t.getDate()).padStart(2, '0') + '.' + String(t.getMonth() + 1).padStart(2, '0'); }
+  renderVals() {
+    const s = this.state, earliest = s.course - 1 + s.wd + 1, ok = earliest <= 17;
+    const tabs = ['Лечение', 'Вакцинация', 'Вскрытие'].map((l, i) => ({ label: l, on: s.tab === i, cls: s.tab === i ? 'seg segon' : 'seg', r: i === 0 ? 'border-radius:10px 0 0 10px' : i === 2 ? 'border-radius:0 10px 10px 0;border-left:0' : 'border-radius:0;border-left:0', pick: () => this.setState({ tab: i }) }));
+    return { tabs, isTreat: s.tab === 0, isVacc: s.tab === 1, isPm: s.tab === 2, course: s.course, wd: s.wd, saved: s.saved,
+      res: 'Убой не ранее ' + this.d(earliest) + (ok ? ' — план отлова 11.12 в порядке' : ' — позже плана отлова 11.12! Директор увидит это сразу'),
+      resS: 'font-size:14px;line-height:1.4;padding:10px 12px;border-radius:8px;' + (ok ? 'background:#E3F1E8;color:#14532F' : 'background:#F9E3E4;color:#8A1820'),
+      doseLabel: s.dosed ? '✔ Сегодня дано · 09:15' : 'Отметить: сегодня дано', doseCls: s.dosed ? 'btn' : 'btn btnp',
+      dose: () => this.setState({ dosed: !s.dosed }), saveT: () => this.setState({ saved: true }),
+      incC: () => this.setState({ course: Math.min(10, s.course + 1), saved: false }), decC: () => this.setState({ course: Math.max(1, s.course - 1), saved: false }),
+      incW: () => this.setState({ wd: Math.min(30, s.wd + 1), saved: false }), decW: () => this.setState({ wd: Math.max(0, s.wd - 1), saved: false }),
+      finds: ['Энтерит', 'Кокцидиоз', 'Асцит', 'Респираторное', 'Ноги', 'Без изменений'].map(l => ({ label: l, on: s.find === l, cls: s.find === l ? 'chip chipon' : 'chip', pick: () => this.setState({ find: l }) })) };
+  }
+}
+</script>
+</body>
+</html>

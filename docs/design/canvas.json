@@ -16,11 +16,11 @@
   },
   {
    "id": "headphone",
-   "name": "Руководитель (телефон)"
+   "name": "Директор (телефон)"
   },
   {
    "id": "head",
-   "name": "Руководитель (ноутбук)"
+   "name": "Директор (ноутбук)"
   }
  ],
  "boards": {
@@ -45,17 +45,17 @@
    "radius": 28
   },
   "WWeigh.dc.html": {
-   "x": 940,
+   "x": 2820,
    "y": 0,
    "w": 390,
    "h": 844,
-   "title": "3 · Взвешивание",
+   "title": "7 · Взвешивание",
    "page": "worker",
    "is_interactive": true,
    "radius": 28
   },
   "WStates.dc.html": {
-   "x": 1410,
+   "x": 3760,
    "y": 0,
    "w": 1250,
    "h": 844,
@@ -204,12 +204,66 @@
    "y": 0,
    "title": "11 · Настройки",
    "page": "headphone"
+  },
+  "WFeed.dc.html": {
+   "w": 390,
+   "h": 844,
+   "radius": 28,
+   "x": 940,
+   "y": 0,
+   "title": "3 · Корм: поставка и бункер",
+   "page": "worker",
+   "is_interactive": true
+  },
+  "WHealth.dc.html": {
+   "w": 390,
+   "h": 844,
+   "radius": 28,
+   "x": 1410,
+   "y": 0,
+   "title": "4 · Здоровье: лечение, вакцинация, вскрытие",
+   "page": "worker",
+   "is_interactive": true
+  },
+  "WMore.dc.html": {
+   "w": 390,
+   "h": 844,
+   "radius": 28,
+   "x": 1880,
+   "y": 0,
+   "title": "5 · Ещё",
+   "page": "worker"
+  },
+  "WPlacement.dc.html": {
+   "w": 390,
+   "h": 844,
+   "radius": 28,
+   "x": 2350,
+   "y": 0,
+   "title": "6 · Посадка",
+   "page": "worker",
+   "is_interactive": true
+  },
+  "WCatch.dc.html": {
+   "w": 390,
+   "h": 844,
+   "radius": 28,
+   "x": 3290,
+   "y": 0,
+   "title": "8 · Отлов и сдача",
+   "page": "worker",
+   "is_interactive": true
   }
  },
  "order": [
   "Main.dc.html",
   "WLog.dc.html",
+  "WFeed.dc.html",
+  "WHealth.dc.html",
+  "WMore.dc.html",
+  "WPlacement.dc.html",
   "WWeigh.dc.html",
+  "WCatch.dc.html",
   "WStates.dc.html",
   "HFarmPhone.dc.html",
   "HmHouse.dc.html",
@@ -231,15 +285,15 @@
   "t_worker": {
    "x": 0,
    "y": -300,
-   "text": "Работник: свой птичник за 2 минуты",
+   "text": "Работник: все операции своего птичника, без денег",
    "kind": "title1",
-   "maxW": 2660,
+   "maxW": 5010,
    "page": "worker"
   },
   "t_headphone": {
    "x": 0,
    "y": -300,
-   "text": "Руководитель на телефоне: всё то же, в кармане",
+   "text": "Директор на телефоне: всё то же, в кармане",
    "kind": "title1",
    "maxW": 3680,
    "page": "headphone"
@@ -247,7 +301,7 @@
   "t_head": {
    "x": 0,
    "y": -300,
-   "text": "Руководитель на ноутбуке: сравнить, спланировать, закрыть партию",
+   "text": "Директор на ноутбуке: сравнить, спланировать, закрыть партию",
    "kind": "title1",
    "maxW": 2960,
    "page": "head"

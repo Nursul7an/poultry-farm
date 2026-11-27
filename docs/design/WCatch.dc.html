@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Отлов и сдача — работник</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;font-size:12px;color:#52606D;text-decoration:none}
+.sec{background:#FFFFFF;border-top:1px solid #D5DBE0;border-bottom:1px solid #D5DBE0;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.h2{margin:0;font-size:15px;font-weight:600}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;min-height:30px}
+.k{color:#52606D}
+.tile{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.tl{font-size:12px;color:#52606D}
+.tv{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.btn{min-height:48px;border-radius:10px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:15px;font-weight:600;color:#18212B;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;flex:1;padding:0 12px}
+.btnp{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.inp{height:52px;border-radius:10px;border:1px solid #B9C3CB;padding:0 12px;font:inherit;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;width:100%;box-sizing:border-box;color:#18212B;background:#FFFFFF}
+.lbl{font-size:13px;color:#52606D}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px;background:#FFFFFF;border-top:1px solid #D5DBE0;text-decoration:none;color:#18212B}
+.btn:focus-visible,.chip:focus-visible,.tab:focus-visible,.row:focus-visible,.inp:focus{outline:3px solid #0D5C7D;outline-offset:2px}
+
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden;position:relative">
+  <header style="background:#FFFFFF;padding:12px 16px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column;gap:4px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="WMore.dc.html" aria-label="Назад" style="width:44px;height:44px;margin-left:-10px;display:flex;align-items:center;justify-content:center;color:#18212B"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+      <div style="display:flex;flex-direction:column"><span style="font-size:13px;color:#52606D">П-1, П-2 · партия 06/2026</span><span style="font-size:20px;font-weight:600">Отлов и сдача</span></div>
+    </div>
+  </header>
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
+    <section class="sec" style="padding-bottom:4px">
+      <h2 class="h2">План отлова</h2>
+      <div class="kv num"><span>П-1</span><span>11.12 · 22:00 <span style="color:#1D7044">●</span></span></div>
+      <div class="kv num" style="{{p2S}}"><span>П-2</span><span>{{date}} · 22:00 {{chk}}</span></div>
+    </section>
+    <section class="sec">
+      <span class="lbl">П-2, дата отлова</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{dates}}" as="d" hint-placeholder-count="3"><button class="{{d.cls}}" onClick="{{d.pick}}" aria-pressed="{{d.on}}">{{d.label}}</button></sc-for></div>
+      <sc-if value="{{blocked}}" hint-placeholder-val="{{false}}">
+        <div role="alert" style="border:2px solid #B3202A;background:#F9E3E4;color:#8A1820;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:15px;font-weight:600">■ Срок ожидания до 05.12 (Амоксициллин)</span>
+          <span style="font-size:13px;line-height:1.4">Убой не ранее 06.12. Перенесите дату или укажите причину — директор получит уведомление сразу.</span>
+          <button class="btn btnp" onClick="{{move}}">Перенести на 06.12</button>
+          <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:13px">Причина, если отлов всё равно в этот день</span><input class="inp" style="font-size:16px;font-weight:400" value=""></label>
+        </div>
+      </sc-if>
+      <div class="kv"><span class="k">Снять корм</span><b class="num">{{date}} · 18:00</b></div>
+      <span class="lbl">За 8–12 ч до убоя, вода без ограничений. Напоминания: −3 дня свет 23 ч, −2 дня без зерна.</span>
+    </section>
+    <section class="sec">
+      <h2 class="h2">Сдача покупателю · П-1</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{buyers}}" as="b" hint-placeholder-count="3"><button class="{{b.cls}}" onClick="{{b.pick}}" aria-pressed="{{b.on}}">{{b.name}}</button></sc-for></div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Голов сдано</span><input class="inp" inputmode="numeric" value="{{birds}}" onInput="{{setBirds}}"></label>
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Живой вес, кг</span><input class="inp" inputmode="decimal" value="{{kgIn}}" onInput="{{setKg}}"></label>
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Пало в дороге</span><input class="inp" inputmode="numeric" value="18"></label>
+        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Корм снят в</span><input class="inp" value="18:00"></label>
+      </div>
+      <div class="kv num"><span class="k">Средняя масса</span><b>{{avg}} кг</b></div>
+      <div style="display:flex;gap:8px"><button class="btn">Фото накладной</button><button class="btn btnp">Сохранить</button></div>
+      <span class="lbl">Цену и оплату вносит директор.</span>
+    </section>
+  </main>
+  <nav aria-label="Основное меню" style="display:flex;background:#FFFFFF;border-top:1px solid #D5DBE0;padding-bottom:20px">
+    <a href="Main.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Сегодня</a>
+    <a href="WLog.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>Журнал</a>
+    <a href="WFeed.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 4h12l-2 6H8z"/><path d="M8 10v9h8v-9"/></svg>Корм</a>
+    <a href="WHealth.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/><path d="M9 11h6M12 8v6"/></svg>Здоровье</a>
+    <a href="WMore.dc.html" class="tab" style="color:#0D5C7D;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Ещё</a>
+  </nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { d: '04.12', buyer: 'Мясокомбинат', birds: '16 482', kg: '40 546' }; }
+  n(v) { return parseFloat(String(v).replace(/\s/g, '').replace(',', '.')) || 0; }
+  renderVals() {
+    const s = this.state, opts = [['04.12', 33], ['06.12', 35], ['11.12', 40]];
+    const cur = opts.find(o => o[0] === s.d), blocked = cur[1] < 35;
+    const birds = this.n(s.birds), kg = this.n(s.kg);
+    return { blocked, date: cur[0], chk: blocked ? '■' : '●', p2S: blocked ? 'color:#B3202A;font-weight:600' : '',
+      dates: opts.map(o => ({ label: o[0], on: o[0] === s.d, cls: o[0] === s.d ? 'chip chipon' : 'chip', pick: () => this.setState({ d: o[0] }) })),
+      buyers: ['Мясокомбинат', 'Оптовик 1', 'Оптовик 2'].map(n => ({ name: n, on: s.buyer === n, cls: s.buyer === n ? 'chip chipon' : 'chip', pick: () => this.setState({ buyer: n }) })),
+      move: () => this.setState({ d: '06.12' }), birds: s.birds, kgIn: s.kg,
+      avg: birds ? (kg / birds).toLocaleString('ru-RU', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : '—',
+      setBirds: (e) => this.setState({ birds: e.target.value }), setKg: (e) => this.setState({ kg: e.target.value }) };
+  }
+}
+</script>
+</body>
+</html>

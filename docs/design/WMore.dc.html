@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Ещё — работник</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;font-size:12px;color:#52606D;text-decoration:none}
+.sec{background:#FFFFFF;border-top:1px solid #D5DBE0;border-bottom:1px solid #D5DBE0;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.h2{margin:0;font-size:15px;font-weight:600}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;min-height:30px}
+.k{color:#52606D}
+.tile{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.tl{font-size:12px;color:#52606D}
+.tv{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.btn{min-height:48px;border-radius:10px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:15px;font-weight:600;color:#18212B;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;flex:1;padding:0 12px}
+.btnp{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.inp{height:52px;border-radius:10px;border:1px solid #B9C3CB;padding:0 12px;font:inherit;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;width:100%;box-sizing:border-box;color:#18212B;background:#FFFFFF}
+.lbl{font-size:13px;color:#52606D}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px;background:#FFFFFF;border-top:1px solid #D5DBE0;text-decoration:none;color:#18212B}
+.btn:focus-visible,.chip:focus-visible,.tab:focus-visible,.row:focus-visible,.inp:focus{outline:3px solid #0D5C7D;outline-offset:2px}
+
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden;position:relative">
+  <header style="background:#FFFFFF;padding:12px 16px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column;gap:4px">
+    <span style="font-size:13px;color:#52606D">Айгуль Т. · П-1, П-2</span>
+    <span style="font-size:20px;font-weight:600">Ещё</span>
+  </header>
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
+    <div style="border-bottom:1px solid #D5DBE0">
+      <a class="row" href="WPlacement.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:16px;font-weight:500">Посадка</span><span class="lbl">Приёмка цыплят, проверка зоба</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a class="row" href="WWeigh.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:16px;font-weight:500">Взвешивание</span><span style="font-size:13px;color:#A35200;font-weight:600">Следующее: 29.11, день 28</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a class="row" href="WCatch.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:16px;font-weight:500">Отлов и сдача</span><span style="font-size:13px;color:#A35200;font-weight:600">План: 11.12 · П-2 под сроком ожидания до 05.12</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a class="row" href="WStates.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:16px;font-weight:500">Отправка</span><span class="lbl">Всё отправлено · 09:42</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a class="row" href="Main.dc.html"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:16px;font-weight:500">Сменить PIN</span><span class="lbl"></span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52606D" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+    </div>
+    <span class="lbl" style="margin:0 16px">Вы видите только свои птичники: П-1, П-2.</span>
+  </main>
+  <nav aria-label="Основное меню" style="display:flex;background:#FFFFFF;border-top:1px solid #D5DBE0;padding-bottom:20px">
+    <a href="Main.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Сегодня</a>
+    <a href="WLog.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>Журнал</a>
+    <a href="WFeed.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 4h12l-2 6H8z"/><path d="M8 10v9h8v-9"/></svg>Корм</a>
+    <a href="WHealth.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/><path d="M9 11h6M12 8v6"/></svg>Здоровье</a>
+    <a href="WMore.dc.html" class="tab" style="color:#0D5C7D;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Ещё</a>
+  </nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -86,37 +86,6 @@ const service = keys.find((k) => k.name === 'service_role')?.api_key;
 if (!anon || !service) throw new Error('anon/service_role keys not found');
 console.log('  ok (keys are not printed)');
 
-step('Head account');
-const headPhone = normPhone(env('HEAD_PHONE'));
-const headPin = env('HEAD_PIN');
-if (!/^\d{6}$/.test(headPin)) throw new Error('HEAD_PIN must be 6 digits');
-const email = `p${digits(headPhone)}@phone.farm.local`;
-const [existingUser] = await sql(`select id from auth.users where email = '${email}'`);
-let headId = existingUser?.id;
-if (headId) console.log('  already exists');
-else {
-  const res = await fetch(`${projectUrl}/auth/v1/admin/users`, {
-    method: 'POST',
-    headers: { apikey: service, Authorization: `Bearer ${service}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password: headPin, email_confirm: true }),
-  });
-  const body = await res.json();
-  if (!res.ok) throw new Error(`create head user → ${res.status}: ${JSON.stringify(body).slice(0, 300)}`);
-  headId = body.id;
-  console.log('  created');
-}
-
-step('Farm and head profile');
-const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
-const [profile] = await sql(`select farm_id from public.app_user where id = ${q(headId)}`);
-if (profile) console.log('  already exists');
-else {
-  await sql(`with f as (insert into public.farm (name) values (${q(env('FARM_NAME'))}) returning id)
-    insert into public.app_user (id, farm_id, role, display_name, phone)
-    select ${q(headId)}, f.id, 'head', ${q(env('HEAD_NAME'))}, ${q(headPhone)} from f`);
-  console.log('  created');
-}
-
 // Edge functions: each is deployed with the shared helpers it imports.
 for (const [slug, extra] of [['invite-worker', []], ['ask', ['_shared/assistant.ts']]]) {
   step(`Edge function ${slug}`);
@@ -143,4 +112,36 @@ writeFileSync(join(root, 'apps/web/.env.production'),
   `# Public values: the anon key is meant to ship in the browser; access is enforced by Row Level Security.\nVITE_SUPABASE_URL=${projectUrl}\nVITE_SUPABASE_ANON_KEY=${anon}\n`);
 console.log('  written');
 
-console.log(`\nDone. The head signs in with ${headPhone} and the PIN.`);
+if (process.env.HEAD_PHONE) {
+  step('Head account');
+  const headPhone = normPhone(env('HEAD_PHONE'));
+  const headPin = env('HEAD_PIN');
+  if (!/^\d{6}$/.test(headPin)) throw new Error('HEAD_PIN must be 6 digits');
+  const email = `p${digits(headPhone)}@phone.farm.local`;
+  const [existingUser] = await sql(`select id from auth.users where email = '${email}'`);
+  let headId = existingUser?.id;
+  if (headId) console.log('  already exists');
+  else {
+    const res = await fetch(`${projectUrl}/auth/v1/admin/users`, {
+      method: 'POST',
+      headers: { apikey: service, Authorization: `Bearer ${service}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: headPin, email_confirm: true }),
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(`create head user → ${res.status}: ${JSON.stringify(body).slice(0, 300)}`);
+    headId = body.id;
+    console.log('  created');
+  }
+
+  step('Farm and head profile');
+  const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
+  const [profile] = await sql(`select farm_id from public.app_user where id = ${q(headId)}`);
+  if (profile) console.log('  already exists');
+  else {
+    await sql(`with f as (insert into public.farm (name) values (${q(env('FARM_NAME'))}) returning id)
+      insert into public.app_user (id, farm_id, role, display_name, phone)
+      select ${q(headId)}, f.id, 'head', ${q(env('HEAD_NAME'))}, ${q(headPhone)} from f`);
+    console.log('  created');
+  }
+  console.log(`\nDone. The head signs in with ${headPhone} and the PIN.`);
+} else console.log('\nDone, except the director: re-run with FARM_NAME, HEAD_NAME, HEAD_PHONE, HEAD_PIN.');

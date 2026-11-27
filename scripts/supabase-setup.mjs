@@ -87,7 +87,11 @@ if (!anon || !service) throw new Error('anon/service_role keys not found');
 console.log('  ok (keys are not printed)');
 
 // Edge functions: each is deployed with the shared helpers it imports.
-for (const [slug, extra] of [['invite-worker', []], ['ask', ['_shared/assistant.ts']]]) {
+for (const [slug, extra] of [
+  ['manage-worker', ['_shared/manage.ts', '_shared/people.ts']],
+  ['invite-worker', ['_shared/manage.ts', '_shared/people.ts']],
+  ['ask', ['_shared/assistant.ts']],
+]) {
   step(`Edge function ${slug}`);
   try {
     const form = new FormData();

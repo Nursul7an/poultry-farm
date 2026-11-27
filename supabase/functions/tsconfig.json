@@ -1,12 +1,30 @@
 {
   "//": "Typecheck only: maps the Deno npm: imports to node_modules so tsc can check the edge functions.",
   "compilerOptions": {
-    "target": "ES2022", "module": "ESNext", "moduleResolution": "Bundler", "strict": true, "noEmit": true,
-    "allowImportingTsExtensions": true, "skipLibCheck": true, "types": [],
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true,
+    "types": [],
     "paths": {
-      "npm:@anthropic-ai/sdk@^1.14.0": ["../../node_modules/@anthropic-ai/sdk"],
-      "npm:@supabase/supabase-js@2": ["../../node_modules/@supabase/supabase-js"]
+      "npm:@anthropic-ai/sdk@^1.14.0": [
+        "../../node_modules/@anthropic-ai/sdk"
+      ],
+      "npm:@supabase/supabase-js@2": [
+        "../../node_modules/@supabase/supabase-js"
+      ]
     }
   },
-  "files": ["deno.d.ts", "ask/index.ts", "_shared/assistant.ts"]
+  "files": [
+    "deno.d.ts",
+    "ask/index.ts",
+    "_shared/assistant.ts",
+    "manage-worker/index.ts",
+    "invite-worker/index.ts",
+    "_shared/manage.ts",
+    "_shared/people.ts"
+  ]
 }

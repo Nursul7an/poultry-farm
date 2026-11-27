@@ -289,6 +289,49 @@ await test('assistant questions: each person logs and sees own; director sees th
   eq((await as(H2, () => db.query(`select count(*)::int c from public.assistant_question`))).rows[0].c, 0);
 });
 
+console.log('People: director manages accounts');
+await test('director renames a worker; nobody changes phone, role or farm from the browser', async () => {
+  await as(H, () => db.query(`update public.app_user set display_name = 'Айгуль Т.' where id = $1`, [A]));
+  await expectError('FORBIDDEN', () => as(H, () => db.query(`update public.app_user set phone = '+996700999999' where id = $1`, [A])));
+  await expectError('FORBIDDEN', () => as(H, () => db.query(`update public.app_user set role = 'head' where id = $1`, [A])));
+  const r = await as(A, () => db.query(`update public.app_user set display_name = 'x' where id = $1 returning id`, [N]));
+  eq(r.rowCount, 0); // workers cannot edit people
+});
+await test('director cannot deactivate himself; server role can change the phone', async () => {
+  await expectError('cannot deactivate yourself', () => as(H, () => db.query(`update public.app_user set active = false where id = $1`, [H])));
+  await db.query('set role service_role');
+  await db.query(`update public.app_user set phone = phone where id = $1`, [A]);
+  await db.query('reset role');
+});
+await test('deactivated worker reads nothing; reactivated reads again', async () => {
+  await as(H, () => db.query(`update public.app_user set active = false where id = $1`, [N]));
+  eq((await as(N, () => db.query(`select count(*)::int c from public.house`))).rows[0].c, 0);
+  eq((await as(N, () => db.query(`select count(*)::int c from public.daily_log`))).rows[0].c, 0);
+  await as(H, () => db.query(`update public.app_user set active = true where id = $1`, [N]));
+  if ((await as(N, () => db.query(`select count(*)::int c from public.house`))).rows[0].c < 1) throw new Error('no houses after reactivation');
+});
+await test('a house with batch history cannot be deleted; an empty one can', async () => {
+  const used = (await db.query(`select house_id from public.house_batch limit 1`)).rows[0].house_id;
+  const r = await as(H, () => db.query(`delete from public.house where id = $1 returning id`, [used]));
+  eq(r.rowCount, 0);
+  const [{ id }] = (await as(H, () => db.query(`insert into public.house (farm_id, name, area_m2) values ($1, 'Пустой', 500) returning id`, [F]))).rows;
+  eq((await as(A, () => db.query(`delete from public.house where id = $1 returning id`, [id]))).rowCount, 0);
+  eq((await as(H, () => db.query(`delete from public.house where id = $1 returning id`, [id]))).rowCount, 1);
+});
+await test('staff events: only the director of the farm reads them; sessions revoke is server-only', async () => {
+  await db.query(`insert into public.staff_event (farm_id, actor_id, user_id, kind) values ($1, $2, $3, 'pin_reset')`, [F, H, A]);
+  eq((await as(H, () => db.query(`select count(*)::int c from public.staff_event`))).rows[0].c, 1);
+  eq((await as(A, () => db.query(`select count(*)::int c from public.staff_event`))).rows[0].c, 0);
+  eq((await as(H2, () => db.query(`select count(*)::int c from public.staff_event`))).rows[0].c, 0);
+  await expectError('permission denied', () => as(A, () => db.query(`insert into public.staff_event (farm_id, actor_id, user_id, kind) values ($1, $2, $2, 'created')`, [F, A])));
+  await expectError('permission denied', () => as(H, () => db.query(`select public.revoke_sessions($1)`, [A])));
+  await db.query(`insert into auth.sessions (user_id) values ($1), ($1)`, [A]);
+  await db.query('set role service_role');
+  await db.query(`select public.revoke_sessions($1)`, [A]);
+  await db.query('reset role');
+  eq((await db.query(`select count(*)::int c from auth.sessions where user_id = $1`, [A])).rows[0].c, 0);
+});
+
 await test('anon role cannot read anything', async () => {
   await db.query('set role anon');
   await expectError('permission denied', () => db.query('select * from public.daily_log'));

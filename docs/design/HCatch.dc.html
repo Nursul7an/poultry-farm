@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>Отлов и продажа</title>
+<title>Отлов и сдача — директор</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -39,115 +39,65 @@ td{padding:0 10px;height:44px;border-bottom:1px solid #EEF1F3;text-align:right;w
 </helmet>
 <div style="display:flex;flex-wrap:wrap;min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;background:#EEF1F3">
   <aside style="flex:1 1 220px;max-width:230px;background:#18212B;padding:16px 12px;display:flex;flex-direction:column;gap:2px;box-sizing:border-box">
-    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма</div>
+    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма<br><span style="font-size:12px;font-weight:400;color:#C9D3DB">Директор</span></div>
     <a class="nav" href="HFarm.dc.html">Ферма</a>
+    <a class="nav" href="HEvents.dc.html">События <span class="num" style="margin-left:auto;background:#B3202A;color:#FFFFFF;border-radius:999px;padding:0 8px;font-size:12px">1</span></a>
     <a class="nav" href="HBatch.dc.html">Партия</a>
     <a class="nav sub" href="HBatch.dc.html">Посадка</a>
-    <a class="nav sub navon" href="HCatch.dc.html">Отлов и продажа</a>
-    <a class="nav" href="HCosts.dc.html">Корм и затраты</a>
+    <a class="nav sub navon" href="HCatch.dc.html">Отлов и сдача</a>
+    <a class="nav" href="HCosts.dc.html">Деньги <span class="num" style="margin-left:auto;background:#A35200;color:#FFFFFF;border-radius:999px;padding:0 8px;font-size:12px">3</span></a>
     <a class="nav" href="HReport.dc.html">Отчёты</a>
     <a class="nav" href="HSettings.dc.html">Настройки</a>
   </aside>
   <main style="flex:999 1 560px;min-width:0;padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
     <header style="display:flex;flex-direction:column">
-      <span style="font-size:13px;color:#52606D">Партия 06/2026 · цель ~2,45 кг · птичник отлавливается целиком</span>
-      <h1 style="margin:0;font-size:28px;font-weight:600">Отлов и продажа</h1>
+      <span style="font-size:13px;color:#52606D">Партия 06/2026 · дату и сдачу записывают работники · цену и оплату вносит директор</span>
+      <h1 style="margin:0;font-size:28px;font-weight:600">Отлов и сдача</h1>
     </header>
-
     <section class="panel">
       <h2 style="margin:0 0 8px;font-size:16px">План отлова</h2>
       <div style="overflow-x:auto">
         <table>
-          <thead><tr><th>Птичник</th><th>Отлов</th><th>День</th><th>Голов (прогноз)</th><th>Масса, кг</th><th>Живой вес, т</th><th>Снять корм</th><th>Срок ожидания</th><th>Проверка</th></tr></thead>
+          <thead><tr><th>Птичник</th><th style="text-align:left">Поставил</th><th>Отлов</th><th>Снять корм</th><th>Голов (прогноз)</th><th>Живой вес, т</th><th style="text-align:left">Срок ожидания</th><th>Проверка</th></tr></thead>
           <tbody>
-            <tr><td style="font-weight:600">П-1</td><td>11.12 · 22:00</td><td>40</td><td>16 500</td><td>2,46</td><td>40,6</td><td>11.12 · 18:00</td><td>—</td><td style="color:#1D7044">● можно</td></tr>
-            <tr style="background:{{bg}}"><td style="font-weight:600">П-2</td><td>{{date}} · 22:00</td><td>{{day}}</td><td>16 400</td><td>{{kg}}</td><td>{{t}}</td><td>{{date}} · 18:00</td><td>до 05.12 · Амоксициллин</td><td><span style="{{chkS}}">{{chk}}</span></td></tr>
-            <tr><td style="font-weight:600">П-3</td><td>12.12 · 22:00</td><td>41</td><td>16 480</td><td>2,50</td><td>41,2</td><td>12.12 · 18:00</td><td>—</td><td style="color:#1D7044">● можно</td></tr>
-            <tr><td style="font-weight:600">П-4</td><td>12.12 · 22:00</td><td>41</td><td>16 360</td><td>2,47</td><td>40,4</td><td>12.12 · 18:00</td><td>—</td><td style="color:#1D7044">● можно</td></tr>
+            <tr><td style="font-weight:600">П-1</td><td style="text-align:left">Айгуль Т.</td><td>11.12 · 22:00</td><td>18:00</td><td>16 500</td><td>40,6</td><td style="text-align:left">—</td><td style="color:#1D7044">● можно</td></tr>
+            <tr><td style="font-weight:600">П-2</td><td style="text-align:left">Айгуль Т.</td><td>11.12 · 22:00</td><td>18:00</td><td>16 400</td><td>40,0</td><td style="text-align:left">до 05.12 · Амоксициллин</td><td style="color:#1D7044">● можно</td></tr>
+            <tr><td style="font-weight:600">П-3</td><td style="text-align:left">Нурлан Ж.</td><td>12.12 · 22:00</td><td>18:00</td><td>16 480</td><td>41,2</td><td style="text-align:left">—</td><td style="color:#1D7044">● можно</td></tr>
+            <tr><td style="font-weight:600">П-4</td><td style="text-align:left">Нурлан Ж.</td><td>12.12 · 22:00</td><td>18:00</td><td>16 360</td><td>40,4</td><td style="text-align:left">—</td><td style="color:#1D7044">● можно</td></tr>
           </tbody>
         </table>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:12px">
-        <span style="font-size:14px;font-weight:600">П-2, дата отлова:</span>
-        <sc-for list="{{dates}}" as="d" hint-placeholder-count="3"><button class="{{d.cls}}" onClick="{{d.pick}}" aria-pressed="{{d.on}}">{{d.label}}</button></sc-for>
-      </div>
-      <sc-if value="{{blocked}}" hint-placeholder-val="{{false}}">
-        <div role="alert" style="margin-top:12px;border:2px solid #B3202A;background:#F9E3E4;color:#8A1820;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-          <span style="font-size:15px;font-weight:600">■ Нельзя: {{date}} раньше конца срока ожидания (до 05.12 включительно)</span>
-          <span style="font-size:14px">Последняя доза 28.11 + 7 дней ожидания → убой не ранее 06.12. Отловить раньше можно только с указанием причины.</span>
-          <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btnp" onClick="{{move}}">Перенести на 06.12</button><button class="btn">Всё равно отловить — указать причину</button></div>
-        </div>
-      </sc-if>
-      <div style="display:flex;flex-wrap:wrap;gap:16px;padding-top:12px;font-size:13px;color:#52606D">
-        <span>Напоминания работникам: −3 дн. свет 23 ч · −2 дн. убрать цельное зерно · в день отлова снять корм за 8–12 ч до убоя, вода без ограничений</span>
-      </div>
+      <span style="font-size:12px;color:#52606D">Если работник ставит отлов внутри срока ожидания и указывает причину — директор получает уведомление сразу, одобрять не нужно. Директор может изменить любую дату.</span>
     </section>
-
-    <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
-      <section class="panel" style="flex:3 1 560px;min-width:0;display:flex;flex-direction:column;gap:12px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
-          <h2 style="margin:0;font-size:16px">Продажа по накладной покупателя</h2>
-          <span style="font-size:12px;color:#52606D">пример заполнения — у партии 06/2026 продаж ещё нет</span>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-          <sc-for list="{{buyers}}" as="b" hint-placeholder-count="3"><button class="{{b.cls}}" onClick="{{b.pick}}" aria-pressed="{{b.on}}">{{b.name}}</button></sc-for>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:10px">
-          <label class="fl" style="flex:1 1 110px">Птичник<input class="inp" value="П-1"></label>
-          <label class="fl" style="flex:1 1 120px">Голов сдано<input class="inp num" inputmode="numeric" value="{{birds}}" onInput="{{setBirds}}"></label>
-          <label class="fl" style="flex:1 1 120px">Живой вес, кг<input class="inp num" inputmode="decimal" value="{{kgIn}}" onInput="{{setKg}}"></label>
-          <label class="fl" style="flex:1 1 120px">Цена за кг, сом*<input class="inp num" inputmode="decimal" value="{{price}}" onInput="{{setPrice}}"></label>
-          <label class="fl" style="flex:1 1 120px">Пало в дороге<input class="inp num" value="18"></label>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:24px;font-size:15px;padding:10px 12px;background:#F6F8F9;border-radius:8px">
-          <span>Средняя масса <b class="num">{{avg}} кг</b></span>
-          <span>Сумма <b class="num">{{sum}} сом</b></span>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">
-          <label class="fl" style="flex:1 1 160px">Оплачено сейчас, сом<input class="inp num" inputmode="decimal" value="{{paid}}" onInput="{{setPaid}}"></label>
-          <span style="{{owedS}}">{{owed}}</span>
-          <button class="btn">Фото накладной</button>
-          <button class="btn btnp">Сохранить продажу</button>
-        </div>
-      </section>
-
-      <section class="panel" style="flex:2 1 340px;min-width:0;display:flex;flex-direction:column;gap:8px">
-        <h2 style="margin:0;font-size:16px">Выдержка без корма · цель 8–12 ч</h2>
-        <div class="line"><span>В птичнике без корма</span><span class="num">4 ч</span></div>
-        <div class="line"><span>Отлов</span><span class="num">3 ч</span></div>
-        <div class="line"><span>Дорога</span><span class="num">1,5 ч</span></div>
-        <div class="line"><span>Ожидание у покупателя</span><span class="num">1,5 ч</span></div>
-        <span class="num" style="font-size:16px;font-weight:600;color:#1D7044">Итого 10 ч · норма</span>
-        <span style="font-size:12px;color:#52606D">Меньше 8 ч — корм в зобе, загрязнение тушек. Больше 12 ч — потеря 0,1–0,5% массы в час.</span>
-      </section>
-    </div>
+    <section class="panel" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px"><h2 style="margin:0;font-size:16px">Сдача покупателям · пример заполнения</h2><span style="font-size:12px;color:#52606D">у партии 06/2026 сдач ещё нет</span></div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Птичник</th><th style="text-align:left">Записал</th><th style="text-align:left">Покупатель</th><th>Голов</th><th>Кг</th><th>Средняя, кг</th><th>Цена за кг*</th><th>Сумма</th><th>Оплачено</th><th>Остаток</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight:600">П-1</td><td style="text-align:left">Айгуль Т.</td><td style="text-align:left">Мясокомбинат</td><td>16 482</td><td>40 546</td><td>2,460</td>
+              <td><input class="inp num" style="width:90px;text-align:right" aria-label="Цена за кг" value="{{price}}" onInput="{{setPrice}}"></td>
+              <td>{{sum}}</td>
+              <td><input class="inp num" style="width:120px;text-align:right" aria-label="Оплачено" value="{{paid}}" onInput="{{setPaid}}"></td>
+              <td><span style="{{owedS}}">{{owed}}</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:8px"><button class="btn">Фото накладной</button><button class="btn btnp">Сохранить</button></div>
+    </section>
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":820}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { d: '04.12', buyer: 'Мясокомбинат', birds: '16 482', kg: '40 546', price: '140', paid: '4 000 000' }; }
+  constructor(props) { super(props); this.state = { price: '140', paid: '4 000 000' }; }
   n(v) { return parseFloat(String(v).replace(/\s/g, '').replace(',', '.')) || 0; }
-  f(v, d) { return v.toLocaleString('ru-RU', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+  f(v) { return Math.round(v).toLocaleString('ru-RU'); }
   renderVals() {
-    const s = this.state;
-    const opts = [['04.12', 33, '1,95', '32,0'], ['06.12', 35, '2,12', '34,8'], ['11.12', 40, '2,44', '40,0']];
-    const cur = opts.find(o => o[0] === s.d), blocked = cur[1] < 35;
-    const dates = opts.map(o => ({ label: o[0] + ' (д. ' + o[1] + ')', on: o[0] === s.d, cls: o[0] === s.d ? 'chip chipon' : 'chip', pick: () => this.setState({ d: o[0] }) }));
-    const buyers = ['Мясокомбинат', 'Оптовик 1', 'Оптовик 2'].map(n => ({ name: n, on: s.buyer === n, cls: s.buyer === n ? 'chip chipon' : 'chip', pick: () => this.setState({ buyer: n }) }));
-    const birds = this.n(s.birds), kg = this.n(s.kg), price = this.n(s.price), paid = this.n(s.paid);
-    const sum = kg * price, owed = sum - paid;
-    return {
-      dates, buyers, blocked, date: cur[0], day: cur[1], kg: cur[2], t: cur[3],
-      chk: blocked ? '■ срок ожидания' : '● можно', chkS: blocked ? 'color:#B3202A;font-weight:600' : 'color:#1D7044', bg: blocked ? '#FDF1F1' : '#FFFFFF',
-      move: () => this.setState({ d: '06.12' }),
-      birds: s.birds, kgIn: s.kg, price: s.price, paid: s.paid,
-      avg: birds ? this.f(kg / birds, 3) : '—', sum: this.f(sum),
-      owed: owed > 0 ? 'Долг покупателя: ' + this.f(owed) + ' сом' : 'Оплачено полностью',
-      owedS: 'font-size:14px;font-weight:600;align-self:center;color:' + (owed > 0 ? '#A35200' : '#1D7044'),
-      setBirds: (e) => this.setState({ birds: e.target.value }), setKg: (e) => this.setState({ kg: e.target.value }),
-      setPrice: (e) => this.setState({ price: e.target.value }), setPaid: (e) => this.setState({ paid: e.target.value })
-    };
+    const s = this.state, sum = 40546 * this.n(s.price), owed = sum - this.n(s.paid);
+    return { price: s.price, paid: s.paid, sum: this.f(sum), owed: owed > 0 ? this.f(owed) : 'оплачено',
+      owedS: 'font-weight:600;color:' + (owed > 0 ? '#A35200' : '#1D7044'),
+      setPrice: (e) => this.setState({ price: e.target.value }), setPaid: (e) => this.setState({ paid: e.target.value }) };
   }
 }
 </script>

@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>Корм и затраты</title>
+<title>Деньги — директор</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -39,83 +39,68 @@ td{padding:0 10px;height:44px;border-bottom:1px solid #EEF1F3;text-align:right;w
 </helmet>
 <div style="display:flex;flex-wrap:wrap;min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;background:#EEF1F3">
   <aside style="flex:1 1 220px;max-width:230px;background:#18212B;padding:16px 12px;display:flex;flex-direction:column;gap:2px;box-sizing:border-box">
-    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма</div>
+    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма<br><span style="font-size:12px;font-weight:400;color:#C9D3DB">Директор</span></div>
     <a class="nav" href="HFarm.dc.html">Ферма</a>
+    <a class="nav" href="HEvents.dc.html">События <span class="num" style="margin-left:auto;background:#B3202A;color:#FFFFFF;border-radius:999px;padding:0 8px;font-size:12px">1</span></a>
     <a class="nav" href="HBatch.dc.html">Партия</a>
     <a class="nav sub" href="HBatch.dc.html">Посадка</a>
-    <a class="nav sub" href="HCatch.dc.html">Отлов и продажа</a>
-    <a class="nav navon" href="HCosts.dc.html">Корм и затраты</a>
+    <a class="nav sub" href="HCatch.dc.html">Отлов и сдача</a>
+    <a class="nav navon" href="HCosts.dc.html">Деньги <span class="num" style="margin-left:auto;background:#A35200;color:#FFFFFF;border-radius:999px;padding:0 8px;font-size:12px">3</span></a>
     <a class="nav" href="HReport.dc.html">Отчёты</a>
     <a class="nav" href="HSettings.dc.html">Настройки</a>
   </aside>
   <main style="flex:999 1 560px;min-width:0;padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
-    <header style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end">
-      <div style="display:flex;flex-direction:column">
-        <span style="font-size:13px;color:#52606D">Партия 06/2026 · день 23 · суммы в сомах* (пример)</span>
-        <h1 style="margin:0;font-size:28px;font-weight:600">Корм и затраты</h1>
-      </div>
+    <header style="display:flex;flex-direction:column">
+      <span style="font-size:13px;color:#52606D">Партия 06/2026 · день 23 · видит только директор · суммы в сомах* (пример)</span>
+      <h1 style="margin:0;font-size:28px;font-weight:600">Деньги</h1>
     </header>
-
     <div style="display:flex;flex-wrap:wrap;gap:12px">
       <div class="kpi"><span class="kl">Затраты на сегодня</span><span class="kv">{{total}}</span></div>
       <div class="kpi"><span class="kl">На посаженную голову</span><span class="kv">{{perBird}}</span></div>
-      <div class="kpi"><span class="kl">Корм — доля затрат</span><span class="kv">{{feedShare}}</span></div>
-      <div class="kpi"><span class="kl">Корма в бункерах</span><span class="kv">19,5 т</span><span class="kl">≈ 2,4 дня на ферму</span></div>
+      <div class="kpi"><span class="kl">Корм — доля</span><span class="kv">{{feedShare}}</span></div>
+      <div class="kpi" style="{{pendBox}}"><span class="kl">Без цены</span><span class="kv">{{pendN}}</span></div>
     </div>
-
     <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
-      <section class="panel" style="flex:3 1 560px;min-width:0;display:flex;flex-direction:column;gap:14px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <h2 style="margin:0;font-size:16px">Корм по птичникам</h2>
-          <button class="btn btnp">Записать поставку</button>
-        </div>
+      <section class="panel" style="flex:3 1 560px;min-width:0;display:flex;flex-direction:column;gap:10px">
+        <h2 style="margin:0;font-size:16px">Нужна цена · записи работников</h2>
+        <sc-if value="{{allPriced}}" hint-placeholder-val="{{false}}"><span style="font-size:14px;color:#1D7044">Всё оценено ✔</span></sc-if>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>Птичник</th><th>Поступило, т</th><th>Израсходовано по журналам, т</th><th>В бункере, т</th><th>Хватит, дн.</th><th>Корм на голову, кг</th></tr></thead>
+            <thead><tr><th>Что</th><th style="text-align:left">Записал</th><th>Количество</th><th>Цена за ед.</th><th>Сумма</th><th></th></tr></thead>
             <tbody>
-              <tr><td style="font-weight:600">П-1</td><td>30,0</td><td>23,8</td><td>6,2</td><td style="color:#1D7044">3,1</td><td>1,42</td></tr>
-              <tr><td style="font-weight:600">П-2</td><td>28,5</td><td>23,8</td><td>4,7</td><td>2,4</td><td>1,43</td></tr>
-              <tr><td style="font-weight:600">П-3</td><td>29,3</td><td>23,9</td><td>5,4</td><td>2,7</td><td>1,43</td></tr>
-              <tr><td style="font-weight:600">П-4</td><td>27,0</td><td>23,8</td><td>3,2</td><td style="color:#A35200;font-weight:600">▲ 1,6</td><td>1,43</td></tr>
-            </tbody>
-            <tfoot><tr><td style="font-weight:600">Итого</td><td style="font-weight:600">114,8</td><td style="font-weight:600">95,3</td><td style="font-weight:600">19,5</td><td></td><td></td></tr></tfoot>
-          </table>
-        </div>
-        <h3 style="margin:0;font-size:14px">Последние поставки</h3>
-        <div style="overflow-x:auto">
-          <table>
-            <thead><tr><th>Дата</th><th>Рацион</th><th>Птичник</th><th>Тонн</th><th>Цена за т</th><th>Сумма</th><th>Накладная</th></tr></thead>
-            <tbody>
-              <tr><td>24.11</td><td style="text-align:left">Рост</td><td>П-1</td><td>8,0</td><td>38 000</td><td>304 000</td><td style="color:#0D5C7D">фото</td></tr>
-              <tr><td>22.11</td><td style="text-align:left">Рост</td><td>П-3</td><td>8,5</td><td>38 000</td><td>323 000</td><td style="color:#0D5C7D">фото</td></tr>
-              <tr><td>21.11</td><td style="text-align:left">Рост</td><td>П-2</td><td>8,0</td><td>38 000</td><td>304 000</td><td style="color:#0D5C7D">фото</td></tr>
-              <tr><td>20.11</td><td style="text-align:left">Рост</td><td>П-4</td><td>7,5</td><td>38 000</td><td>285 000</td><td style="color:#52606D">нет</td></tr>
+              <sc-for list="{{pending}}" as="p" hint-placeholder-count="3">
+                <tr><td style="font-weight:500">{{p.what}}</td><td style="text-align:left">{{p.who}}</td><td>{{p.qtyL}}</td>
+                  <td><input class="inp num" style="width:120px;text-align:right" aria-label="{{p.unit}}" placeholder="{{p.unit}}" value="{{p.val}}" onInput="{{p.set}}"></td>
+                  <td>{{p.sum}}</td><td><button class="btn btnp" onClick="{{p.save}}">OK</button></td></tr>
+              </sc-for>
             </tbody>
           </table>
         </div>
-        <span style="font-size:12px;color:#52606D">Сумма поставок автоматически идёт в затраты «Корм». Расхождение «поступило − в бункере − по журналам» проверяется в отчёте партии.</span>
+        <h2 style="margin:8px 0 0;font-size:16px">Корм по птичникам · тонны записали работники</h2>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Птичник</th><th>Поступило, т</th><th>По журналам, т</th><th>В бункере, т</th><th>Хватит, дн.</th><th>Сумма, оценено</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:600">П-1</td><td>30,0</td><td>23,8</td><td>6,2</td><td style="color:#1D7044">3,1</td><td>{{p1}}</td></tr>
+              <tr><td style="font-weight:600">П-2</td><td>28,5</td><td>23,8</td><td>4,7</td><td>2,4</td><td>1 111 000</td></tr>
+              <tr><td style="font-weight:600">П-3</td><td>29,3</td><td>23,9</td><td>5,4</td><td>2,7</td><td>{{p3}}</td></tr>
+              <tr><td style="font-weight:600">П-4</td><td>27,0</td><td>23,8</td><td>3,2</td><td style="color:#A35200;font-weight:600">▲ 1,6</td><td>1 054 000</td></tr>
+            </tbody>
+          </table>
+        </div>
       </section>
-
-      <section class="panel" style="flex:2 1 380px;min-width:0;display:flex;flex-direction:column;gap:10px">
+      <section class="panel" style="flex:2 1 360px;min-width:0;display:flex;flex-direction:column;gap:10px">
         <h2 style="margin:0;font-size:16px">Затраты партии</h2>
         <sc-for list="{{cats}}" as="c" hint-placeholder-count="8">
           <div style="display:flex;flex-direction:column;gap:4px">
-            <div style="display:flex;justify-content:space-between;font-size:14px"><span>{{c.name}} <span style="color:#52606D;font-size:12px">{{c.src}}</span></span><span class="num" style="font-weight:600">{{c.sum}}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px"><span>{{c.name}}</span><span class="num" style="font-weight:600">{{c.sum}}</span></div>
             <div style="height:6px;border-radius:3px;background:#EEF1F3"><div style="{{c.bar}}"></div></div>
           </div>
         </sc-for>
-        <div style="border-top:1px solid #D5DBE0;padding-top:12px;display:flex;flex-direction:column;gap:10px">
-          <span style="font-size:14px;font-weight:600">Добавить затрату</span>
-          <div style="display:flex;flex-wrap:wrap;gap:6px">
-            <sc-for list="{{pick}}" as="p" hint-placeholder-count="6"><button class="{{p.cls}}" onClick="{{p.go}}" aria-pressed="{{p.on}}">{{p.name}}</button></sc-for>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <label class="fl" style="flex:1 1 140px">Сумма, сом*<input class="inp num" inputmode="decimal" value="{{amount}}" onInput="{{setAmount}}"></label>
-            <label class="fl" style="flex:2 1 180px">Комментарий<input class="inp" value="{{comment}}" onInput="{{setComment}}"></label>
-          </div>
-          <button class="btn btnp" onClick="{{add}}" style="justify-content:center">Добавить</button>
-          <sc-if value="{{justAdded}}" hint-placeholder-val="{{false}}"><span style="font-size:13px;color:#1D7044">Добавлено: {{justAdded}}</span></sc-if>
-        </div>
+        <button class="btn">Добавить затрату (газ, свет, зарплата…)</button>
+        <h2 style="margin:8px 0 0;font-size:16px">Долги покупателей</h2>
+        <div class="line"><span>Оптовик 2 · партия 05/26 · срок 30.10</span><span class="num" style="color:#A35200;font-weight:600">1 500 000</span></div>
+        <button class="btn">Отметить оплату</button>
       </section>
     </div>
   </main>
@@ -125,23 +110,31 @@ td{padding:0 10px;height:44px;border-bottom:1px solid #EEF1F3;text-align:right;w
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { sums: { 'Цыплята': 4763150, 'Корм': 4474400, 'Газ и уголь': 620000, 'Зарплата': 450000, 'Подстилка': 180000, 'Электричество': 190000, 'Ветпрепараты': 140000, 'Ветврач': 30000 }, cat: 'Газ и уголь', amount: '85000', comment: 'Уголь, 2 т', justAdded: '' };
+    this.state = {
+      sums: { 'Цыплята': 4763150, 'Корм': 3847400, 'Газ и уголь': 620000, 'Зарплата': 450000, 'Подстилка': 180000, 'Электричество': 190000, 'Ветпрепараты': 121500, 'Ветврач': 30000 },
+      items: [
+        { id: 1, what: 'Корм П-1 · Рост', who: 'Айгуль Т., 24.11', qty: 8, qtyL: '8,0 т', unit: 'за тонну', cat: 'Корм', val: '38000', done: false },
+        { id: 3, what: 'Корм П-3 · Рост', who: 'Нурлан Ж., 24.11', qty: 8.5, qtyL: '8,5 т', unit: 'за тонну', cat: 'Корм', val: '', done: false },
+        { id: 2, what: 'Лечение П-2 · Амоксициллин 10%', who: 'Айгуль Т., 24.11', qty: 1, qtyL: '1 курс', unit: 'за курс', cat: 'Ветпрепараты', val: '', done: false }
+      ]
+    };
   }
   f(v) { return Math.round(v).toLocaleString('ru-RU'); }
+  n(v) { return parseFloat(String(v).replace(/\s/g, '').replace(',', '.')) || 0; }
   renderVals() {
     const s = this.state, sums = s.sums;
-    const src = { 'Цыплята': 'из посадки', 'Корм': 'из поставок', 'Ветпрепараты': 'из лечения' };
-    const total = Object.values(sums).reduce((a, b) => a + b, 0);
-    const max = Math.max(...Object.values(sums));
-    const cats = Object.keys(sums).sort((a, b) => sums[b] - sums[a]).map(k => ({ name: k, src: src[k] || '', sum: this.f(sums[k]), bar: 'height:6px;border-radius:3px;background:' + (k === 'Корм' ? '#0D5C7D' : '#8FB3C4') + ';width:' + (sums[k] / max * 100).toFixed(1) + '%' }));
-    const manual = ['Газ и уголь', 'Электричество', 'Зарплата', 'Подстилка', 'Ветврач', 'Прочее'];
-    const pick = manual.map(n => ({ name: n, on: s.cat === n, cls: s.cat === n ? 'chip chipon' : 'chip', go: () => this.setState({ cat: n }) }));
+    const total = Object.values(sums).reduce((a, b) => a + b, 0), max = Math.max(...Object.values(sums));
+    const left = s.items.filter(i => !i.done);
+    const done = (id) => s.items.find(i => i.id === id).done;
     return {
-      cats, pick, amount: s.amount, comment: s.comment, justAdded: s.justAdded,
-      total: (total / 1e6).toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' млн',
-      perBird: this.f(total / 68000) + ' сом', feedShare: Math.round(sums['Корм'] / total * 100) + '%',
-      setAmount: (e) => this.setState({ amount: e.target.value }), setComment: (e) => this.setState({ comment: e.target.value }),
-      add: () => { const v = parseFloat(String(s.amount).replace(/\s/g, '').replace(',', '.')) || 0; if (v <= 0) return; this.setState({ sums: { ...sums, [s.cat]: (sums[s.cat] || 0) + v }, justAdded: s.cat + ' +' + this.f(v) + (s.comment ? ' · ' + s.comment : ''), amount: '', comment: '' }); }
+      total: (total / 1e6).toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' млн', perBird: this.f(total / 68000) + ' сом',
+      feedShare: Math.round(sums['Корм'] / total * 100) + '%', pendN: String(left.length), allPriced: !left.length,
+      pendBox: left.length ? 'border-color:#E7B98C;color:#A35200' : '',
+      p1: done(1) ? '1 168 000' : '864 000 · 8,0 т без цены', p3: done(3) ? '1 141 400' : '818 400 · 8,5 т без цены',
+      pending: left.map(i => ({ ...i, sum: this.n(i.val) ? this.f(this.n(i.val) * i.qty) : '—',
+        set: (e) => this.setState({ items: s.items.map(x => x.id === i.id ? { ...x, val: e.target.value } : x) }),
+        save: () => { const v = this.n(i.val); if (!v) return; this.setState({ items: s.items.map(x => x.id === i.id ? { ...x, done: true } : x), sums: { ...sums, [i.cat]: sums[i.cat] + v * i.qty } }); } })),
+      cats: Object.keys(sums).sort((a, b) => sums[b] - sums[a]).map(k => ({ name: k, sum: this.f(sums[k]), bar: 'height:6px;border-radius:3px;background:' + (k === 'Корм' ? '#0D5C7D' : '#8FB3C4') + ';width:' + (sums[k] / max * 100).toFixed(1) + '%' }))
     };
   }
 }

@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>Корм и затраты — руководитель</title>
+<title>Деньги — директор</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -35,72 +35,84 @@ a{color:#0D5C7D}a:hover{color:#08415A}
 </helmet>
 <div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden;position:relative">
   <header style="background:#FFFFFF;padding:12px 16px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column;gap:4px">
-    <span style="font-size:13px;color:#52606D">Партия 06/2026 · день 23 · сом* (пример)</span>
-    <span style="font-size:20px;font-weight:600">Корм и затраты</span>
+    <span style="font-size:13px;color:#52606D">Партия 06/2026 · только директор · сом* (пример)</span>
+    <span style="font-size:20px;font-weight:600">Деньги</span>
   </header>
   <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
     <div style="margin:0 16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
-      <div class="tile"><span class="tl">Затраты на сегодня</span><span class="tv">{{total}}</span></div>
+      <div class="tile"><span class="tl">Затраты партии</span><span class="tv">{{total}}</span></div>
       <div class="tile"><span class="tl">На голову</span><span class="tv">{{perBird}}</span></div>
     </div>
     <section class="sec">
-      <h2 class="h2">По статьям</h2>
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 class="h2">Нужна цена</h2><span class="num" style="{{pendS}}">{{pendN}}</span></div>
+      <sc-for list="{{pending}}" as="p" hint-placeholder-count="3">
+        <div style="display:flex;flex-direction:column;gap:6px;padding:8px 0;border-top:1px solid #EEF1F3">
+          <span style="font-size:14px"><b>{{p.what}}</b> · {{p.who}}</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="inp" style="flex:1;font-size:17px" inputmode="decimal" aria-label="{{p.unit}}" placeholder="{{p.unit}}" value="{{p.val}}" onInput="{{p.set}}">
+            <button class="btn btnp" style="flex:none" onClick="{{p.save}}">OK</button>
+          </div>
+          <span class="lbl num">{{p.hint}}</span>
+        </div>
+      </sc-for>
+      <sc-if value="{{allPriced}}" hint-placeholder-val="{{false}}"><span style="font-size:14px;color:#1D7044">Всё оценено ✔</span></sc-if>
+    </section>
+    <section class="sec">
+      <h2 class="h2">Затраты по статьям</h2>
       <sc-for list="{{cats}}" as="c" hint-placeholder-count="8">
         <div style="display:flex;flex-direction:column;gap:3px">
           <div style="display:flex;justify-content:space-between;font-size:14px"><span>{{c.name}}</span><span class="num" style="font-weight:600">{{c.sum}}</span></div>
           <div style="height:6px;border-radius:3px;background:#EEF1F3"><div style="{{c.bar}}"></div></div>
         </div>
       </sc-for>
+      <button class="btn">Добавить затрату (газ, свет, зарплата…)</button>
     </section>
     <section class="sec">
-      <h2 class="h2">Корм в бункерах · 19,5 т</h2>
-      <div class="kv num"><span>П-1</span><span>6,2 т · 3,1 дн.</span></div>
-      <div class="kv num"><span>П-2</span><span>4,7 т · 2,4 дн.</span></div>
-      <div class="kv num"><span>П-3</span><span>5,4 т · 2,7 дн.</span></div>
-      <div class="kv num" style="color:#A35200;font-weight:600"><span>П-4 ▲</span><span>3,2 т · 1,6 дн.</span></div>
+      <h2 class="h2">Долги покупателей</h2>
+      <div class="kv num"><span>Оптовик 2 · партия 05/26</span><span style="color:#A35200;font-weight:600">1 500 000</span></div>
+      <button class="btn">Отметить оплату</button>
     </section>
-    <div style="margin:0 16px;display:flex;gap:8px">
-      <button class="btn btnp" onClick="{{open}}">Добавить затрату</button>
-      <button class="btn">Поставка корма</button>
-    </div>
-    <sc-if value="{{justAdded}}" hint-placeholder-val="{{false}}"><span style="margin:0 16px;font-size:13px;color:#1D7044">Добавлено: {{justAdded}}</span></sc-if>
   </main>
   <nav aria-label="Основное меню" style="display:flex;background:#FFFFFF;border-top:1px solid #D5DBE0;padding-bottom:20px">
     <a href="HFarmPhone.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/></svg>Ферма</a>
-    <a href="HmBatch.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Партия</a>
-    <a href="HmCosts.dc.html" class="tab" style="color:#0D5C7D;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16v12H4z"/><path d="M8 7V5h8v2M12 11v4M10 13h4"/></svg>Затраты</a>
+    <a href="HmEvents.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>События</a>
+    <a href="HmCosts.dc.html" class="tab" style="color:#0D5C7D;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16v12H4z"/><path d="M8 7V5h8v2M12 11v4M10 13h4"/></svg>Деньги</a>
     <a href="HmReport.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Отчёты</a>
     <a href="HmSettings.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Ещё</a>
   </nav>
-  <sc-if value="{{sheet}}" hint-placeholder-val="{{false}}">
-    <div style="position:absolute;inset:0;background:rgba(24,33,43,0.45);display:flex;align-items:flex-end">
-      <div role="dialog" aria-label="Новая затрата" style="background:#FFFFFF;border-radius:16px 16px 0 0;padding:20px 16px 28px;display:flex;flex-direction:column;gap:12px;width:100%;box-sizing:border-box">
-        <span style="font-size:20px;font-weight:600">Новая затрата</span>
-        <div style="display:flex;flex-wrap:wrap;gap:8px">
-          <sc-for list="{{pick}}" as="p" hint-placeholder-count="6"><button class="{{p.cls}}" onClick="{{p.go}}" aria-pressed="{{p.on}}">{{p.name}}</button></sc-for>
-        </div>
-        <label style="display:flex;flex-direction:column;gap:4px"><span class="lbl">Сумма, сом*</span><input class="inp" inputmode="decimal" value="{{amount}}" onInput="{{setAmount}}"></label>
-        <button class="btn btnp" onClick="{{add}}">Сохранить</button>
-        <button class="btn" onClick="{{close}}">Отмена</button>
-      </div>
-    </div>
-  </sc-if>
+
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { sheet: false, sums: { 'Цыплята': 4763150, 'Корм': 4474400, 'Газ и уголь': 620000, 'Зарплата': 450000, 'Подстилка': 180000, 'Электричество': 190000, 'Ветпрепараты': 140000, 'Ветврач': 30000 }, cat: 'Газ и уголь', amount: '85000', justAdded: '' }; }
+  constructor(props) {
+    super(props);
+    this.state = {
+      sums: { 'Цыплята': 4763150, 'Корм': 3847400, 'Газ и уголь': 620000, 'Зарплата': 450000, 'Подстилка': 180000, 'Электричество': 190000, 'Ветпрепараты': 121500, 'Ветврач': 30000 },
+      items: [
+        { id: 1, what: 'Корм П-1 · Рост 8,0 т', who: 'Айгуль Т., 24.11', unit: 'цена за тонну', qty: 8, cat: 'Корм', val: '38000', done: false },
+        { id: 2, what: 'Корм П-3 · Рост 8,5 т', who: 'Нурлан Ж., 24.11', unit: 'цена за тонну', qty: 8.5, cat: 'Корм', val: '', done: false },
+        { id: 3, what: 'Лечение П-2 · Амоксициллин 10%', who: 'Айгуль Т., 24.11', unit: 'стоимость курса', qty: 1, cat: 'Ветпрепараты', val: '', done: false }
+      ]
+    };
+  }
   f(v) { return Math.round(v).toLocaleString('ru-RU'); }
   renderVals() {
     const s = this.state, sums = s.sums;
     const total = Object.values(sums).reduce((a, b) => a + b, 0), max = Math.max(...Object.values(sums));
-    const cats = Object.keys(sums).sort((a, b) => sums[b] - sums[a]).map(k => ({ name: k, sum: this.f(sums[k]), bar: 'height:6px;border-radius:3px;background:' + (k === 'Корм' ? '#0D5C7D' : '#8FB3C4') + ';width:' + (sums[k] / max * 100).toFixed(1) + '%' }));
-    const pick = ['Газ и уголь', 'Электричество', 'Зарплата', 'Подстилка', 'Ветврач', 'Прочее'].map(n => ({ name: n, on: s.cat === n, cls: s.cat === n ? 'chip chipon' : 'chip', go: () => this.setState({ cat: n }) }));
-    return { cats, pick, sheet: s.sheet, amount: s.amount, justAdded: s.justAdded,
+    const left = s.items.filter(i => !i.done);
+    const upd = (id, patch) => this.setState({ items: s.items.map(i => i.id === id ? { ...i, ...patch } : i) });
+    return {
       total: (total / 1e6).toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' млн', perBird: this.f(total / 68000) + ' сом',
-      open: () => this.setState({ sheet: true }), close: () => this.setState({ sheet: false }),
-      setAmount: (e) => this.setState({ amount: e.target.value }),
-      add: () => { const v = parseFloat(String(s.amount).replace(/\s/g, '').replace(',', '.')) || 0; if (v <= 0) return; this.setState({ sheet: false, sums: { ...sums, [s.cat]: (sums[s.cat] || 0) + v }, justAdded: s.cat + ' +' + this.f(v), amount: '' }); } };
+      pendN: left.length ? left.length + ' записи' : '', pendS: 'font-size:13px;font-weight:600;color:#A35200', allPriced: !left.length,
+      pending: left.map(i => {
+        const v = parseFloat(String(i.val).replace(/\s/g, '').replace(',', '.')) || 0;
+        return { ...i, hint: v ? 'Сумма: ' + this.f(v * i.qty) + ' сом → «' + i.cat + '»' : 'Работник записал количество; сумма появится после цены',
+          set: (e) => upd(i.id, { val: e.target.value }),
+          save: () => { if (!v) return; this.setState({ items: s.items.map(x => x.id === i.id ? { ...x, done: true } : x), sums: { ...sums, [i.cat]: sums[i.cat] + v * i.qty } }); } };
+      }),
+      cats: Object.keys(sums).sort((a, b) => sums[b] - sums[a]).map(k => ({ name: k, sum: this.f(sums[k]), bar: 'height:6px;border-radius:3px;background:' + (k === 'Корм' ? '#0D5C7D' : '#8FB3C4') + ';width:' + (sums[k] / max * 100).toFixed(1) + '%' }))
+    };
   }
 }
 </script>

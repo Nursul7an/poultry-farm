@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>События — директор</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EEF1F3}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.nav{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:8px;color:#C9D3DB;text-decoration:none;font-size:14px}
+.nav:hover{background:#24313E;color:#FFFFFF}
+.navon{background:#24313E;color:#FFFFFF;font-weight:600}
+.sub{padding-left:28px;font-size:13px;min-height:34px}
+.panel{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:14px 16px;box-sizing:border-box}
+.kpi{flex:1 1 150px;display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px}
+.kl{font-size:12px;color:#52606D}
+.kv{font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-weight:500;color:#52606D;text-align:right;padding:8px 10px;border-bottom:1px solid #D5DBE0;white-space:nowrap;font-size:12px}
+th:first-child,td:first-child{text-align:left}
+td{padding:0 10px;height:44px;border-bottom:1px solid #EEF1F3;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.btn{min-height:40px;padding:0 16px;border-radius:8px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.btnp{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.chip{min-height:36px;padding:0 12px;border-radius:8px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.inp{min-height:40px;border-radius:8px;border:1px solid #B9C3CB;padding:0 10px;font:inherit;font-size:14px;color:#18212B;box-sizing:border-box}
+.btn:focus-visible,.chip:focus-visible,.nav:focus-visible,.inp:focus{outline:3px solid #0D5C7D;outline-offset:2px}
+.line{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:8px 0;border-bottom:1px solid #EEF1F3}
+.fl{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#52606D}
+
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;background:#EEF1F3">
+  <aside style="flex:1 1 220px;max-width:230px;background:#18212B;padding:16px 12px;display:flex;flex-direction:column;gap:2px;box-sizing:border-box">
+    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма<br><span style="font-size:12px;font-weight:400;color:#C9D3DB">Директор</span></div>
+    <a class="nav" href="HFarm.dc.html">Ферма</a>
+    <a class="nav navon" href="HEvents.dc.html">События <span class="num" style="margin-left:auto;background:#B3202A;color:#FFFFFF;border-radius:999px;padding:0 8px;font-size:12px">1</span></a>
+    <a class="nav" href="HBatch.dc.html">Партия</a>
+    <a class="nav sub" href="HBatch.dc.html">Посадка</a>
+    <a class="nav sub" href="HCatch.dc.html">Отлов и сдача</a>
+    <a class="nav" href="HCosts.dc.html">Деньги <span class="num" style="margin-left:auto;background:#A35200;color:#FFFFFF;border-radius:999px;padding:0 8px;font-size:12px">3</span></a>
+    <a class="nav" href="HReport.dc.html">Отчёты</a>
+    <a class="nav" href="HSettings.dc.html">Настройки</a>
+  </aside>
+  <main style="flex:999 1 560px;min-width:0;padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+    <header style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end">
+      <div style="display:flex;flex-direction:column"><span style="font-size:13px;color:#52606D">Все записи работников и системы · Telegram сразу: тревоги, лечения, отлов в срок ожидания, правки старше 48 ч</span>
+      <h1 style="margin:0;font-size:28px;font-weight:600">События</h1></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{filters}}" as="f" hint-placeholder-count="5"><button class="{{f.cls}}" onClick="{{f.pick}}" aria-pressed="{{f.on}}">{{f.label}}</button></sc-for></div>
+    </header>
+    <section class="panel">
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Когда</th><th style="text-align:left">Птичник</th><th style="text-align:left">Кто</th><th style="text-align:left">Что</th><th>Действие</th></tr></thead>
+          <tbody>
+            <sc-for list="{{items}}" as="e" hint-placeholder-count="10">
+              <tr><td style="text-align:left;color:#52606D">{{e.t}}</td><td style="text-align:left"><span style="{{e.ms}}">{{e.m}}</span> <b>{{e.h}}</b></td><td style="text-align:left">{{e.who}}</td><td style="text-align:left;white-space:normal">{{e.txt}}</td><td><a href="{{e.href}}">{{e.act}}</a></td></tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":800}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { f: 'all' }; }
+  renderVals() {
+    const E = [{"t": "11:12", "k": "crit", "h": "П-2", "who": "Система", "txt": "Возможна болезнь: падёж 38 (×3,5) и вода −18%"}, {"t": "11:00", "k": "warn", "h": "П-4", "who": "Система", "txt": "Нет журнала за 24.11 · Нурлан Ж."}, {"t": "10:30", "k": "info", "h": "П-2", "who": "Айгуль Т.", "txt": "Лечение: Амоксициллин 10%, 5 дн., ожидание 7 дн. → убой не ранее 06.12 · нет стоимости"}, {"t": "09:42", "k": "plain", "h": "П-2", "who": "Айгуль Т.", "txt": "Журнал дня: падёж 38+2, корм 1 970 кг, вода 2 780 л"}, {"t": "09:05", "k": "info", "h": "П-3", "who": "Нурлан Ж.", "txt": "Поставка корма: Рост 8,5 т · нет цены"}, {"t": "08:40", "k": "plain", "h": "П-3", "who": "Нурлан Ж.", "txt": "Журнал дня: падёж 10+0, корм 2 010 кг"}, {"t": "08:15", "k": "info", "h": "П-1", "who": "Айгуль Т.", "txt": "Поставка корма: Рост 8,0 т · нет цены"}, {"t": "08:12", "k": "plain", "h": "П-1", "who": "Айгуль Т.", "txt": "Журнал дня: падёж 9+2, корм 1 980 кг"}, {"t": "вчера 18:20", "k": "plain", "h": "П-3", "who": "Нурлан Ж.", "txt": "Взвешивание: 167 гол., 987 г, CV 11,2%"}, {"t": "вчера 17:05", "k": "plain", "h": "П-4", "who": "Нурлан Ж.", "txt": "Поставка корма: Рост 7,5 т · цена внесена"}, {"t": "вчера 09:10", "k": "plain", "h": "П-1", "who": "Айгуль Т.", "txt": "Журнал дня: падёж 11+0, корм 1 965 кг"}];
+    const M = { crit: ['■', '#B3202A'], warn: ['▲', '#A35200'], info: ['●', '#3A4FA0'], plain: ['·', '#52606D'] };
+    const F = [['all', 'Все'], ['alerts', 'Тревоги'], ['ops', 'Записи работников'], ['money', 'Нет цены'], ['aigul', 'Айгуль Т.'], ['nurlan', 'Нурлан Ж.']];
+    const f = this.state.f;
+    const keep = (e) => f === 'all' || (f === 'alerts' && (e.k === 'crit' || e.k === 'warn')) || (f === 'ops' && e.who !== 'Система') || (f === 'money' && /нет (цены|стоимости)/.test(e.txt)) || (f === 'aigul' && e.who === 'Айгуль Т.') || (f === 'nurlan' && e.who === 'Нурлан Ж.');
+    return {
+      filters: F.map(([k, l]) => ({ label: l, on: f === k, cls: f === k ? 'chip chipon' : 'chip', pick: () => this.setState({ f: k }) })),
+      items: E.filter(keep).map(e => {
+        const money = /нет (цены|стоимости)/.test(e.txt);
+        return { ...e, m: M[e.k][0], ms: 'color:' + M[e.k][1], href: money ? 'HCosts.dc.html' : 'HHouse.dc.html', act: money ? 'Внести цену' : e.k === 'crit' || e.k === 'warn' ? 'Открыть' : 'Смотреть' };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

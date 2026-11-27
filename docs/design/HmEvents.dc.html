@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>События — директор</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0D5C7D}a:hover{color:#08415A}
+.num{font-variant-numeric:tabular-nums}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:56px;font-size:12px;color:#52606D;text-decoration:none}
+.sec{background:#FFFFFF;border-top:1px solid #D5DBE0;border-bottom:1px solid #D5DBE0;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.h2{margin:0;font-size:15px;font-weight:600}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;min-height:30px}
+.k{color:#52606D}
+.tile{background:#FFFFFF;border:1px solid #D5DBE0;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.tl{font-size:12px;color:#52606D}
+.tv{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.btn{min-height:48px;border-radius:10px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:15px;font-weight:600;color:#18212B;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;flex:1;padding:0 12px}
+.btnp{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #B9C3CB;background:#FFFFFF;font:inherit;font-size:14px;color:#18212B;cursor:pointer}
+.chipon{background:#0D5C7D;border-color:#0D5C7D;color:#FFFFFF}
+.inp{height:52px;border-radius:10px;border:1px solid #B9C3CB;padding:0 12px;font:inherit;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;width:100%;box-sizing:border-box;color:#18212B;background:#FFFFFF}
+.lbl{font-size:13px;color:#52606D}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px;background:#FFFFFF;border-top:1px solid #D5DBE0;text-decoration:none;color:#18212B}
+.btn:focus-visible,.chip:focus-visible,.tab:focus-visible,.row:focus-visible,.inp:focus{outline:3px solid #0D5C7D;outline-offset:2px}
+
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#EEF1F3;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;overflow:hidden;position:relative">
+  <header style="background:#FFFFFF;padding:12px 16px;border-bottom:1px solid #D5DBE0;display:flex;flex-direction:column;gap:4px">
+    <span style="font-size:13px;color:#52606D">Сегодня, 24 ноября · все птичники</span>
+    <span style="font-size:20px;font-weight:600">События</span>
+  </header>
+  <main style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:12px 0">
+    <div style="display:flex;gap:8px;margin:0 16px;flex-wrap:wrap">
+      <sc-for list="{{filters}}" as="f" hint-placeholder-count="4"><button class="{{f.cls}}" onClick="{{f.pick}}" aria-pressed="{{f.on}}">{{f.label}}</button></sc-for>
+    </div>
+    <section style="border-top:1px solid #D5DBE0;border-bottom:1px solid #D5DBE0">
+      <sc-for list="{{items}}" as="e" hint-placeholder-count="8">
+        <a class="row" href="{{e.href}}" style="align-items:flex-start;min-height:56px"><span class="num lbl" style="width:52px;flex:none;padding-top:2px">{{e.t}}</span><span style="{{e.ms}}">{{e.m}}</span><span style="flex:1;font-size:14px;line-height:1.35"><b>{{e.h}}</b> · {{e.who}}<br><span style="color:#52606D">{{e.txt}}</span></span></a>
+      </sc-for>
+    </section>
+    <span class="lbl" style="margin:0 16px">Тревоги, лечения и отлов в срок ожидания приходят ещё и в Telegram сразу. Остальное — в сводке в 18:00.</span>
+  </main>
+  <nav aria-label="Основное меню" style="display:flex;background:#FFFFFF;border-top:1px solid #D5DBE0;padding-bottom:20px">
+    <a href="HFarmPhone.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/></svg>Ферма</a>
+    <a href="HmEvents.dc.html" class="tab" style="color:#0D5C7D;font-weight:600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>События</a>
+    <a href="HmCosts.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16v12H4z"/><path d="M8 7V5h8v2M12 11v4M10 13h4"/></svg>Деньги</a>
+    <a href="HmReport.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Отчёты</a>
+    <a href="HmSettings.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Ещё</a>
+  </nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { f: 'all' }; }
+  renderVals() {
+    const E = [{"t": "11:12", "k": "crit", "h": "П-2", "who": "Система", "txt": "Возможна болезнь: падёж 38 (×3,5) и вода −18%", "href": "HmHouse.dc.html"}, {"t": "11:00", "k": "warn", "h": "П-4", "who": "Система", "txt": "Нет журнала за 24.11 · Нурлан Ж.", "href": "HmHouse.dc.html"}, {"t": "10:30", "k": "info", "h": "П-2", "who": "Айгуль Т.", "txt": "Лечение: Амоксициллин 10%, 5 дн., ожидание 7 дн. → убой не ранее 06.12 · нет стоимости", "href": "HmCosts.dc.html"}, {"t": "09:42", "k": "plain", "h": "П-2", "who": "Айгуль Т.", "txt": "Журнал дня: падёж 38+2, корм 1 970 кг, вода 2 780 л", "href": "HmHouse.dc.html"}, {"t": "09:05", "k": "info", "h": "П-3", "who": "Нурлан Ж.", "txt": "Поставка корма: Рост 8,5 т · нет цены", "href": "HmCosts.dc.html"}, {"t": "08:40", "k": "plain", "h": "П-3", "who": "Нурлан Ж.", "txt": "Журнал дня: падёж 10+0, корм 2 010 кг", "href": "HmHouse.dc.html"}, {"t": "08:15", "k": "info", "h": "П-1", "who": "Айгуль Т.", "txt": "Поставка корма: Рост 8,0 т · нет цены", "href": "HmCosts.dc.html"}, {"t": "08:12", "k": "plain", "h": "П-1", "who": "Айгуль Т.", "txt": "Журнал дня: падёж 9+2, корм 1 980 кг", "href": "HmHouse.dc.html"}, {"t": "вчера 18:20", "k": "plain", "h": "П-3", "who": "Нурлан Ж.", "txt": "Взвешивание: 167 гол., 987 г, CV 11,2%", "href": "HmHouse.dc.html"}];
+    const M = { crit: ['■', '#B3202A'], warn: ['▲', '#A35200'], info: ['●', '#3A4FA0'], plain: ['·', '#52606D'] };
+    const F = [['all', 'Все'], ['alerts', 'Тревоги'], ['ops', 'Записи'], ['money', 'Нет цены']];
+    const keep = (e) => this.state.f === 'all' || (this.state.f === 'alerts' && (e.k === 'crit' || e.k === 'warn')) || (this.state.f === 'ops' && e.who !== 'Система') || (this.state.f === 'money' && /нет (цены|стоимости)/.test(e.txt));
+    return {
+      filters: F.map(([k, l]) => ({ label: l, on: this.state.f === k, cls: this.state.f === k ? 'chip chipon' : 'chip', pick: () => this.setState({ f: k }) })),
+      items: E.filter(keep).map(e => ({ ...e, m: M[e.k][0], ms: 'width:12px;flex:none;color:' + M[e.k][1] }))
+    };
+  }
+}
+</script>
+</body>
+</html>

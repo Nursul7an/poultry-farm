@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>Ферма — руководитель</title>
+<title>Ферма — директор</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -39,12 +39,13 @@ tr:hover td{background:#F6F8F9}
 <div style="display:flex;flex-wrap:wrap;min-height:100vh;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18212B;background:#EEF1F3">
 
   <aside style="flex:1 1 220px;max-width:230px;background:#18212B;padding:16px 12px;display:flex;flex-direction:column;gap:2px;box-sizing:border-box">
-    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма</div>
-    <a class="nav navon" href="HFarm.dc.html">Ферма <span class="num" style="margin-left:auto;background:#B3202A;color:#FFFFFF;border-radius:999px;padding:0 8px;font-size:12px">5</span></a>
+    <div style="color:#FFFFFF;font-weight:600;font-size:17px;padding:4px 12px 16px">Бройлерная ферма<br><span style="font-size:12px;font-weight:400;color:#C9D3DB">Директор</span></div>
+    <a class="nav navon" href="HFarm.dc.html">Ферма</a>
+    <a class="nav" href="HEvents.dc.html">События <span class="num" style="margin-left:auto;background:#B3202A;color:#FFFFFF;border-radius:999px;padding:0 8px;font-size:12px">1</span></a>
     <a class="nav" href="HBatch.dc.html">Партия</a>
     <a class="nav sub" href="HBatch.dc.html">Посадка</a>
-    <a class="nav sub" href="HCatch.dc.html">Отлов и продажа</a>
-    <a class="nav" href="HCosts.dc.html">Корм и затраты</a>
+    <a class="nav sub" href="HCatch.dc.html">Отлов и сдача</a>
+    <a class="nav" href="HCosts.dc.html">Деньги <span class="num" style="margin-left:auto;background:#A35200;color:#FFFFFF;border-radius:999px;padding:0 8px;font-size:12px">3</span></a>
     <a class="nav" href="HReport.dc.html">Отчёты</a>
     <a class="nav" href="HSettings.dc.html">Настройки</a>
   </aside>
@@ -140,10 +141,28 @@ tr:hover td{background:#F6F8F9}
             <button class="btn btnp" onClick="{{note}}">Отметить действие</button>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:8px">
-            <sc-if value="{{sel.treat}}" hint-placeholder-val="{{true}}"><a class="btn" href="HTreat.dc.html">Записать лечение</a></sc-if>
+            <button class="btn">Позвонить работнику</button>
             <a class="btn" href="HHouse.dc.html">Открыть птичник</a>
           </div>
         </div>
+      </section>
+      <section class="panel" style="flex:1 1 100%;min-width:0;padding:12px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font-size:16px;font-weight:600">Сегодня от работников</h2><a href="HEvents.dc.html" style="font-size:14px">Все события</a></div>
+          <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F3;font-size:13px;align-items:flex-start"><span class="num" style="width:76px;flex:none;color:#52606D">10:30</span><span style="color:#3A4FA0;width:12px;flex:none">●</span><span style="flex:1"><b>П-2</b> · Айгуль Т. — Лечение: Амоксициллин 10%, 5 дн., ожидание 7 дн. → убой не ранее 06.12 · нет стоимости</span></div>
+          <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F3;font-size:13px;align-items:flex-start"><span class="num" style="width:76px;flex:none;color:#52606D">09:42</span><span style="color:#52606D;width:12px;flex:none">·</span><span style="flex:1"><b>П-2</b> · Айгуль Т. — Журнал дня: падёж 38+2, корм 1 970 кг, вода 2 780 л</span></div>
+          <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F3;font-size:13px;align-items:flex-start"><span class="num" style="width:76px;flex:none;color:#52606D">09:05</span><span style="color:#3A4FA0;width:12px;flex:none">●</span><span style="flex:1"><b>П-3</b> · Нурлан Ж. — Поставка корма: Рост 8,5 т · нет цены</span></div>
+          <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F3;font-size:13px;align-items:flex-start"><span class="num" style="width:76px;flex:none;color:#52606D">08:40</span><span style="color:#52606D;width:12px;flex:none">·</span><span style="flex:1"><b>П-3</b> · Нурлан Ж. — Журнал дня: падёж 10+0, корм 2 010 кг</span></div>
+          <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F3;font-size:13px;align-items:flex-start"><span class="num" style="width:76px;flex:none;color:#52606D">08:15</span><span style="color:#3A4FA0;width:12px;flex:none">●</span><span style="flex:1"><b>П-1</b> · Айгуль Т. — Поставка корма: Рост 8,0 т · нет цены</span></div>
+          <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F3;font-size:13px;align-items:flex-start"><span class="num" style="width:76px;flex:none;color:#52606D">08:12</span><span style="color:#52606D;width:12px;flex:none">·</span><span style="flex:1"><b>П-1</b> · Айгуль Т. — Журнал дня: падёж 9+2, корм 1 980 кг</span></div>
+      </section>
+      <section class="panel" style="flex:1 1 100%;min-width:0;padding:12px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font-size:16px;font-weight:600">Сегодня от работников</h2><a href="HEvents.dc.html" style="font-size:14px">Все события</a></div>
+          <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F3;font-size:13px;align-items:flex-start"><span class="num" style="width:76px;flex:none;color:#52606D">10:30</span><span style="color:#3A4FA0;width:12px;flex:none">●</span><span style="flex:1"><b>П-2</b> · Айгуль Т. — Лечение: Амоксициллин 10%, 5 дн., ожидание 7 дн. → убой не ранее 06.12 · нет стоимости</span></div>
+          <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F3;font-size:13px;align-items:flex-start"><span class="num" style="width:76px;flex:none;color:#52606D">09:42</span><span style="color:#52606D;width:12px;flex:none">·</span><span style="flex:1"><b>П-2</b> · Айгуль Т. — Журнал дня: падёж 38+2, корм 1 970 кг, вода 2 780 л</span></div>
+          <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F3;font-size:13px;align-items:flex-start"><span class="num" style="width:76px;flex:none;color:#52606D">09:05</span><span style="color:#3A4FA0;width:12px;flex:none">●</span><span style="flex:1"><b>П-3</b> · Нурлан Ж. — Поставка корма: Рост 8,5 т · нет цены</span></div>
+          <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F3;font-size:13px;align-items:flex-start"><span class="num" style="width:76px;flex:none;color:#52606D">08:40</span><span style="color:#52606D;width:12px;flex:none">·</span><span style="flex:1"><b>П-3</b> · Нурлан Ж. — Журнал дня: падёж 10+0, корм 2 010 кг</span></div>
+          <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F3;font-size:13px;align-items:flex-start"><span class="num" style="width:76px;flex:none;color:#52606D">08:15</span><span style="color:#3A4FA0;width:12px;flex:none">●</span><span style="flex:1"><b>П-1</b> · Айгуль Т. — Поставка корма: Рост 8,0 т · нет цены</span></div>
+          <div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F3;font-size:13px;align-items:flex-start"><span class="num" style="width:76px;flex:none;color:#52606D">08:12</span><span style="color:#52606D;width:12px;flex:none">·</span><span style="flex:1"><b>П-1</b> · Айгуль Т. — Журнал дня: падёж 9+2, корм 1 980 кг</span></div>
       </section>
     </div>
   </main>
@@ -151,7 +170,7 @@ tr:hover td{background:#F6F8F9}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { sel: 0, notes: {}, draft: 'Позвонил ветврачу, приедет в 14:00' }; }
+  constructor(props) { super(props); this.state = { sel: 0, notes: {}, draft: 'Говорил с Айгуль: лечение начато, ветврач в 14:00' }; }
   renderVals() {
     const C = { ok: '#1D7044', warn: '#A35200', crit: '#B3202A', none: '#18212B' };
     const st = (l) => 'color:' + C[l] + (l === 'warn' || l === 'crit' ? ';font-weight:600' : '');
@@ -164,7 +183,7 @@ class Component extends DCLogic {
     ];
     const rows = R.map(r => ({ h: r[0], who: r[1], ...mk(r[2]), alive: r[3], surv: r[4], d: r[5], dS: st(r[6]), feed: r[7], w: r[8], wS: st(r[9]), t: r[10], tS: st(r[11]), wt: r[12], cv: r[13], cvS: st(r[14]), b: r[15], bS: st(r[16]), log: r[17], logS: st(r[18]) }));
     const A = [
-      { l: 'crit', h: 'П-2', title: 'Возможна болезнь', meta: '09:42 · падёж 38 (×3,5) + вода −18% · позвоните ветврачу', value: 'Падёж 38 гол. = 0,23% (среднее 11) · вода 2 780 л, вода:корм 1,41 (норма 1,6–1,8)', treat: true,
+      { l: 'crit', h: 'П-2', title: 'Возможна болезнь', meta: '09:42 · падёж 38 (×3,5) + вода −18% · Айгуль Т. начала лечение 10:30', value: 'Падёж 38 гол. = 0,23% (среднее 11) · вода 2 780 л, вода:корм 1,41 (норма 1,6–1,8)', treat: true,
         causes: ['Два сигнала сразу — вероятна инфекция: вскрытие павших, ветврач', 'Проверить ниппели, напор, фильтр — птица могла остаться без воды', 'Метаболические причины (асцит, ВСС): вентиляция и рацион'] },
       { l: 'warn', h: 'П-4', title: 'Нет журнала за 24.11', meta: '11:00 · Нурлан Ж.', value: 'Последний журнал: 23.11, 18:05', treat: false, causes: ['Позвонить работнику', 'Возможно, запись ждёт отправки — нет сети в П-4'] },
       { l: 'warn', h: 'П-4', title: 'Корма на 1,6 дня', meta: '08:00', value: 'В бункере 3,2 т · расход 2,0 т/сут · порог 2 дня', treat: false, causes: ['Заказать финишный корм: переход с 25-го дня', 'Записать поставку в «Корм и затраты»'] },

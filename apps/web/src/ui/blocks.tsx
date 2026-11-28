@@ -25,6 +25,8 @@ export function useBlocks() {
 
 export function BlockCards({ blocks, today, rows }: { blocks: BlockInfo[]; today: string; rows?: HouseToday[] | null }) {
   const nav = useNavigate();
+  const { session } = useSignedIn();
+  const head = session.role === 'head';
   const open = (houseBatchId: string) => { try { localStorage.setItem(SELECTED_HOUSE_KEY, houseBatchId); } catch { /* */ } nav('/today'); };
   return (
     <div className="block-grid pad">
@@ -47,11 +49,21 @@ export function BlockCards({ blocks, today, rows }: { blocks: BlockInfo[]; today
                   <span>Сохр.<br /><b>{r ? `${fmtNum((r.liveBirds / r.placed) * 100)}%` : '—'}</b></span>
                   <span>Журнал<br /><b className={r?.today ? 'ok-t' : 'warn-t'}>{r?.today ? fmtTime(r.today.loggedAt) : 'нет'}</b></span>
                 </div>
-                <button type="button" className="btn block" onClick={() => open(b.open!.houseBatchId)}>Открыть блок</button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" className="btn" style={{ flex: 1 }} onClick={() => open(b.open!.houseBatchId)}>Открыть блок</button>
+                  {head && <Link className="btn" to={`/batch/${b.open.batchId}/close`}>Закрыть партию</Link>}
+                </div>
               </>
             ) : (
               <>
                 <span className="small muted">{b.last ? `Прошлая партия ${b.last.number}${b.last.closedAt ? ` закрыта ${fmtDayShort(b.last.closedAt.slice(0, 10))}` : ''}` : 'Партий ещё не было'}</span>
+                {b.last?.result && (
+                  <div className="block-stats small muted" aria-label={`Итог ${b.last.number}`}>
+                    <span>Сохр.<br /><b>{b.last.result.survivalPct != null ? `${fmtNum(b.last.result.survivalPct)}%` : '—'}</b></span>
+                    <span>Вес<br /><b>{b.last.result.avgWeightKg != null ? `${fmtNum(b.last.result.avgWeightKg, 2)} кг` : '—'}</b></span>
+                    <span>FCR<br /><b>{b.last.result.fcr != null ? fmtNum(b.last.result.fcr, 2) : '—'}</b></span>
+                  </div>
+                )}
                 <Link className="btn primary block" to={`/batch/new/${b.houseId}`}>+ Новая партия {b.nextNumber}</Link>
               </>
             )}

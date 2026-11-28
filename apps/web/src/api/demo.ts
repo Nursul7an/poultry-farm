@@ -5,7 +5,7 @@
  * The real rules live in SQL; keep the two in step when changing either.
  */
 import { AA_NORMS, addDays, earliestSlaughter, localParts, productionDay, weighingStats, withinWorkerEditWindow } from '@farm/core';
-import type { Api, Article, AskAnswer, AskContext, BatchInfo, BlockInfo, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
+import type { Api, Article, AskAnswer, AskContext, BatchInfo, BatchResultJson, BatchRow, BlockInfo, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError } from './types';
 import { normalizePhone } from './phone';
 import { searchArticles } from './search';
@@ -13,7 +13,7 @@ import { blockCode } from './blocks';
 
 interface DemoUser { id: string; role: 'head' | 'worker'; displayName: string; phone: string; pin: string; houseIds: string[]; active: boolean }
 type DemoHB = Omit<HouseBatchInfo, 'houseBatchId' | 'houseName' | 'hasWaterMeter' | 'batchName'> & { id: string; createdBy?: string };
-interface DemoBatch { id: string; houseId: string; name: string; seq: number; status: 'open' | 'closed'; openedAt: string; closedAt: string | null }
+interface DemoBatch { id: string; houseId: string; name: string; seq: number; status: 'open' | 'closed'; openedAt: string; closedAt: string | null; result?: BatchResultJson | null }
 interface DemoState {
   v: 2;
   farm: Session['farm'];
@@ -464,25 +464,35 @@ export class DemoApi implements Api {
         return {
           houseId: h.id, name: h.name, code: h.code ?? h.name, areaM2: h.areaM2, active: h.active !== false, hasWaterMeter: h.hasWaterMeter,
           open: open ? { batchId: open.id, number: open.name, houseBatchId: hbOf(open).id, placedOn: hbOf(open).placedOn, placed: hbOf(open).placed } : null,
-          last: last ? { batchId: last.id, number: last.name, closedAt: last.closedAt, houseBatchId: hbOf(last).id } : null,
+          last: last ? { batchId: last.id, number: last.name, closedAt: last.closedAt, houseBatchId: hbOf(last).id, result: last.result ?? null } : null,
           nextNumber: this.nextNumber(h, this.today()),
         };
       }).sort((a, b) => a.name.localeCompare(b.name));
     });
   }
-  closeBatch(batchId: string) {
+  closeBatch(batchId: string, result?: BatchResultJson) {
     return this.net(() => {
       this.head();
       const b = this.s.batches.find((x) => x.id === batchId);
       if (!b || b.status === 'closed') throw new ApiError('BATCH_CLOSED');
-      b.status = 'closed'; b.closedAt = new Date().toISOString(); this.save();
+      b.status = 'closed'; b.closedAt = new Date().toISOString(); b.result = result ?? null; this.save();
+    });
+  }
+  batches() {
+    return this.net((): BatchRow[] => {
+      this.head();
+      return this.s.batches.map((b) => {
+        const hb = this.s.hbs.find((h) => h.batchId === b.id)!;
+        const h = this.s.houses.find((x) => x.id === b.houseId)!;
+        return { id: b.id, number: b.name, houseId: b.houseId, houseName: h.name, status: b.status, houseBatchId: hb.id, placedOn: hb.placedOn, placed: hb.placed, waybill: hb.waybillCount ?? hb.placed, closedAt: b.closedAt, result: b.result ?? null };
+      }).sort((a, b) => b.placedOn.localeCompare(a.placedOn) || a.houseName.localeCompare(b.houseName));
     });
   }
   prices() { return this.net(() => (this.isHead() ? this.s.prices.map((p) => ({ ...p })) : [])); }
   setPrice(p: Price) {
     return this.net(() => { this.head(); this.s.prices = this.s.prices.filter((x) => !(x.kind === p.kind && x.refId === p.refId)).concat(p); this.save(); });
   }
-  costs(batchId: string) { return this.net(() => (this.isHead() ? this.s.costs.filter((c) => c.batchId === batchId).map((c) => ({ ...c })) : [])); }
+  costs() { return this.net(() => (this.isHead() ? this.s.costs.map((c) => ({ ...c })) : [])); }
   addCost(c: Omit<Cost, 'id'>) { return this.net(() => { this.head(); this.s.costs.push({ ...c, id: `c-${Date.now()}` }); this.save(); }); }
   payments() { return this.net(() => (this.isHead() ? this.s.payments.map((p) => ({ ...p })) : [])); }
   addPayment(p: Omit<Payment, 'id'>) { return this.net(() => { this.head(); this.s.payments.push({ ...p, id: `pay-${Date.now()}` }); this.save(); }); }

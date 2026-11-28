@@ -67,11 +67,15 @@ export interface NormRow { code: string; data: unknown; farm: boolean }
 export interface Article { id: string; section: string; title: string; bodyMd: string; source: string | null; sort: number; farm?: boolean }
 
 export interface BatchInfo { id: string; name: string; status: 'open' | 'catching' | 'closed'; houseId?: string }
+/** Stored with a closed batch (computed by @farm/core batchResult). */
+export interface BatchResultJson { placed: number; losses: number; handedBirds: number; handedKg: number; feedKg: number; days: number | null; survivalPct: number | null; avgWeightKg: number | null; fcr: number | null; epef: number | null; unaccounted: number | null }
+/** One batch of one block, for «Деньги» and reports. */
+export interface BatchRow { id: string; number: string; houseId: string; houseName: string; status: 'open' | 'catching' | 'closed'; houseBatchId: string; placedOn: string; placed: number; waybill: number; closedAt: string | null; result: BatchResultJson | null }
 /** A block (кашар) with its current batch, if any, and the last closed one. */
 export interface BlockInfo {
   houseId: string; name: string; code: string; areaM2: number; active: boolean; hasWaterMeter: boolean;
   open: { batchId: string; number: string; houseBatchId: string; placedOn: string; placed: number } | null;
-  last: { batchId: string; number: string; closedAt: string | null; houseBatchId: string } | null;
+  last: { batchId: string; number: string; closedAt: string | null; houseBatchId: string; result: BatchResultJson | null } | null;
   /** Number the next batch will get, e.g. "B-2026-08". */
   nextNumber: string;
 }
@@ -172,7 +176,7 @@ export interface Api {
   /** Blocks with their batches: the director sees all, a worker own blocks. */
   blocks(): Promise<BlockInfo[]>;
   /** Director: the batch is over (after the catch); the block becomes empty. */
-  closeBatch(batchId: string): Promise<void>;
+  closeBatch(batchId: string, result?: BatchResultJson): Promise<void>;
   changePin(newPin: string): Promise<void>;
   // Operations (worker on own houses, director on all)
   myHouses(): Promise<MyHouse[]>;
@@ -184,7 +188,10 @@ export interface Api {
   currentBatch(): Promise<BatchInfo | null>;
   prices(): Promise<Price[]>;
   setPrice(p: Price): Promise<void>;
-  costs(batchId: string): Promise<Cost[]>;
+  /** All farm costs: per batch, and shared ones (batchId null). */
+  costs(): Promise<Cost[]>;
+  /** All batches of the farm, newest first (director). */
+  batches(): Promise<BatchRow[]>;
   addCost(c: Omit<Cost, 'id'>): Promise<void>;
   payments(): Promise<Payment[]>;
   addPayment(p: Omit<Payment, 'id'>): Promise<void>;

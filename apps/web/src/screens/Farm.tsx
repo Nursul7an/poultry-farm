@@ -49,6 +49,7 @@ export default function Farm() {
       <main className="content">
         {(err || !online) && <div className="banner warn" role="status">{!online ? 'Нет сети.' : err} {at ? `Показаны данные за ${fmtTime(at)}.` : ''}</div>}
         {rows === null && !err && <p className="pad muted">Загрузка…</p>}
+        {(loc.state as { closed?: string } | null)?.closed && <div className="banner ok" role="status">Партия {(loc.state as { closed: string }).closed} закрыта. Блок пустой — можно начинать новую партию.</div>}
         {(loc.state as { setupDone?: boolean } | null)?.setupDone && <div className="banner ok" role="status">Ферма настроена. Передайте работникам телефон и PIN.</div>}
         {rows?.length === 0 && houseCount === 0 && (
           <div className="banner info" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

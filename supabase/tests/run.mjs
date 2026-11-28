@@ -180,7 +180,9 @@ await test('only one open batch per block; other blocks are independent', async 
 });
 await test('closed batch refuses logs → BATCH_CLOSED; only the director closes a batch', async () => {
   await expectError('FORBIDDEN', () => as(A, () => db.query('select public.close_batch($1)', [Bp.p1])));
-  await as(H, () => db.query('select public.close_batch($1)', [Bp.p1]));
+  await as(H, () => db.query('select public.close_batch($1, $2)', [Bp.p1, JSON.stringify({ survivalPct: 97.1, fcr: 1.49 })]));
+  const res = (await as(A, () => db.query('select result from public.batch where id = $1', [Bp.p1]))).rows[0].result;
+  eq([res.survivalPct, res.fcr], [97.1, 1.49]);
   await expectError('BATCH_CLOSED', () => as(A, () => upsert(log({ house_batch_id: hb.p1, deaths: 1 }))));
   await expectError('BATCH_CLOSED', () => as(H, () => db.query('select public.close_batch($1)', [Bp.p1])));
   await db.query(`update public.batch set status = 'open', closed_at = null where id = $1`, [Bp.p1]);

@@ -159,7 +159,7 @@ test('empty farm: first sign-in opens the 3-step setup; the new worker can sign 
   await expect(page.getByRole('article', { name: 'Блок B' })).toBeVisible();
 });
 
-test('a block with a running batch cannot get a second one; the director closes it and the next number follows', async ({ page }) => {
+test('director starts a batch in an empty block; it shows as running with its number', async ({ page }) => {
   await signIn(page, /Директор/);
   const year = new Date().getFullYear();
   await page.goto('/farm');

@@ -1,6 +1,6 @@
 /** Real backend: Supabase (Postgres + RLS). Server rules: supabase/migrations. */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Api, Article, AskAnswer, AskContext, BatchInfo, BlockInfo, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
+import type { Api, Article, AskAnswer, AskContext, BatchInfo, BatchResultJson, BatchRow, BlockInfo, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError, errorCodeFrom } from './types';
 import { normalizePhone, phoneToEmail } from './phone';
 
@@ -233,7 +233,7 @@ export class SupabaseApi implements Api {
   async blocks(): Promise<BlockInfo[]> {
     const [houses, batches] = await Promise.all([
       this.call(() => this.sb.from('house').select('id, name, code, area_m2, active, has_water_meter').order('name')),
-      this.call(() => this.sb.from('batch').select('id, name, seq, status, closed_at, house_id, house_batch (id, placed_on, placed)')),
+      this.call(() => this.sb.from('batch').select('id, name, seq, status, closed_at, result, house_id, house_batch (id, placed_on, placed)')),
     ]);
     const year = new Date().getFullYear();
     return (houses as Row[]).map((h) => {
@@ -244,13 +244,21 @@ export class SupabaseApi implements Api {
       return {
         houseId: h.id, name: h.name, code: h.code, areaM2: Number(h.area_m2), active: h.active, hasWaterMeter: h.has_water_meter,
         open: open ? { batchId: open.id, number: open.name, houseBatchId: open.house_batch[0].id, placedOn: open.house_batch[0].placed_on, placed: open.house_batch[0].placed } : null,
-        last: last ? { batchId: last.id, number: last.name, closedAt: last.closed_at, houseBatchId: last.house_batch[0].id } : null,
+        last: last ? { batchId: last.id, number: last.name, closedAt: last.closed_at, houseBatchId: last.house_batch[0].id, result: last.result ?? null } : null,
         nextNumber: `${h.code}-${year}-${String(seq).padStart(2, '0')}`,
       };
     });
   }
-  async closeBatch(batchId: string) {
-    await this.call(() => this.sb.rpc('close_batch', { p_batch: batchId }));
+  async closeBatch(batchId: string, result?: BatchResultJson) {
+    await this.call(() => this.sb.rpc('close_batch', { p_batch: batchId, p_result: result ?? null }));
+  }
+  async batches(): Promise<BatchRow[]> {
+    const rows = await this.call(() => this.sb.from('batch').select('id, name, status, closed_at, result, house_id, house:house_id (name), house_batch (id, placed_on, placed, waybill_count)'));
+    return (rows as Row[]).filter((b) => b.house_batch?.length).map((b) => ({
+      id: b.id, number: b.name, houseId: b.house_id, houseName: b.house?.name ?? '', status: b.status, houseBatchId: b.house_batch[0].id,
+      placedOn: b.house_batch[0].placed_on, placed: b.house_batch[0].placed, waybill: b.house_batch[0].waybill_count ?? b.house_batch[0].placed,
+      closedAt: b.closed_at, result: b.result ?? null,
+    })).sort((a, b) => b.placedOn.localeCompare(a.placedOn) || a.houseName.localeCompare(b.houseName));
   }
   async currentBatch(): Promise<BatchInfo | null> {
     const rows = await this.call(() => this.sb.from('batch').select('id, name, status').neq('status', 'closed').limit(1));
@@ -263,8 +271,8 @@ export class SupabaseApi implements Api {
   async setPrice(p: Price) {
     await this.call(() => this.sb.from('price').upsert({ kind: p.kind, ref_id: p.refId, unit_price: p.unitPrice }, { onConflict: 'kind,ref_id' }));
   }
-  async costs(batchId: string): Promise<Cost[]> {
-    const rows = await this.call(() => this.sb.from('cost').select('*').eq('batch_id', batchId).order('spent_on'));
+  async costs(): Promise<Cost[]> {
+    const rows = await this.call(() => this.sb.from('cost').select('*').order('spent_on'));
     return (rows as Row[]).map((r) => ({ id: r.id, batchId: r.batch_id, category: r.category, amount: Number(r.amount), spentOn: r.spent_on, comment: r.comment }));
   }
   async addCost(c: Omit<Cost, 'id'>) {

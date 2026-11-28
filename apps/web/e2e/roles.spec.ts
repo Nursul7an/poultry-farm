@@ -75,18 +75,48 @@ test('treatment blocks an early catch; override with a reason reaches the direct
 test('director prices what workers recorded; the item leaves the list and the cost appears', async ({ page }) => {
   await signIn(page, /Директор/);
   await page.getByRole('link', { name: 'Деньги' }).click();
-  const row = page.getByRole('textbox', { name: /Корм Блок C · Рост 8,0 т: цена за тонну/ });
+  const year = new Date().getFullYear();
+  await page.getByRole('group', { name: 'Партия' }).getByRole('button', { name: `C-${year}-01 · Блок C` }).click();
+  const row = page.getByRole('textbox', { name: /Корм · Рост 8,0 т: цена за тонну/ });
   await expect(row).toBeVisible();
   await row.fill('38000');
   await page.getByRole('button', { name: 'OK' }).click();
   await expect(page.getByText('Цена сохранена')).toBeVisible();
   await expect(page.getByText('Всё оценено ✔')).toBeVisible();
-  await page.getByRole('button', { name: 'Газ, уголь, свет' }).click();
-  await page.getByLabel('Сумма').fill('85000');
-  await page.getByRole('button', { name: 'Добавить', exact: true }).click();
-  await expect(page.getByText('Затрата добавлена')).toBeVisible();
+  // Shared farm costs (demo: gas 620 000, wages 450 000, litter 180 000) are split by chicks placed between 4 batches.
+  await expect(page.getByText('в т.ч. доля общих затрат фермы (по посаженным головам)')).toBeVisible();
+  const form = page.getByRole('form', { name: 'Добавить затрату' });
+  await form.getByRole('button', { name: 'Только C-' + year + '-01' }).click();
+  await form.getByRole('button', { name: 'Подстилка' }).click();
+  await form.getByLabel('Сумма').fill('85000');
+  await form.getByRole('button', { name: 'Добавить', exact: true }).click();
+  await expect(page.getByText(`Затрата добавлена в C-${year}-01`)).toBeVisible();
   const s = await demo(page);
-  expect(s.costs.some((c: any) => c.amount === 85000 && c.category === 'energy')).toBe(true);
+  expect(s.costs.some((c: any) => c.amount === 85000 && c.category === 'litter' && c.batchId === 'batch-3')).toBe(true);
+});
+
+test('director closes a batch: result shown and kept on the card; the block is empty and the next number follows', async ({ page }) => {
+  await signIn(page, /Директор/);
+  const year = new Date().getFullYear();
+  await page.goto('/farm');
+  await page.getByRole('article', { name: 'Блок D' }).getByRole('link', { name: 'Закрыть партию' }).click();
+  await expect(page.getByRole('heading', { name: `Закрыть партию D-${year}-01` })).toBeVisible();
+  await expect(page.getByText('Посажено', { exact: true })).toBeVisible();
+  await expect(page.getByText(/Сдача птицы не записана/)).toBeVisible();
+  await page.getByRole('button', { name: `Закрыть партию D-${year}-01` }).click();
+  await expect(page.getByText(`Партия D-${year}-01 закрыта. Блок пустой`)).toBeVisible();
+  const d = page.getByRole('article', { name: 'Блок D' });
+  await expect(d).toContainText(`Прошлая партия D-${year}-01`);
+  await expect(d.getByLabel(`Итог D-${year}-01`)).toContainText('Сохр.');
+  await expect(d.getByRole('link', { name: `+ Новая партия D-${year}-02` })).toBeVisible();
+  expect((await demo(page)).batches.find((b: any) => b.id === 'batch-4').status).toBe('closed');
+
+  // The worker of Блок D no longer has it among running blocks; it is offered for a new batch.
+  await page.goto('/queue');
+  await page.getByRole('button', { name: /Выйти/ }).click();
+  await signIn(page, /Нурлан/);
+  await expect(page.getByRole('article', { name: 'Блок D' }).getByRole('link', { name: `+ Новая партия D-${year}-02` })).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Мои блоки' })).toHaveCount(0); // only Блок C is running now
 });
 
 test('worker records weighing (director sees it); an old placement edit is refused after 48 h', async ({ page }) => {

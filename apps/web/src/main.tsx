@@ -13,6 +13,7 @@ import Farm from './screens/Farm';
 import People, { HouseCard, WorkerCard } from './screens/People';
 import Setup from './screens/Setup';
 import NewBatch from './screens/NewBatch';
+import CloseBatch from './screens/CloseBatch';
 import Feed from './screens/Feed';
 import Health from './screens/Health';
 import More from './screens/More';
@@ -66,6 +67,7 @@ function Shell() {
           {head && <Route path="/norms" element={<KeyNorms />} />}
           {head && <Route path="/events" element={<Events />} />}
           {head && <Route path="/money" element={<Money />} />}
+          {head && <Route path="/batch/:batchId/close" element={<CloseBatch />} />}
           {head && <Route path="/farm" element={<Farm />} />}
           {head && <Route path="/people" element={<People />} />}
           {head && <Route path="/people/worker/:id" element={<WorkerCard />} />}

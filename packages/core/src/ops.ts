@@ -68,3 +68,56 @@ export function batchMoney(m: MoneyInput) {
     profitPerKg: kgSold ? (revenue - totalCost) / kgSold : null, unpriced,
   };
 }
+
+// ---------------------------------------------------------------- batch result and shared costs (v3: one batch per block)
+
+export interface BatchResultInput {
+  placedOn: string;
+  placed: number;
+  logs: { deaths: number; culls: number; feedKg: number | null }[];
+  handovers: { handedOn: string; birds: number; kg: number; transportDead?: number | null }[];
+}
+/**
+ * Result of one batch (block cycle). Survival and weight come from what was handed over; FCR = feed given / kg handed;
+ * EPEF (European production efficiency factor) = survival % × live weight kg ÷ (age days × FCR) × 100.
+ */
+export function batchResult(x: BatchResultInput) {
+  const losses = x.logs.reduce((a, l) => a + l.deaths + l.culls, 0);
+  const feedKg = x.logs.reduce((a, l) => a + (l.feedKg ?? 0), 0);
+  const handedBirds = x.handovers.reduce((a, h) => a + h.birds, 0);
+  const handedKg = x.handovers.reduce((a, h) => a + h.kg, 0);
+  const lastDay = x.handovers.map((h) => h.handedOn).sort().pop() ?? null;
+  const days = lastDay ? Math.round((Date.parse(lastDay) - Date.parse(x.placedOn)) / 86_400_000) : null;
+  const survivalPct = x.placed ? ((handedBirds || x.placed - losses) / x.placed) * 100 : null;
+  const avgWeightKg = handedBirds ? handedKg / handedBirds : null;
+  const fcr = handedKg ? feedKg / handedKg : null;
+  const epef = survivalPct != null && avgWeightKg != null && fcr && days ? (survivalPct * avgWeightKg) / (days * fcr) * 100 : null;
+  return { placed: x.placed, losses, alive: x.placed - losses, handedBirds, handedKg, feedKg, days, survivalPct, avgWeightKg, fcr, epef,
+    /** Birds neither recorded as lost nor handed over: counting error or theft — the director should see it. */
+    unaccounted: handedBirds ? x.placed - losses - handedBirds : null };
+}
+
+export interface BatchSpan { id: string; placed: number; from: string; to: string | null }
+/**
+ * Shared farm costs (light, gas, wages…) split between batches by chicks placed (owner's rule).
+ * A cost goes to the batches running on its date; a cost in an empty period (cleaning, pre-heating) goes to the
+ * batches that start within the next 14 days; otherwise it stays unallocated and is shown as such.
+ */
+export function splitSharedCosts<C extends { amount: number; spentOn: string }>(costs: C[], batches: BatchSpan[]) {
+  const shares = new Map<string, { cost: C; amount: number }[]>();
+  let unallocated = 0;
+  const day = (s: string) => Date.parse(s.slice(0, 10));
+  for (const c of costs) {
+    const d = day(c.spentOn);
+    let on = batches.filter((b) => day(b.from) <= d && (b.to == null || day(b.to) >= d));
+    if (!on.length) on = batches.filter((b) => day(b.from) > d && day(b.from) - d <= 14 * 86_400_000);
+    const total = on.reduce((a, b) => a + b.placed, 0);
+    if (!total) { unallocated += c.amount; continue; }
+    for (const b of on) {
+      const list = shares.get(b.id) ?? [];
+      list.push({ cost: c, amount: (c.amount * b.placed) / total });
+      shares.set(b.id, list);
+    }
+  }
+  return { shares, unallocated };
+}

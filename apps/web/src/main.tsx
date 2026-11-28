@@ -15,6 +15,8 @@ import Setup from './screens/Setup';
 import NewBatch from './screens/NewBatch';
 import CloseBatch from './screens/CloseBatch';
 import Farms from './screens/Farms';
+import FeedLotForm from './screens/FeedLotForm';
+import FeedIssueForm from './screens/FeedIssueForm';
 import Feed from './screens/Feed';
 import Health from './screens/Health';
 import More from './screens/More';
@@ -57,6 +59,9 @@ function Shell() {
           <Route path="/log/:hb/:day" element={<DailyLog />} />
           <Route path="/queue" element={<Queue />} />
           <Route path="/feed" element={<Feed />} />
+          <Route path="/feed/lot/new" element={<FeedLotForm />} />
+          <Route path="/feed/lot/:id" element={<FeedLotForm />} />
+          <Route path="/feed/issue" element={<FeedIssueForm />} />
           <Route path="/health" element={<Health />} />
           <Route path="/more" element={<More />} />
           <Route path="/placement" element={<Placement />} />

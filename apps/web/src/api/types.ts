@@ -58,8 +58,17 @@ export interface PhaseChange { houseBatchId: string; phase: 'starter' | 'grower'
 export interface CatchPlan { houseBatchId: string; catchAt: string; feedOffAt: string | null; reason: string | null }
 
 /** Operation kinds that go through the offline outbox. */
-export type OpKind = 'log' | 'feed' | 'health' | 'weighing' | 'handover' | 'placement' | 'phase' | 'catch';
-export interface OpsBundle { feed: FeedDelivery[]; health: HealthEvent[]; weighings: Weighing[]; handovers: Handover[] }
+export type OpKind = 'log' | 'feed' | 'health' | 'weighing' | 'handover' | 'placement' | 'phase' | 'catch' | 'feed_lot' | 'feed_issue';
+export interface OpsBundle { feed: FeedDelivery[]; health: HealthEvent[]; weighings: Weighing[]; handovers: Handover[]; issues: FeedIssue[] }
+export type FeedKind = 'starter' | 'grower' | 'finisher' | 'other';
+/** A delivery to the farm feed warehouse (v4). `issuedKg`/`leftKg` come from the server (all blocks). */
+export interface FeedLot {
+  id: string; receivedOn: string; feedType: FeedKind; product: string | null; kg: number; bags: number | null; bagKg: number | null;
+  producedOn: string | null; expiresOn: string | null; storage: string | null; note: string | null; editReason?: string | null;
+  issuedKg?: number; leftKg?: number; createdAt?: string; createdBy?: string | null;
+}
+/** Feed taken from a warehouse lot to a block's running batch. */
+export interface FeedIssue { id: string; lotId: string; houseBatchId: string; issuedOn: string; kg: number; note: string | null; editReason?: string | null; createdAt?: string; createdBy?: string | null }
 
 export interface FarmEvent { at: string; houseBatchId: string; houseName: string; who: string | null; kind: string; refId: string; data: Record<string, any> }
 
@@ -128,7 +137,7 @@ export interface Worker { id: string; displayName: string; phone: string; houseI
 
 /** Error codes the server can return (see supabase/migrations). */
 export type ApiErrorCode =
-  | 'NETWORK' | 'AUTH' | 'FORBIDDEN' | 'EDIT_WINDOW' | 'REASON_REQUIRED' | 'BATCH_CLOSED' | 'BLOCK_BUSY' | 'BATCH_NUMBER_TAKEN'
+  | 'NETWORK' | 'AUTH' | 'FORBIDDEN' | 'EDIT_WINDOW' | 'REASON_REQUIRED' | 'BATCH_CLOSED' | 'BLOCK_BUSY' | 'BATCH_NUMBER_TAKEN' | 'LOT_EMPTY' | 'LOT_BELOW_ISSUED'
   | 'DAY_IN_FUTURE' | 'DAY_TOO_OLD' | 'METER_BACKWARDS' | 'WITHDRAWAL' | 'VALIDATION' | 'UNKNOWN';
 
 export const ERROR_TEXT: Record<ApiErrorCode, string> = {
@@ -140,6 +149,8 @@ export const ERROR_TEXT: Record<ApiErrorCode, string> = {
   BATCH_CLOSED: 'Партия закрыта — сообщите директору',
   BLOCK_BUSY: 'В этом блоке уже идёт партия — сначала директор закрывает её',
   BATCH_NUMBER_TAKEN: 'Такой номер партии уже есть',
+  LOT_EMPTY: 'На складе в этой поставке столько не осталось',
+  LOT_BELOW_ISSUED: 'Из этой поставки уже выдано больше — исправьте количество',
   DAY_IN_FUTURE: 'Дата ещё не наступила',
   DAY_TOO_OLD: 'Старые дни заполняет директор',
   METER_BACKWARDS: 'Показание меньше прошлого — отметьте «новый счётчик»',
@@ -193,6 +204,8 @@ export interface Api {
   ops(houseBatchIds: string[]): Promise<OpsBundle>;
   /** Saves one queued operation; idempotent by id. Returns the stored record (placement/phase/catch: the house batch). */
   push(kind: Exclude<OpKind, 'log'>, payload: any): Promise<any>;
+  /** The farm's feed warehouse: every delivery with what is left. */
+  feedLots(): Promise<FeedLot[]>;
   events(sinceIso: string): Promise<FarmEvent[]>;
   // Finance (director only)
   currentBatch(): Promise<BatchInfo | null>;
@@ -220,7 +233,7 @@ export interface AskAnswer { answer: string; sources: { id: string; title: strin
 /** Map a raw server error message to a code. */
 export function errorCodeFrom(message: string | undefined): ApiErrorCode {
   const m = message ?? '';
-  for (const c of ['EDIT_WINDOW', 'REASON_REQUIRED', 'BATCH_CLOSED', 'BLOCK_BUSY', 'BATCH_NUMBER_TAKEN', 'DAY_IN_FUTURE', 'DAY_TOO_OLD', 'METER_BACKWARDS', 'WITHDRAWAL', 'FORBIDDEN'] as const) {
+  for (const c of ['EDIT_WINDOW', 'REASON_REQUIRED', 'BATCH_CLOSED', 'BLOCK_BUSY', 'BATCH_NUMBER_TAKEN', 'LOT_EMPTY', 'LOT_BELOW_ISSUED', 'DAY_IN_FUTURE', 'DAY_TOO_OLD', 'METER_BACKWARDS', 'WITHDRAWAL', 'FORBIDDEN'] as const) {
     if (m.includes(c)) return c;
   }
   if (/row-level security|permission denied/i.test(m)) return 'FORBIDDEN';

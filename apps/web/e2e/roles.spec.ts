@@ -16,18 +16,35 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test('worker records a feed delivery offline; it arrives once when back online', async ({ page, context }) => {
+test('worker records a warehouse delivery offline (arrives once), then issues feed to the block oldest-expiry first', async ({ page, context }) => {
   await signIn(page, /Айгуль/);
   await page.getByRole('link', { name: 'Корм' }).click();
-  await expect(page.getByText('В бункере Блок A')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Склад кормов' })).toBeVisible();
+  await expect(page.getByText(/Скоро истекает: Агрокорм ПК-5 Старт/)).toBeVisible(); // demo: starter expires in 9 days
   await context.setOffline(true);
-  await page.getByRole('button', { name: 'Записать поставку' }).click();
-  await page.getByLabel('Тонн по накладной').fill('8,5');
-  await page.getByRole('button', { name: 'Сохранить поставку' }).click();
-  await expect(page.getByText('Записано: Рост 8,5 т')).toBeVisible();
-  expect((await demo(page)).feed.filter((f: any) => f.tonnes === 8.5)).toHaveLength(0);
+  await page.getByRole('link', { name: '+ Поступление' }).click();
+  await page.getByRole('group', { name: 'Тип корма' }).getByRole('button', { name: 'Рост' }).click();
+  await page.getByLabel('Производитель, марка').fill('Кормовит Рост');
+  await page.getByLabel('Мешков').fill('200');
+  await expect(page.getByText(/Итого: 8\s000 кг/)).toBeVisible();
+  await page.getByRole('button', { name: /90 дн\. от поступления/ }).click();
+  await page.getByRole('button', { name: 'Записать поступление' }).click();
+  await expect(page.getByRole('link', { name: /Кормовит Рост/ })).toContainText('ждёт отправки');
+  expect(((await demo(page)).feedLots ?? []).filter((l: any) => l.product === 'Кормовит Рост')).toHaveLength(0);
   await context.setOffline(false);
-  await expect.poll(async () => (await demo(page)).feed.filter((f: any) => f.tonnes === 8.5).length, { timeout: 15_000 }).toBe(1);
+  await expect.poll(async () => (await demo(page)).feedLots.filter((l: any) => l.product === 'Кормовит Рост' && l.kg === 8000).length, { timeout: 15_000 }).toBe(1);
+
+  // Issue 25 bags to Блок A: the grower delivery that expires first is offered first.
+  await page.getByRole('link', { name: 'Выдать в блок' }).click();
+  await page.getByRole('group', { name: 'Блок' }).getByRole('button', { name: 'Блок A' }).click();
+  const first = page.getByRole('radiogroup', { name: 'Поставка' }).locator('label').first();
+  await expect(first).toContainText('Агрокорм ПК-6 Рост');
+  await expect(first).toContainText('Выдавать первым');
+  await page.getByLabel('Мешков').fill('25');
+  await page.getByRole('button', { name: 'Выдать 1 000 кг в Блок A' }).click();
+  await expect(page.getByRole('heading', { name: 'Склад кормов' })).toBeVisible();
+  await expect.poll(async () => (await demo(page)).feedIssues.filter((i: any) => i.kg === 1000 && i.houseBatchId === 'hb-1' && i.lotId === 'lot-3').length, { timeout: 15_000 }).toBe(1);
+  await expect(page.getByRole('link', { name: /Агрокорм ПК-6 Рост/ }).first()).toContainText('Осталось 15 000 из 48 000 кг');
 });
 
 test('worker never sees money and cannot open the director screens', async ({ page }) => {
@@ -77,7 +94,7 @@ test('director prices what workers recorded; the item leaves the list and the co
   await page.getByRole('link', { name: 'Деньги' }).click();
   const year = new Date().getFullYear();
   await page.getByRole('group', { name: 'Партия' }).getByRole('button', { name: `C-${year}-01 · Блок C` }).click();
-  const row = page.getByRole('textbox', { name: /Корм · Рост 8,0 т: цена за тонну/ });
+  const row = page.getByRole('textbox', { name: /Склад · Рост 48,0 т · Агрокорм ПК-6 Рост: цена за тонну/ });
   await expect(row).toBeVisible();
   await row.fill('38000');
   await page.getByRole('button', { name: 'OK' }).click();

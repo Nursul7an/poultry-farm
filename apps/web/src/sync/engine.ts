@@ -50,13 +50,13 @@ export class SyncEngine {
   }
 
   private table(kind: OpKind) {
-    return ({ feed: this.db.feed, health: this.db.health, weighing: this.db.weighings, handover: this.db.handovers } as Record<string, any>)[kind];
+    return ({ feed: this.db.feed, health: this.db.health, weighing: this.db.weighings, handover: this.db.handovers, feed_lot: this.db.feedLots, feed_issue: this.db.feedIssues } as Record<string, any>)[kind];
   }
 
   /** Save any other operation locally (optimistically) and queue it. */
   async saveOp(kind: Exclude<OpKind, 'log'>, payload: any): Promise<void> {
     const key = kind === 'placement' || kind === 'phase' || kind === 'catch' ? `${kind}:${payload.houseBatchId ?? payload.id}` : payload.id;
-    await this.db.transaction('rw', [this.db.outbox, this.db.houseBatches, this.db.myHouses, this.db.feed, this.db.health, this.db.weighings, this.db.handovers], async () => {
+    await this.db.transaction('rw', [this.db.outbox, this.db.houseBatches, this.db.myHouses, this.db.feed, this.db.health, this.db.weighings, this.db.handovers, this.db.feedLots, this.db.feedIssues], async () => {
       const t = this.table(kind);
       if (t) await t.put(payload);
       else await this.applyToHouseBatch(kind, payload);
@@ -100,11 +100,13 @@ export class SyncEngine {
     await this.emit({ syncing: true });
     let lastError: string | null = null;
     const items = await this.db.outbox.where('status').equals('pending').sortBy('seq');
+    let feedSent = false;
     for (const item of items) {
       try {
         if (item.kind !== 'log') {
           const stored = await this.api.push(item.kind, item.payload);
-          await this.db.transaction('rw', [this.db.outbox, this.db.houseBatches, this.db.feed, this.db.health, this.db.weighings, this.db.handovers], async () => {
+          if (item.kind === 'feed_lot' || item.kind === 'feed_issue') feedSent = true;
+          await this.db.transaction('rw', [this.db.outbox, this.db.houseBatches, this.db.feed, this.db.health, this.db.weighings, this.db.handovers, this.db.feedLots, this.db.feedIssues], async () => {
             const still = await this.db.outbox.get(item.seq!);
             if (!still) return;
             const newer = await this.db.outbox.where('logId').equals(item.logId).filter((o) => o.seq! > item.seq!).count();
@@ -141,7 +143,19 @@ export class SyncEngine {
         await this.db.outbox.update(item.seq!, { status: 'rejected', errorCode: err.code, error: err.message, attempts: item.attempts + 1 });
       }
     }
+    // Warehouse stock left is computed on the server across all blocks: reload it after feed records went out.
+    if (feedSent) await this.refreshFeedLots().catch(() => {});
     await this.emit({ syncing: false, lastError, lastSyncAt: lastError ? this.status.lastSyncAt : new Date().toISOString() });
+  }
+
+  private async refreshFeedLots() {
+    const lots = await this.api.feedLots();
+    const pending = new Set((await this.db.outbox.toArray()).map((o) => o.logId));
+    await this.db.transaction('rw', this.db.feedLots, async () => {
+      const local = await this.db.feedLots.toArray();
+      await this.db.feedLots.bulkDelete(local.filter((l) => !pending.has(l.id)).map((l) => l.id));
+      await this.db.feedLots.bulkPut(lots.filter((l) => !pending.has(l.id)));
+    });
   }
 
   /** Download houses and the current batch's logs. Local unsent edits always win over downloaded copies. */
@@ -151,16 +165,17 @@ export class SyncEngine {
     const since = hbs.length ? hbs.map((h) => h.placedOn).sort()[0]! : addDays(this.today(), -CACHE_DAYS);
     const logs = await this.api.recentLogs(hbs.map((h) => h.houseBatchId), since);
     const ops = await this.api.ops(hbs.map((h) => h.houseBatchId));
+    const lots = await this.api.feedLots();
     const outbox = await this.db.outbox.toArray();
     const pendingIds = new Set(outbox.map((o) => o.logId));
     const pendingHb = new Set(outbox.filter((o) => ['placement', 'phase', 'catch'].includes(o.kind)).map((o) => o.payload.houseBatchId ?? o.payload.id));
-    await this.db.transaction('rw', [this.db.houseBatches, this.db.logs, this.db.myHouses, this.db.feed, this.db.health, this.db.weighings, this.db.handovers], async () => {
+    await this.db.transaction('rw', [this.db.houseBatches, this.db.logs, this.db.myHouses, this.db.feed, this.db.health, this.db.weighings, this.db.handovers, this.db.feedLots, this.db.feedIssues], async () => {
       await this.db.myHouses.clear();
       await this.db.myHouses.bulkPut(mine);
       const keep = (await this.db.houseBatches.toArray()).filter((h) => pendingHb.has(h.houseBatchId));
       await this.db.houseBatches.clear();
       await this.db.houseBatches.bulkPut(hbs.filter((h) => !pendingHb.has(h.houseBatchId)).concat(keep));
-      for (const [t, rows] of [[this.db.feed, ops.feed], [this.db.health, ops.health], [this.db.weighings, ops.weighings], [this.db.handovers, ops.handovers]] as const) {
+      for (const [t, rows] of [[this.db.feed, ops.feed], [this.db.health, ops.health], [this.db.weighings, ops.weighings], [this.db.handovers, ops.handovers], [this.db.feedIssues, ops.issues ?? []], [this.db.feedLots, lots]] as const) {
         const local = await (t as any).toArray();
         await (t as any).bulkDelete(local.filter((r: any) => !pendingIds.has(r.id)).map((r: any) => r.id));
         await (t as any).bulkPut((rows as any[]).filter((r) => !pendingIds.has(r.id)));

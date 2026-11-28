@@ -4,6 +4,7 @@ import { useOnline, useSignedIn } from '../app';
 import type { BatchRow, Cost, Payment, Price } from '../api/types';
 import { TopBar } from '../ui/parts';
 import { useBatchRecords } from '../ui/batchData';
+import { FEED_KIND_RU, useWarehouse } from '../ui/feedStock';
 import { errText } from '../ui/people';
 import { fmtDayShort, fmtInt, fmtNum, parseNum } from '../ui/format';
 
@@ -36,6 +37,7 @@ export default function Money() {
   const ordered = useMemo(() => [...(batches ?? [])].sort((a, b) => Number(a.status === 'closed') - Number(b.status === 'closed') || b.placedOn.localeCompare(a.placedOn)), [batches]);
   const batch = ordered.find((b) => b.id === sel) ?? ordered[0] ?? null;
   const { data, result, reload } = useBatchRecords(batch);
+  const { lots } = useWarehouse();
 
   const price = (kind: Price['kind'], id: string) => prices.find((p) => p.kind === kind && p.refId === id)?.unitPrice ?? null;
   const paidFor = (id: string) => payments.filter((p) => p.handoverId === id).reduce((a, p) => a + p.amount, 0);
@@ -44,10 +46,11 @@ export default function Money() {
   const myShares = batch ? split.shares.get(batch.id) ?? [] : [];
   const own = costs.filter((c) => batch && c.batchId === batch.id);
 
-  const feed = data?.ops.feed ?? [], treatments = (data?.ops.health ?? []).filter((e) => e.kind === 'treatment'), handovers = data?.ops.handovers ?? [];
+  const feed = data?.ops.feed ?? [], issues = data?.ops.issues ?? [], treatments = (data?.ops.health ?? []).filter((e) => e.kind === 'treatment'), handovers = data?.ops.handovers ?? [];
   const money = batch ? batchMoney({
     chicks: [{ waybill: batch.waybill, price: price('chick', batch.id) }],
-    feed: feed.map((f) => ({ tonnes: f.tonnes, pricePerT: price('feed', f.id) })),
+    // Feed: what was issued to this block from the warehouse, at each delivery's price (+ old per-block deliveries).
+    feed: [...feed.map((f) => ({ tonnes: f.tonnes, pricePerT: price('feed', f.id) })), ...issues.map((i) => ({ tonnes: i.kg / 1000, pricePerT: price('feed', i.lotId) }))],
     medicine: treatments.map((t) => ({ price: price('medicine', t.id) })),
     costs: [...own.map((c) => ({ category: c.category, amount: c.amount })), ...myShares.map((s) => ({ category: s.cost.category as CostCategory, amount: s.amount }))],
     sales: handovers.map((h) => ({ kg: h.kg, pricePerKg: price('sale', h.id), paid: paidFor(h.id) })),
@@ -57,6 +60,7 @@ export default function Money() {
   type Pending = { key: string; kind: Price['kind']; refId: string; what: string; who: string; qty: number; unit: string };
   const pending: Pending[] = batch ? [
     ...(price('chick', batch.id) == null ? [{ key: 'chick', kind: 'chick' as const, refId: batch.id, what: `Цыплята ${batch.number}`, who: `${fmtInt(batch.waybill)} по накладной`, qty: batch.waybill, unit: 'за голову' }] : []),
+    ...lots.filter((l) => price('feed', l.id) == null).map((l) => ({ key: l.id, kind: 'feed' as const, refId: l.id, what: `Склад · ${FEED_KIND_RU[l.feedType]} ${fmtNum(l.kg / 1000)} т${l.product ? ` · ${l.product}` : ''}`, who: `пришёл ${fmtDayShort(l.receivedOn)}`, qty: l.kg / 1000, unit: 'за тонну' })),
     ...feed.filter((f) => price('feed', f.id) == null).map((f) => ({ key: f.id, kind: 'feed' as const, refId: f.id, what: `Корм · ${FEED_TYPE_RU[f.feedType]} ${fmtNum(f.tonnes)} т`, who: fmtDayShort(f.deliveredOn), qty: f.tonnes, unit: 'за тонну' })),
     ...treatments.filter((t) => price('medicine', t.id) == null).map((t) => ({ key: t.id, kind: 'medicine' as const, refId: t.id, what: `Лечение · ${t.product}`, who: fmtDayShort(t.eventOn), qty: 1, unit: 'за курс' })),
     ...handovers.filter((h) => price('sale', h.id) == null).map((h) => ({ key: h.id, kind: 'sale' as const, refId: h.id, what: `Сдача · ${h.buyer} · ${fmtInt(h.kg)} кг`, who: fmtDayShort(h.handedOn), qty: h.kg, unit: 'за кг' })),

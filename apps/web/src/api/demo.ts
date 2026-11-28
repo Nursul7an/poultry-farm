@@ -5,7 +5,7 @@
  * The real rules live in SQL; keep the two in step when changing either.
  */
 import { AA_NORMS, addDays, earliestSlaughter, localParts, productionDay, weighingStats, withinWorkerEditWindow } from '@farm/core';
-import type { Api, Article, AskAnswer, AskContext, BatchInfo, BatchResultJson, BatchRow, BlockInfo, FarmSummary, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
+import type { Api, Article, AskAnswer, AskContext, BatchInfo, BatchResultJson, BatchRow, BlockInfo, FarmSummary, FeedIssue, FeedLot, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError } from './types';
 import { normalizePhone } from './phone';
 import { searchArticles } from './search';
@@ -24,6 +24,9 @@ interface DemoState {
   hbs: DemoHB[];
   logs: LogRecord[];
   feed: FeedDelivery[];
+  /** Farm feed warehouse (v4): deliveries and feed issued to blocks. */
+  feedLots?: FeedLot[];
+  feedIssues?: FeedIssue[];
   health: HealthEvent[];
   weighings: Weighing[];
   handovers: Handover[];
@@ -83,11 +86,19 @@ function seed(now = new Date()): DemoState {
   });
   const by = (i: number) => (i < 2 ? 'u-aigul' : 'u-nurlan');
   const feed: FeedDelivery[] = [], health: HealthEvent[] = [], weighings: Weighing[] = [], prices: Price[] = batches.map((b) => ({ kind: 'chick' as const, refId: b.id, unitPrice: 70 }));
+  // Feed warehouse: three deliveries, issued to the blocks over the batch. The last one has no price yet and
+  // the starter left over expires soon, so those warnings show.
+  const today0 = addDays(placedOn, 23);
+  const feedLots: FeedLot[] = [
+    { id: 'lot-1', receivedOn: addDays(placedOn, -1), feedType: 'starter', product: 'Агрокорм ПК-5 Старт', kg: 28000, bags: 700, bagKg: 40, producedOn: addDays(placedOn, -20), expiresOn: addDays(today0, 9), storage: 'Склад 1', note: null, createdAt: created, createdBy: 'u-aigul' },
+    { id: 'lot-2', receivedOn: addDays(placedOn, 8), feedType: 'grower', product: 'Агрокорм ПК-6 Рост', kg: 62000, bags: 1550, bagKg: 40, producedOn: addDays(placedOn, 2), expiresOn: addDays(today0, 70), storage: 'Склад 1', note: null, createdAt: created, createdBy: 'u-nurlan' },
+    { id: 'lot-3', receivedOn: addDays(placedOn, 21), feedType: 'grower', product: 'Агрокорм ПК-6 Рост', kg: 48000, bags: 1200, bagKg: 40, producedOn: addDays(placedOn, 18), expiresOn: addDays(today0, 85), storage: 'Склад 2', note: null, createdAt: created, createdBy: 'u-nurlan' },
+  ];
+  const feedIssues: FeedIssue[] = [];
+  prices.push({ kind: 'feed', refId: 'lot-1', unitPrice: 42000 }, { kind: 'feed', refId: 'lot-2', unitPrice: 38000 });
   hbs.forEach((hb, i) => {
-    ([[0, 'starter', 6.5], [8, 'grower', 7.5], [15, 'grower', 8], [21, 'grower', 8]] as const).forEach(([d, t, tn]) => {
-      const id = `feed-${hb.id}-${d}`;
-      feed.push({ id, houseBatchId: hb.id, deliveredOn: addDays(placedOn, d), feedType: t, tonnes: tn, createdAt: created, createdBy: by(i) });
-      if (!(i === 2 && d === 21)) prices.push({ kind: 'feed', refId: id, unitPrice: t === 'starter' ? 42000 : 38000 });
+    ([[0, 'lot-1', 6500], [8, 'lot-2', 7500], [15, 'lot-2', 8000], [21, 'lot-3', 8000]] as const).forEach(([d, lot, kg]) => {
+      feedIssues.push({ id: `iss-${hb.id}-${d}`, lotId: lot, houseBatchId: hb.id, issuedOn: addDays(placedOn, d), kg, note: null, createdAt: created, createdBy: by(i) });
     });
     health.push({ id: `vac-${hb.id}-0`, houseBatchId: hb.id, kind: 'vaccination', eventOn: placedOn, product: 'Ньюкасл + ИБ', method: 'спрей', createdAt: created, createdBy: by(i) });
     health.push({ id: `vac-${hb.id}-14`, houseBatchId: hb.id, kind: 'vaccination', eventOn: addDays(placedOn, 14), product: 'Гамборо', method: 'с водой', createdAt: created, createdBy: by(i) });
@@ -97,7 +108,7 @@ function seed(now = new Date()): DemoState {
     weighings.push({ id: `w-${hb.id}-21`, houseBatchId: hb.id, weighedOn: addDays(placedOn, 21), method: 'individual', samplesG: samples, n: st.n, meanG: Math.round(st.mean), sdG: st.sd, cv: st.cv, createdAt: created, createdBy: by(i) });
   });
   return {
-    v: 2, farm, houses, hbs, logs, feed, health, weighings, prices, handovers: [], costs: [
+    v: 2, farm, houses, hbs, logs, feed, feedLots, feedIssues, health, weighings, prices, handovers: [], costs: [
       { id: 'c1', batchId: null, category: 'energy', amount: 620000, spentOn: addDays(placedOn, 10), comment: 'газ, уголь' },
       { id: 'c2', batchId: null, category: 'wages', amount: 450000, spentOn: addDays(placedOn, 15), comment: null },
       { id: 'c3', batchId: null, category: 'litter', amount: 180000, spentOn: addDays(placedOn, -2), comment: 'опилки' },
@@ -268,7 +279,7 @@ export class DemoApi implements Api {
       const ids = this.farmIds();
       this.stash();
       const farm = { ...this.s.farm, ...f, id: `farm-${Date.now()}`, name: f.name.trim() };
-      this.s = { ...this.s, farm, users: [{ ...me, houseIds: [] }], houses: [], batches: [], hbs: [], logs: [], feed: [], health: [], weighings: [], handovers: [],
+      this.s = { ...this.s, farm, users: [{ ...me, houseIds: [] }], houses: [], batches: [], hbs: [], logs: [], feed: [], feedLots: [], feedIssues: [], health: [], weighings: [], handovers: [],
         prices: [], costs: [], payments: [], overrides: [], normOverrides: {}, staffEvents: [] };
       localStorage.setItem(`${KEY}:farms`, JSON.stringify([...ids, farm.id]));
       this.save();
@@ -406,10 +417,16 @@ export class DemoApi implements Api {
     return this.net((): OpsBundle => {
       const ok = (r: { houseBatchId: string }) => ids.includes(r.houseBatchId) && this.canHb(this.me(), r.houseBatchId);
       const c = <T,>(xs: T[]) => xs.map((x) => ({ ...x }));
-      return { feed: c(this.s.feed.filter(ok)), health: c(this.s.health.filter(ok)), weighings: c(this.s.weighings.filter(ok)), handovers: c(this.s.handovers.filter(ok)) };
+      return { feed: c(this.s.feed.filter(ok)), health: c(this.s.health.filter(ok)), weighings: c(this.s.weighings.filter(ok)), handovers: c(this.s.handovers.filter(ok)), issues: c((this.s.feedIssues ?? []).filter(ok)) };
     });
   }
-  push(kind: 'feed' | 'health' | 'weighing' | 'handover' | 'placement' | 'phase' | 'catch', p: any) {
+  // ------------------------------------------------------------ feed warehouse (mirror 20261128000004_farms_and_feed.sql)
+  private issuedFrom(lotId: string, except?: string) { return (this.s.feedIssues ?? []).filter((i) => i.lotId === lotId && i.id !== except).reduce((a, i) => a + i.kg, 0); }
+  feedLots() {
+    return this.net((): FeedLot[] => { this.me(); return (this.s.feedLots ?? []).map((l) => { const issued = this.issuedFrom(l.id); return { ...l, issuedKg: issued, leftKg: l.kg - issued }; }).sort((a, b) => b.receivedOn.localeCompare(a.receivedOn));
+    });
+  }
+  push(kind: 'feed' | 'health' | 'weighing' | 'handover' | 'placement' | 'phase' | 'catch' | 'feed_lot' | 'feed_issue', p: any) {
     return this.net(() => {
       const u = this.me();
       if (kind !== 'placement' && p?.houseBatchId && this.batchOfHb(p.houseBatchId)?.status === 'closed') throw new ApiError('BATCH_CLOSED');
@@ -426,6 +443,25 @@ export class DemoApi implements Api {
       };
       switch (kind) {
         case 'feed': return upsert(this.s.feed, p as FeedDelivery);
+        case 'feed_lot': {
+          const lot = p as FeedLot;
+          if (lot.producedOn && lot.expiresOn && lot.expiresOn < lot.producedOn) throw new ApiError('VALIDATION', 'Срок годности раньше даты производства');
+          const lots = (this.s.feedLots ??= []);
+          const ex = lots.find((x) => x.id === lot.id);
+          this.checkWindow(u, ex, lot.editReason);
+          if (ex && lot.kg < this.issuedFrom(lot.id)) throw new ApiError('LOT_BELOW_ISSUED');
+          const { issuedKg: _i, leftKg: _l, ...clean } = lot;
+          const stored = { ...clean, createdAt: ex?.createdAt ?? now, createdBy: ex?.createdBy ?? u.id };
+          if (ex) Object.assign(ex, stored); else lots.push(stored);
+          this.save(); return { ...stored };
+        }
+        case 'feed_issue': {
+          const is = p as FeedIssue;
+          if (!(this.s.feedLots ?? []).some((l) => l.id === is.lotId)) throw new ApiError('VALIDATION', 'Поставка не найдена');
+          const lot = this.s.feedLots!.find((l) => l.id === is.lotId)!;
+          if (is.kg > lot.kg - this.issuedFrom(lot.id, is.id)) throw new ApiError('LOT_EMPTY');
+          return upsert((this.s.feedIssues ??= []), is);
+        }
         case 'handover': return upsert(this.s.handovers, p as Handover);
         case 'health': return upsert(this.s.health, p as HealthEvent, (r) => ({ ...r, earliestSlaughter: r.kind === 'treatment' ? earliestSlaughter(r.eventOn, r.courseDays ?? 1, r.withdrawalDays ?? 0) : null }));
         case 'weighing': return upsert(this.s.weighings, p as Weighing, (r) => {

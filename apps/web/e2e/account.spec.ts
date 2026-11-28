@@ -30,9 +30,10 @@ test('worker with unsent records is warned before signing out', async ({ page, c
   await expect(page.getByText('День 23', { exact: true }).first()).toBeVisible(); // houses loaded
   await context.setOffline(true);
   await page.getByRole('link', { name: 'Корм' }).click();
-  await page.getByRole('button', { name: 'Записать поставку' }).click();
-  await page.getByLabel('Тонн по накладной').fill('5');
-  await page.getByRole('button', { name: 'Сохранить поставку' }).click();
+  await page.getByRole('link', { name: '+ Поступление' }).click();
+  await page.getByLabel('Мешков').fill('10');
+  await page.getByRole('button', { name: 'Записать поступление' }).click();
+  await expect(page.getByRole('heading', { name: 'Склад кормов' })).toBeVisible();
   await page.getByRole('link', { name: /Ещё/ }).click();
   const acc = page.getByRole('region', { name: 'Аккаунт' });
   await acc.getByRole('button', { name: 'Выйти' }).click();

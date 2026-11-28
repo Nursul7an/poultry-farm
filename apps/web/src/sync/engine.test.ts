@@ -24,7 +24,8 @@ class FakeApi implements Partial<Api> {
   async recentLogs() { return [...this.server.values()]; }
   async myHouses() { return [{ houseId: 'h2', houseName: 'П-2', hasWaterMeter: true }]; }
   feedServer = new Map<string, any>();
-  async ops() { return { feed: [...this.feedServer.values()], health: [], weighings: [], handovers: [] }; }
+  async ops() { return { feed: [...this.feedServer.values()], health: [], weighings: [], handovers: [], issues: [] }; }
+  async feedLots() { return []; }
   async push(kind: string, p: any) {
     this.calls++;
     if (!this.online) throw new ApiError('NETWORK');

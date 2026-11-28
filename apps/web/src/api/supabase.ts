@@ -1,6 +1,6 @@
 /** Real backend: Supabase (Postgres + RLS). Server rules: supabase/migrations. */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Api, Article, AskAnswer, AskContext, BatchInfo, BatchResultJson, BatchRow, BlockInfo, FarmSummary, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
+import type { Api, Article, AskAnswer, AskContext, BatchInfo, BatchResultJson, BatchRow, BlockInfo, FarmSummary, FeedIssue, FeedLot, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError, errorCodeFrom } from './types';
 import { normalizePhone, phoneToEmail } from './phone';
 
@@ -33,6 +33,8 @@ function toHb(r: Row): HouseBatchInfo {
 const toFeed = (r: Row): FeedDelivery => ({ id: r.id, houseBatchId: r.house_batch_id, deliveredOn: r.delivered_on, feedType: r.feed_type, tonnes: Number(r.tonnes), note: r.note, createdAt: r.created_at, createdBy: r.created_by });
 const toHealth = (r: Row): HealthEvent => ({ id: r.id, houseBatchId: r.house_batch_id, kind: r.kind, eventOn: r.event_on, product: r.product, dose: r.dose, lot: r.lot, method: r.method, courseDays: r.course_days, withdrawalDays: r.withdrawal_days, birdsExamined: r.birds_examined, findings: r.findings, earliestSlaughter: r.earliest_slaughter, note: r.note, createdAt: r.created_at, createdBy: r.created_by });
 const toWeighing = (r: Row): Weighing => ({ id: r.id, houseBatchId: r.house_batch_id, weighedOn: r.weighed_on, method: r.method, samplesG: (r.samples_g ?? []).map(Number), groupTotalG: num(r.group_total_g), groupBirds: r.group_birds, n: r.n, meanG: num(r.mean_g), sdG: num(r.sd_g), cv: num(r.cv), createdAt: r.created_at, createdBy: r.created_by });
+const toLot = (r: Row): FeedLot => ({ id: r.id, receivedOn: r.received_on, feedType: r.feed_type, product: r.product, kg: Number(r.kg), bags: r.bags, bagKg: num(r.bag_kg), producedOn: r.produced_on, expiresOn: r.expires_on, storage: r.storage, note: r.note, issuedKg: r.issued_kg == null ? undefined : Number(r.issued_kg), leftKg: r.left_kg == null ? undefined : Number(r.left_kg), createdAt: r.created_at, createdBy: r.created_by });
+const toIssue = (r: Row): FeedIssue => ({ id: r.id, lotId: r.lot_id, houseBatchId: r.house_batch_id, issuedOn: r.issued_on, kg: Number(r.kg), note: r.note, createdAt: r.created_at, createdBy: r.created_by });
 const toHandover = (r: Row): Handover => ({ id: r.id, houseBatchId: r.house_batch_id, handedOn: r.handed_on, buyer: r.buyer, birds: r.birds, kg: Number(r.kg), transportDead: r.transport_dead, note: r.note, createdAt: r.created_at, createdBy: r.created_by });
 
 function toFarm(f: Row): Session['farm'] {
@@ -228,16 +230,22 @@ export class SupabaseApi implements Api {
     return (rows as Row[]).map((r) => ({ houseId: r.id, houseName: r.name, hasWaterMeter: r.has_water_meter }));
   }
   async ops(ids: string[]): Promise<OpsBundle> {
-    if (!ids.length) return { feed: [], health: [], weighings: [], handovers: [] };
-    const [f, h, w, ho] = await Promise.all(['feed_delivery', 'health_event', 'weighing', 'handover'].map((t) => this.call(() => this.sb.from(t).select('*').in('house_batch_id', ids))));
-    return { feed: f.map(toFeed), health: h.map(toHealth), weighings: w.map(toWeighing), handovers: ho.map(toHandover) };
+    if (!ids.length) return { feed: [], health: [], weighings: [], handovers: [], issues: [] };
+    const [f, h, w, ho, is] = await Promise.all(['feed_delivery', 'health_event', 'weighing', 'handover', 'feed_issue'].map((t) => this.call(() => this.sb.from(t).select('*').in('house_batch_id', ids))));
+    return { feed: f.map(toFeed), health: h.map(toHealth), weighings: w.map(toWeighing), handovers: ho.map(toHandover), issues: is.map(toIssue) };
   }
-  async push(kind: 'feed' | 'health' | 'weighing' | 'handover' | 'placement' | 'phase' | 'catch', p: any): Promise<any> {
+  async feedLots(): Promise<FeedLot[]> {
+    const rows = await this.call(() => this.sb.from('feed_lot_stock').select('*').order('received_on', { ascending: false }));
+    return (rows as Row[]).map(toLot);
+  }
+  async push(kind: 'feed' | 'health' | 'weighing' | 'handover' | 'placement' | 'phase' | 'catch' | 'feed_lot' | 'feed_issue', p: any): Promise<any> {
     const up = async (table: string, row: Row, map: (r: Row) => unknown) => map(await this.call(() => this.sb.from(table).upsert(row, { onConflict: 'id' }).select().single()));
     switch (kind) {
       case 'feed': return up('feed_delivery', { id: p.id, house_batch_id: p.houseBatchId, delivered_on: p.deliveredOn, feed_type: p.feedType, tonnes: p.tonnes, note: p.note ?? null, edit_reason: p.editReason ?? null }, toFeed);
       case 'health': return up('health_event', { id: p.id, house_batch_id: p.houseBatchId, kind: p.kind, event_on: p.eventOn, product: p.product ?? null, dose: p.dose ?? null, lot: p.lot ?? null, method: p.method ?? null, course_days: p.courseDays ?? null, withdrawal_days: p.withdrawalDays ?? null, birds_examined: p.birdsExamined ?? null, findings: p.findings ?? null, note: p.note ?? null, edit_reason: p.editReason ?? null }, toHealth);
       case 'weighing': return up('weighing', { id: p.id, house_batch_id: p.houseBatchId, weighed_on: p.weighedOn, method: p.method, samples_g: p.samplesG, group_total_g: p.groupTotalG ?? null, group_birds: p.groupBirds ?? null, edit_reason: p.editReason ?? null }, toWeighing);
+      case 'feed_lot': return up('feed_lot', { id: p.id, received_on: p.receivedOn, feed_type: p.feedType, product: p.product ?? null, kg: p.kg, bags: p.bags ?? null, bag_kg: p.bagKg ?? null, produced_on: p.producedOn ?? null, expires_on: p.expiresOn ?? null, storage: p.storage ?? null, note: p.note ?? null, edit_reason: p.editReason ?? null }, toLot);
+      case 'feed_issue': return up('feed_issue', { id: p.id, lot_id: p.lotId, house_batch_id: p.houseBatchId, issued_on: p.issuedOn, kg: p.kg, note: p.note ?? null, edit_reason: p.editReason ?? null }, toIssue);
       case 'handover': return up('handover', { id: p.id, house_batch_id: p.houseBatchId, handed_on: p.handedOn, buyer: p.buyer, birds: p.birds, kg: p.kg, transport_dead: p.transportDead ?? 0, note: p.note ?? null, edit_reason: p.editReason ?? null }, toHandover);
       case 'placement': return toHb(await this.call(() => this.sb.rpc('record_placement', { p: { id: p.id, house_id: p.houseId, placed_on: p.placedOn, hatchery: p.hatchery, waybill_count: p.waybillCount, transport_dead: p.transportDead, placed: p.placed, parent_age_weeks: p.parentAgeWeeks, day0_weight_g: p.day0WeightG, cloacal_t: p.cloacalT, crop_fill: p.cropFill, edit_reason: p.editReason ?? null, batch_number: p.batchNumber ?? null } }).single()));
       case 'phase': return toHb(await this.call(() => this.sb.rpc('set_feed_phase', { p_house_batch: p.houseBatchId, p_phase: p.phase, p_since: p.since }).single()));

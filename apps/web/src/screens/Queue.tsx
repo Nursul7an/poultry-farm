@@ -6,11 +6,11 @@ import { fmtDayShort, fmtTime } from '../ui/format';
 import { PIN_RE } from '../api/phone';
 import { ApiError } from '../api/types';
 
-const KIND_RU: Record<string, string> = { log: 'Журнал', feed: 'Поставка корма', health: 'Здоровье', weighing: 'Взвешивание', handover: 'Сдача', placement: 'Посадка', phase: 'Смена рациона', catch: 'План отлова' };
+const KIND_RU: Record<string, string> = { log: 'Журнал', feed: 'Поставка корма', health: 'Здоровье', weighing: 'Взвешивание', handover: 'Сдача', placement: 'Посадка', phase: 'Смена рациона', catch: 'План отлова', feed_lot: 'Поступление корма на склад', feed_issue: 'Выдача корма в блок' };
 /** One line describing any queued record (logs and every other operation). */
 function describe(kind: string, p: any, name: (hb: string) => string) {
   const hb = p?.houseBatchId ?? p?.id ?? '';
-  const day = p?.productionDay ?? p?.deliveredOn ?? p?.eventOn ?? p?.weighedOn ?? p?.handedOn ?? p?.placedOn ?? p?.since ?? null;
+  const day = p?.productionDay ?? p?.deliveredOn ?? p?.receivedOn ?? p?.issuedOn ?? p?.eventOn ?? p?.weighedOn ?? p?.handedOn ?? p?.placedOn ?? p?.since ?? null;
   return `${KIND_RU[kind] ?? kind} ${name(hb)}${day ? ` · ${fmtDayShort(day)}` : ''}`;
 }
 

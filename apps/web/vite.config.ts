@@ -13,11 +13,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg'],
+      includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Птичник — журнал фермы',
+        name: 'Птичник — учёт бройлерной фермы',
         short_name: 'Птичник',
-        description: 'Ежедневный журнал птичника и контроль фермы',
+        description: 'Блоки и партии, журнал дня, склад кормов, здоровье и деньги. Работает без интернета.',
         lang: 'ru',
         start_url: '.',
         scope: '.',

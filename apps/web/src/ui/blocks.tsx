@@ -11,7 +11,7 @@ import { fmtDayShort, fmtInt, fmtNum, fmtTime } from './format';
 export function useBlocks() {
   const { api, session } = useSignedIn();
   const online = useOnline();
-  const key = `farm-blocks-${session.userId}`;
+  const key = `farm-blocks-${session.userId}-${session.farm.id}`;
   const [blocks, setBlocks] = useState<BlockInfo[] | null>(() => { try { return JSON.parse(localStorage.getItem(key) ?? 'null'); } catch { return null; } });
   const reload = useCallback(async () => {
     try { const b = await api.blocks(); setBlocks(b); try { localStorage.setItem(key, JSON.stringify(b)); } catch { /* full */ } }

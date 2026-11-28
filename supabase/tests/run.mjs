@@ -369,6 +369,43 @@ await test('staff events: only the director of the farm reads them; sessions rev
   eq((await db.query(`select count(*)::int c from auth.sessions where user_id = $1`, [A])).rows[0].c, 0);
 });
 
+console.log('Several farms (v4)');
+await test('director creates a second farm, switches; data of each farm stays separate; workers cannot', async () => {
+  await expectError('FORBIDDEN', () => as(A, () => db.query(`select public.create_farm($1)`, [JSON.stringify({ name: 'X' })])));
+  const f2 = (await as(H, () => db.query(`select * from public.create_farm($1)`, [JSON.stringify({ name: 'Ферма Ак-Суу', region: 'Чуйская обл.', address: 'с. Ак-Суу', lat: 42.8, lng: 74.6 })]))).rows[0];
+  eq((await as(H, () => db.query(`select public.current_farm_id() id`))).rows[0].id, f2.id);
+  eq((await as(H, () => db.query(`select count(*)::int c from public.house`))).rows[0].c, 0); // new farm: no blocks yet
+  const farms = (await as(H, () => db.query(`select name, is_current, blocks from public.my_farms()`))).rows;
+  eq(farms.map((f) => [f.name, f.is_current]), [['Ферма Ак-Суу', true], ['Ферма', false]]);
+  await expectError('FORBIDDEN', () => as(H, () => db.query(`select public.switch_farm($1)`, [F2])));
+  await as(H, () => db.query(`select public.switch_farm($1)`, [F]));
+  eq((await as(H, () => db.query(`select count(*)::int c from public.house where farm_id = $1`, [F]))).rows[0].c >= 3, true);
+  eq((await as(A, () => db.query(`select count(*)::int c from public.my_farms()`))).rows[0].c, 1);
+  await db.query(`delete from public.farm where id = $1`, [f2.id]);
+});
+await test('director edits the farm profile; a worker cannot', async () => {
+  await as(H, () => db.query(`update public.farm set region = 'Чуйская обл.', address = 'с. Кант', birds_per_m2 = 16 where id = $1`, [F]));
+  const r = await as(A, () => db.query(`update public.farm set name = 'x' where id = $1 returning id`, [F]));
+  eq(r.rowCount, 0);
+});
+
+console.log('Feed warehouse (v4)');
+await test('worker records a delivery to the farm warehouse and issues feed to own block; stock and expiry kept', async () => {
+  const lot = uuid();
+  await as(A, () => ins('feed_lot', { id: lot, received_on: today, feed_type: 'grower', product: 'Агрокорм ПК-5', kg: 8000, bags: 200, bag_kg: 40, produced_on: day(-10), expires_on: day(80), storage: 'Склад 1' }));
+  await as(A, () => ins('feed_issue', { id: uuid(), lot_id: lot, house_batch_id: hb.p1, issued_on: today, kg: 3000 }));
+  await as(N, () => ins('feed_issue', { id: uuid(), lot_id: lot, house_batch_id: hb.p3, issued_on: today, kg: 1000 }));
+  // Both workers see the same stock left, though each sees only own blocks' issues.
+  eq(Number((await as(A, () => db.query(`select left_kg from public.feed_lot_stock where id = $1`, [lot]))).rows[0].left_kg), 4000);
+  eq(Number((await as(N, () => db.query(`select left_kg from public.feed_lot_stock where id = $1`, [lot]))).rows[0].left_kg), 4000);
+  eq((await as(A, () => db.query(`select count(*)::int c from public.feed_issue where lot_id = $1`, [lot]))).rows[0].c, 1);
+  await expectError('LOT_EMPTY', () => as(A, () => ins('feed_issue', { id: uuid(), lot_id: lot, house_batch_id: hb.p1, issued_on: today, kg: 4500 })));
+  await expectError('row-level security', () => as(A, () => ins('feed_issue', { id: uuid(), lot_id: lot, house_batch_id: hb.p3, issued_on: today, kg: 10 })));
+  await expectError('LOT_BELOW_ISSUED', () => as(A, () => db.query(`update public.feed_lot set kg = 100 where id = $1`, [lot])));
+  await expectError('violates check constraint', () => as(A, () => ins('feed_lot', { id: uuid(), received_on: today, feed_type: 'grower', kg: 10, produced_on: today, expires_on: day(-1) })));
+  eq((await as(H2, () => db.query(`select count(*)::int c from public.feed_lot`))).rows[0].c, 0, 'other farm');
+});
+
 await test('anon role cannot read anything', async () => {
   await db.query('set role anon');
   await expectError('permission denied', () => db.query('select * from public.daily_log'));

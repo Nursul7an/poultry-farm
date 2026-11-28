@@ -1,6 +1,6 @@
 /** Real backend: Supabase (Postgres + RLS). Server rules: supabase/migrations. */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Api, Article, AskAnswer, AskContext, BatchInfo, BatchResultJson, BatchRow, BlockInfo, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
+import type { Api, Article, AskAnswer, AskContext, BatchInfo, BatchResultJson, BatchRow, BlockInfo, FarmSummary, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError, errorCodeFrom } from './types';
 import { normalizePhone, phoneToEmail } from './phone';
 
@@ -35,6 +35,12 @@ const toHealth = (r: Row): HealthEvent => ({ id: r.id, houseBatchId: r.house_bat
 const toWeighing = (r: Row): Weighing => ({ id: r.id, houseBatchId: r.house_batch_id, weighedOn: r.weighed_on, method: r.method, samplesG: (r.samples_g ?? []).map(Number), groupTotalG: num(r.group_total_g), groupBirds: r.group_birds, n: r.n, meanG: num(r.mean_g), sdG: num(r.sd_g), cv: num(r.cv), createdAt: r.created_at, createdBy: r.created_by });
 const toHandover = (r: Row): Handover => ({ id: r.id, houseBatchId: r.house_batch_id, handedOn: r.handed_on, buyer: r.buyer, birds: r.birds, kg: Number(r.kg), transportDead: r.transport_dead, note: r.note, createdAt: r.created_at, createdBy: r.created_by });
 
+function toFarm(f: Row): Session['farm'] {
+  return { id: f.id, name: f.name, tz: f.tz, dayStartHour: f.day_start_hour, region: f.region ?? null, address: f.address ?? null,
+    lat: f.lat == null ? null : Number(f.lat), lng: f.lng == null ? null : Number(f.lng), birdsPerM2: f.birds_per_m2 == null ? 17 : Number(f.birds_per_m2) };
+}
+const farmRow = (f: Omit<Session['farm'], 'id'>) => ({ name: f.name, tz: f.tz, day_start_hour: f.dayStartHour, region: f.region ?? null, address: f.address ?? null, lat: f.lat ?? null, lng: f.lng ?? null, birds_per_m2: f.birdsPerM2 ?? 17 });
+
 function fail(e: { message?: string } | null | undefined): never {
   throw new ApiError(errorCodeFrom(e?.message), undefined);
 }
@@ -56,9 +62,8 @@ export class SupabaseApi implements Api {
   }
 
   private async loadSession(userId: string): Promise<Session> {
-    const u = await this.call(() => this.sb.from('app_user').select('id, role, display_name, phone, farm:farm_id (id, name, tz, day_start_hour)').eq('id', userId).single());
-    const f = (u as Row).farm;
-    const s: Session = { userId, role: (u as Row).role, displayName: (u as Row).display_name, phone: (u as Row).phone, farm: { id: f.id, name: f.name, tz: f.tz, dayStartHour: f.day_start_hour } };
+    const u = await this.call(() => this.sb.from('app_user').select('id, role, display_name, phone, farm:farm_id (*)').eq('id', userId).single());
+    const s: Session = { userId, role: (u as Row).role, displayName: (u as Row).display_name, phone: (u as Row).phone, farm: toFarm((u as Row).farm) };
     localStorage.setItem(SESSION_CACHE, JSON.stringify(s));
     return s;
   }
@@ -127,11 +132,29 @@ export class SupabaseApi implements Api {
 
   async updateFarm(f: FarmSettings): Promise<Session['farm']> {
     const id = this.farmId();
-    const r = await this.call(() => this.sb.from('farm').update({ name: f.name, tz: f.tz, day_start_hour: f.dayStartHour }).eq('id', id).select('id, name, tz, day_start_hour').single());
-    const farm = { id: (r as Row).id, name: (r as Row).name, tz: (r as Row).tz, dayStartHour: (r as Row).day_start_hour };
+    const r = await this.call(() => this.sb.from('farm').update(farmRow(f)).eq('id', id).select('*').single());
+    const farm = toFarm(r as Row);
     const cached = JSON.parse(localStorage.getItem(SESSION_CACHE) ?? 'null') as Session | null;
     if (cached) localStorage.setItem(SESSION_CACHE, JSON.stringify({ ...cached, farm }));
     return farm;
+  }
+  async myFarms(): Promise<FarmSummary[]> {
+    const rows = await this.call(() => this.sb.rpc('my_farms'));
+    return (rows as Row[]).map((r) => ({ id: r.id, name: r.name, region: r.region, address: r.address, blocks: r.blocks, areaM2: Number(r.area_m2), birdsPerM2: Number(r.birds_per_m2), isCurrent: r.is_current }));
+  }
+  private async reloadSession(): Promise<Session> {
+    const { data } = await this.sb.auth.getUser();
+    if (!data.user) throw new ApiError('AUTH');
+    localStorage.removeItem(SESSION_CACHE);
+    return this.loadSession(data.user.id);
+  }
+  async createFarm(f: FarmSettings): Promise<Session> {
+    await this.call(() => this.sb.rpc('create_farm', { p: farmRow(f) }));
+    return this.reloadSession();
+  }
+  async switchFarm(farmId: string): Promise<Session> {
+    await this.call(() => this.sb.rpc('switch_farm', { p_farm: farmId }));
+    return this.reloadSession();
   }
 
   async listHouses(): Promise<House[]> {

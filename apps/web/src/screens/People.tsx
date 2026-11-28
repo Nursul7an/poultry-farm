@@ -4,7 +4,7 @@ import { useLive, useOnline, useSignedIn } from '../app';
 import type { House, Worker } from '../api/types';
 import { TopBar } from '../ui/parts';
 import { AddHouses, FarmForm, fmtPhone, isKgPhone, newPin, PinCard, TIMEZONES, useRun, WorkerForm, type NewWorker } from '../ui/people';
-import { fmtDayShort, parseNum } from '../ui/format';
+import { fmtDayShort, fmtInt, parseNum } from '../ui/format';
 
 /** Houses and workers from the server (director only; needs a connection). */
 export function usePeople() {
@@ -43,7 +43,7 @@ export default function People() {
 
   return (
     <>
-      <TopBar title="Ферма и люди" sub={session.farm.name} back="/more" />
+      <TopBar title="Ферма и люди" sub={session.farm.name} back="/more" right={<Link to="/farms" className="btn">Мои фермы</Link>} />
       <main className="content">
         {!online && <NeedNet />}
         {error && online && <div className="banner bad">{error}</div>}
@@ -52,11 +52,12 @@ export default function People() {
 
         <h2 className="pad" style={{ margin: 0, fontSize: 17 }}>Ферма</h2>
         {editFarm
-          ? <FarmForm farm={session.farm} busy={busy || !online} onSave={(f) => void run(async () => { const farm = await api.updateFarm(f); setSession({ ...session, farm }); }, 'Ферма сохранена').then((ok) => ok && setEditFarm(false))} />
+          ? <FarmForm farm={session.farm} busy={busy || !online} capacity={{ blocks: (houses ?? []).filter((h) => h.active !== false).length, areaM2: (houses ?? []).filter((h) => h.active !== false).reduce((a, h) => a + h.areaM2, 0) }} onSave={(f) => void run(async () => { const farm = await api.updateFarm(f); setSession({ ...session, farm }); }, 'Ферма сохранена').then((ok) => ok && setEditFarm(false))} />
           : (
             <button className="row" style={{ width: '100%', background: 'var(--color-bg-surface)', border: 0, textAlign: 'left', font: 'inherit' }} onClick={() => setEditFarm(true)} aria-label="Изменить ферму">
               <span style={{ flex: 1, display: 'flex', flexDirection: 'column' }}><b style={{ fontWeight: 500 }}>{session.farm.name}</b>
-                <span className="small muted">Сутки с {String(session.farm.dayStartHour).padStart(2, '0')}:00 · {TIMEZONES.find(([v]) => v === session.farm.tz)?.[1] ?? session.farm.tz}</span></span>
+                <span className="small muted">{[session.farm.region, session.farm.address].filter(Boolean).join(', ') || 'Адрес не указан'}</span>
+                <span className="small muted num">Блоков {(houses ?? []).filter((h) => h.active !== false).length} · вместимость ≈ {fmtInt((houses ?? []).filter((h) => h.active !== false).reduce((a, h) => a + h.areaM2, 0) * (session.farm.birdsPerM2 ?? 17))} гол · сутки с {String(session.farm.dayStartHour).padStart(2, '0')}:00 · {TIMEZONES.find(([v]) => v === session.farm.tz)?.[1] ?? session.farm.tz}</span></span>
               <span aria-hidden="true">›</span>
             </button>
           )}

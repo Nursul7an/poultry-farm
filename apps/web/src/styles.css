@@ -166,3 +166,4 @@ a.chip { text-decoration: none; color: inherit; }
 .sticky-save > * { max-width: 608px; width: 100%; margin: 0 auto; }
 @media (min-width: 1024px) { .wide .sticky-save { position: sticky; bottom: 0; } }
 .linkbtn { border: 0; background: none; padding: 0; font: inherit; color: var(--color-accent); text-decoration: underline; cursor: pointer; }
+.wide .nav-account .nav-account-farms { min-height: 32px; display: flex; align-items: center; color: #C9D3DB; font-size: 13px; text-decoration: underline; padding: 0; }

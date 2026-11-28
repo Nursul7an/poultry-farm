@@ -104,7 +104,7 @@ test('a house with batch history cannot be deleted; a new empty one can; farm na
   await page.getByRole('button', { name: 'Сохранить' }).click();
   await expect(page.getByText('Ферма сохранена')).toBeVisible();
   await page.getByRole('link', { name: 'Ферма', exact: true }).click();
-  await expect(page.getByText(/Ферма Ак-Суу/).first()).toBeVisible();
+  await expect(page.getByRole('banner').getByText(/Ферма Ак-Суу/)).toBeVisible();
 });
 
 test('empty farm: first sign-in opens the 3-step setup; the new worker can sign in', async ({ page }) => {

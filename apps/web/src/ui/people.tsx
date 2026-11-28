@@ -4,7 +4,7 @@ import type { FarmSettings, House } from '../api/types';
 import { ApiError } from '../api/types';
 import { normalizePhone } from '../api/phone';
 import { nextBlockNames } from '../api/blocks';
-import { parseNum } from './format';
+import { fmtInt, parseNum } from './format';
 
 export const TIMEZONES = [
   ['Asia/Bishkek', 'Бишкек (UTC+6)'], ['Asia/Almaty', 'Алматы (UTC+5)'], ['Asia/Tashkent', 'Ташкент (UTC+5)'],
@@ -35,22 +35,55 @@ export function useRun() {
   return { run, busy, banner, setMsg };
 }
 
-export function FarmForm({ farm, onSave, busy, submit = 'Сохранить' }: { farm: FarmSettings; onSave: (f: FarmSettings) => void; busy?: boolean; submit?: string }) {
-  const [f, setF] = useState({ name: farm.name, tz: farm.tz, hour: String(farm.dayStartHour) });
-  const hour = Number(f.hour);
-  const ok = f.name.trim().length > 0 && f.name.trim().length <= 80 && Number.isInteger(hour) && hour >= 0 && hour <= 23;
+/** Link to the farm on a map (works on any phone without an API key). */
+export const mapUrl = (lat: number, lng: number) => `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=15/${lat}/${lng}`;
+
+export function FarmForm({ farm, onSave, busy, submit = 'Сохранить', capacity }: {
+  farm: FarmSettings; onSave: (f: FarmSettings) => void; busy?: boolean; submit?: string;
+  /** Blocks and their total area, to show the farm's capacity. */
+  capacity?: { blocks: number; areaM2: number };
+}) {
+  const [f, setF] = useState({ name: farm.name, tz: farm.tz, hour: String(farm.dayStartHour), region: farm.region ?? '', address: farm.address ?? '',
+    lat: farm.lat ?? null as number | null, lng: farm.lng ?? null as number | null, density: String(farm.birdsPerM2 ?? 17).replace('.', ',') });
+  const [gps, setGps] = useState<string | null>(null);
+  const hour = Number(f.hour), density = parseNum(f.density);
+  const ok = f.name.trim().length > 0 && f.name.trim().length <= 80 && Number.isInteger(hour) && hour >= 0 && hour <= 23 && density != null && !Number.isNaN(density) && density > 0 && density <= 40;
+  function locate() {
+    if (!navigator.geolocation) { setGps('Телефон не даёт местоположение'); return; }
+    setGps('Определяю…');
+    navigator.geolocation.getCurrentPosition(
+      (p) => { setF((x) => ({ ...x, lat: Math.round(p.coords.latitude * 1e6) / 1e6, lng: Math.round(p.coords.longitude * 1e6) / 1e6 })); setGps(null); },
+      () => setGps('Не удалось определить. Разрешите доступ к местоположению или впишите адрес.'),
+      { enableHighAccuracy: true, timeout: 15000 },
+    );
+  }
   return (
-    <form className="formrow" onSubmit={(e) => { e.preventDefault(); if (ok) onSave({ name: f.name.trim(), tz: f.tz, dayStartHour: hour }); }}>
+    <form className="formrow" aria-label="Ферма" onSubmit={(e) => { e.preventDefault(); if (ok) onSave({ name: f.name.trim(), tz: f.tz, dayStartHour: hour, region: f.region.trim() || null, address: f.address.trim() || null, lat: f.lat, lng: f.lng, birdsPerM2: density! }); }}>
       <label className="field"><span>Название фермы</span><input className="input text" value={f.name} maxLength={80} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>
       <div className="grid2">
-        <label className="field"><span>Сутки начинаются в (час)</span><input className="input" inputMode="numeric" value={f.hour} onChange={(e) => setF({ ...f, hour: e.target.value.replace(/\D/g, '').slice(0, 2) })} /></label>
-        <label className="field"><span>Часовой пояс</span>
-          <select className="input text" value={f.tz} onChange={(e) => setF({ ...f, tz: e.target.value })}>
-            {TIMEZONES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            {!TIMEZONES.some(([v]) => v === f.tz) && <option value={f.tz}>{f.tz}</option>}
-          </select>
-        </label>
+        <label className="field"><span>Область, район</span><input className="input text" value={f.region} placeholder="Чуйская обл., Аламединский р-н" onChange={(e) => setF({ ...f, region: e.target.value })} /></label>
+        <label className="field"><span>Адрес</span><input className="input text" value={f.address} placeholder="с. Кант, ул. …" onChange={(e) => setF({ ...f, address: e.target.value })} /></label>
       </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <button type="button" className="btn" onClick={locate}>Отметить, где я сейчас</button>
+        {f.lat != null && f.lng != null
+          ? <span className="small num">{f.lat}, {f.lng} · <a href={mapUrl(f.lat, f.lng)} target="_blank" rel="noreferrer">на карте</a> · <button type="button" className="linkbtn" onClick={() => setF({ ...f, lat: null, lng: null })}>убрать</button></span>
+          : <span className="small muted">Точка на карте — нажмите, стоя на ферме</span>}
+        {gps && <span className="small warn-t" role="status">{gps}</span>}
+      </div>
+      <div className="grid2">
+        <label className="field"><span>Голов на м² (вместимость)</span><input className="input" inputMode="decimal" value={f.density} onChange={(e) => setF({ ...f, density: e.target.value })} /></label>
+        <label className="field"><span>Сутки начинаются в (час)</span><input className="input" inputMode="numeric" value={f.hour} onChange={(e) => setF({ ...f, hour: e.target.value.replace(/\D/g, '').slice(0, 2) })} /></label>
+      </div>
+      {capacity && (
+        <span className="small num">Блоков: <b>{capacity.blocks}</b> · площадь <b>{fmtInt(capacity.areaM2)} м²</b> · вместимость ≈ <b>{fmtInt(capacity.areaM2 * (density && !Number.isNaN(density) ? density : 0))} голов</b> за партию</span>
+      )}
+      <label className="field"><span>Часовой пояс</span>
+        <select className="input text" value={f.tz} onChange={(e) => setF({ ...f, tz: e.target.value })}>
+          {TIMEZONES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          {!TIMEZONES.some(([v]) => v === f.tz) && <option value={f.tz}>{f.tz}</option>}
+        </select>
+      </label>
       <span className="small muted">Журнал дня считается с {String(ok ? hour : 8).padStart(2, '0')}:00 до {String(ok ? hour : 8).padStart(2, '0')}:00 следующего дня.</span>
       <button className="btn primary block" disabled={!ok || busy}>{submit}</button>
     </form>

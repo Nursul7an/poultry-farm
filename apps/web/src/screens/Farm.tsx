@@ -10,11 +10,11 @@ import type { FarmEvent } from '../api/types';
 import { eventText } from './eventText';
 import { fmtDayLong, fmtInt, fmtNum, fmtTime } from '../ui/format';
 
-const CACHE = 'farm-today-cache';
 
 /** Head: all houses today (T-13). Online-first with the last result cached for offline viewing. */
 export default function Farm() {
   const { api, today, session } = useSignedIn();
+  const CACHE = `farm-today-cache-${session.farm.id}`;
   const online = useOnline();
   const [rows, setRows] = useState<HouseToday[] | null>(() => { try { return JSON.parse(localStorage.getItem(CACHE) ?? 'null')?.rows ?? null; } catch { return null; } });
   const [at, setAt] = useState<string | null>(() => { try { return JSON.parse(localStorage.getItem(CACHE) ?? 'null')?.at ?? null; } catch { return null; } });
@@ -37,7 +37,7 @@ export default function Farm() {
   useEffect(() => { if (online && rows?.length === 0) api.listHouses().then((h) => setHouseCount(h.filter((x) => x.active !== false).length)).catch(() => {}); }, [api, online, rows]);
   const loc = useLocation();
   const { blocks } = useBlocks();
-  const setupDone = (() => { try { return localStorage.getItem(SETUP_DONE_KEY) === '1'; } catch { return true; } })();
+  const setupDone = (() => { try { return localStorage.getItem(SETUP_DONE_KEY(session.farm.id)) === '1'; } catch { return true; } })();
   if (houseCount === 0 && !setupDone) return <Navigate to="/setup" replace />;
 
   const day = today();

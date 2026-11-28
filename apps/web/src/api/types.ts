@@ -2,7 +2,13 @@ import type { CullReason } from '@farm/core';
 
 export type Role = 'head' | 'worker';
 
-export interface Farm { id: string; name: string; tz: string; dayStartHour: number }
+export interface Farm {
+  id: string; name: string; tz: string; dayStartHour: number;
+  /** Profile (v4): location and capacity. */
+  region?: string | null; address?: string | null; lat?: number | null; lng?: number | null; birdsPerM2?: number;
+}
+/** One of the director's farms, for «Мои фермы». */
+export interface FarmSummary { id: string; name: string; region: string | null; address: string | null; blocks: number; areaM2: number; birdsPerM2: number; isCurrent: boolean }
 export interface Session { userId: string; role: Role; displayName: string; phone: string; farm: Farm }
 
 /** A house within the current open batch, as the app needs it. */
@@ -117,7 +123,7 @@ export interface HouseToday {
 export interface House { id: string; name: string; code?: string; areaM2: number; hasWaterMeter: boolean; drinkerType: string | null; feederType: string | null; active?: boolean }
 /** What the director did with accounts (no PINs). */
 export interface StaffEvent { at: string; kind: 'created' | 'pin_reset' | 'deactivated' | 'reactivated' | 'phone_changed'; userName: string; actorName: string }
-export type FarmSettings = Pick<Session['farm'], 'name' | 'tz' | 'dayStartHour'>;
+export type FarmSettings = Omit<Farm, 'id'>;
 export interface Worker { id: string; displayName: string; phone: string; houseIds: string[]; active: boolean }
 
 /** Error codes the server can return (see supabase/migrations). */
@@ -159,6 +165,10 @@ export interface Api {
   houseToday(): Promise<HouseToday[]>;
   // Farm and people (director; online only)
   updateFarm(f: FarmSettings): Promise<Session['farm']>;
+  /** Director: all farms he belongs to; create another (becomes active); switch the active farm. */
+  myFarms(): Promise<FarmSummary[]>;
+  createFarm(f: FarmSettings): Promise<Session>;
+  switchFarm(farmId: string): Promise<Session>;
   /** All houses of the farm, including deactivated ones (`active: false`). */
   listHouses(): Promise<House[]>;
   createHouse(h: Omit<House, 'id'>): Promise<House>;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useApp, useSyncStatus } from '../app';
 
 export const ROLE_RU = { head: 'Директор', worker: 'Работник' } as const;
@@ -45,7 +45,8 @@ export function NavAccount() {
   if (!session) return null;
   return (
     <div className="nav-account">
-      <span className="nav-account-name">{session.displayName}<br /><small>{ROLE_RU[session.role]}</small></span>
+      <span className="nav-account-name">{session.displayName}<br /><small>{ROLE_RU[session.role]} · {session.farm.name}</small></span>
+      {session.role === 'head' && <NavLink to="/farms" className="nav-account-farms">Мои фермы</NavLink>}
       <SignOutButton className="nav-account-exit" />
     </div>
   );

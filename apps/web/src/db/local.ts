@@ -60,8 +60,26 @@ export class LocalDb extends Dexie {
 }
 
 const dbs = new Map<string, LocalDb>();
-export function dbForUser(userId: string): LocalDb {
-  let db = dbs.get(userId);
-  if (!db) { db = new LocalDb(`farm-${userId}`); dbs.set(userId, db); }
+/** One local database per person AND farm (v4: a director may run several farms; their data never mixes). */
+export function dbForUser(userId: string, farmId: string): LocalDb {
+  const name = `farm-${userId}-${farmId}`;
+  let db = dbs.get(name);
+  if (!db) { db = new LocalDb(name); dbs.set(name, db); void adoptLegacyOutbox(userId, db); }
   return db;
+}
+
+/**
+ * Before v4 the database was per person only (`farm-<user>`). Records still waiting to be sent there are moved into
+ * the farm's database once, so an update never loses unsent work; then the old database is removed.
+ */
+async function adoptLegacyOutbox(userId: string, db: LocalDb) {
+  const legacy = `farm-${userId}`;
+  try {
+    if (!(await Dexie.exists(legacy))) return;
+    const old = new LocalDb(legacy);
+    const items = await old.outbox.toArray();
+    if (items.length) await db.outbox.bulkAdd(items.map(({ seq: _seq, ...rest }) => rest as typeof items[number]));
+    old.close();
+    await Dexie.delete(legacy);
+  } catch { /* keep the old database; nothing is lost */ }
 }

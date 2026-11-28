@@ -5,9 +5,10 @@ import { TopBar } from '../ui/parts';
 import { AddHouses, FarmForm, fmtPhone, PinCard, useRun, WorkerForm, type NewWorker } from '../ui/people';
 import { usePeople } from './People';
 
-export const SETUP_STEP_KEY = 'farm-setup-step';
-export const SETUP_DONE_KEY = 'farm-setup-done';
-const readStep = () => { try { return Math.min(3, Math.max(1, Number(localStorage.getItem(SETUP_STEP_KEY) ?? 1))) as 1 | 2 | 3; } catch { return 1; } };
+/** Per farm: a new farm starts its own setup. */
+export const SETUP_STEP_KEY = (farmId: string) => `farm-setup-step-${farmId}`;
+export const SETUP_DONE_KEY = (farmId: string) => `farm-setup-done-${farmId}`;
+const readStep = (farmId: string) => { try { return Math.min(3, Math.max(1, Number(localStorage.getItem(SETUP_STEP_KEY(farmId)) ?? 1))) as 1 | 2 | 3; } catch { return 1; } };
 const save = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
 
 /** First sign-in of the director on an empty farm: farm → houses → workers (spec v2.2 FR-D1). */
@@ -16,9 +17,9 @@ export default function Setup() {
   const nav = useNavigate();
   const { houses, workers, reload, online } = usePeople();
   const { run, busy, banner } = useRun();
-  const [step, setStepState] = useState<1 | 2 | 3>(readStep);
+  const [step, setStepState] = useState<1 | 2 | 3>(() => readStep(session.farm.id));
   const [pin, setPin] = useState<{ name: string; phone: string; pin: string } | null>(null);
-  const setStep = (s: 1 | 2 | 3) => { setStepState(s); save(SETUP_STEP_KEY, String(s)); };
+  const setStep = (s: 1 | 2 | 3) => { setStepState(s); save(SETUP_STEP_KEY(session.farm.id), String(s)); };
   const active = (houses ?? []).filter((h) => h.active !== false);
   const people = (workers ?? []).filter((w) => w.active);
 
@@ -28,7 +29,7 @@ export default function Setup() {
     return ok;
   }
   function finish() {
-    save(SETUP_DONE_KEY, '1'); save(SETUP_STEP_KEY, '1');
+    save(SETUP_DONE_KEY(session.farm.id), '1'); save(SETUP_STEP_KEY(session.farm.id), '1');
     void sync.refresh().catch(() => {});
     nav('/farm', { replace: true, state: { setupDone: true } });
   }
@@ -80,7 +81,7 @@ export default function Setup() {
             </div>
           </>
         )}
-        <p className="pad small muted"><Link to="/farm" onClick={() => save(SETUP_DONE_KEY, '1')}>Закрыть настройку</Link></p>
+        <p className="pad small muted"><Link to="/farm" onClick={() => save(SETUP_DONE_KEY(session.farm.id), '1')}>Закрыть настройку</Link></p>
       </main>
     </>
   );

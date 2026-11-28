@@ -5,7 +5,7 @@
  * The real rules live in SQL; keep the two in step when changing either.
  */
 import { AA_NORMS, addDays, earliestSlaughter, localParts, productionDay, weighingStats, withinWorkerEditWindow } from '@farm/core';
-import type { Api, Article, AskAnswer, AskContext, BatchInfo, BatchResultJson, BatchRow, BlockInfo, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
+import type { Api, Article, AskAnswer, AskContext, BatchInfo, BatchResultJson, BatchRow, BlockInfo, FarmSummary, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError } from './types';
 import { normalizePhone } from './phone';
 import { searchArticles } from './search';
@@ -239,6 +239,57 @@ export class DemoApi implements Api {
   // ------------------------------------------------------------ farm and people (mirror manage-worker + 20261128000001_people.sql)
   updateFarm(f: FarmSettings) {
     return this.net(() => { this.head(); this.s.farm = { ...this.s.farm, ...f }; this.save(); return { ...this.s.farm }; });
+  }
+  // ------------------------------------------------------------ several farms: other farms' data is kept under KEY:<farmId>
+  private farmIds(): string[] {
+    try { const ids = JSON.parse(localStorage.getItem(`${KEY}:farms`) ?? '[]') as string[]; return ids.includes(this.s.farm.id) ? ids : [this.s.farm.id, ...ids]; }
+    catch { return [this.s.farm.id]; }
+  }
+  private stash() { localStorage.setItem(`${KEY}:${this.s.farm.id}`, JSON.stringify(this.s)); }
+  private summary(st: DemoState, current: boolean): FarmSummary {
+    const active = st.houses.filter((h) => h.active !== false);
+    return { id: st.farm.id, name: st.farm.name, region: st.farm.region ?? null, address: st.farm.address ?? null, blocks: active.length,
+      areaM2: active.reduce((a, h) => a + h.areaM2, 0), birdsPerM2: st.farm.birdsPerM2 ?? 17, isCurrent: current };
+  }
+  myFarms() {
+    return this.net((): FarmSummary[] => {
+      this.head();
+      return this.farmIds().map((id) => {
+        if (id === this.s.farm.id) return this.summary(this.s, true);
+        const raw = localStorage.getItem(`${KEY}:${id}`);
+        return raw ? this.summary(JSON.parse(raw) as DemoState, false) : null;
+      }).filter((x): x is FarmSummary => !!x).sort((a, b) => Number(b.isCurrent) - Number(a.isCurrent) || a.name.localeCompare(b.name));
+    });
+  }
+  createFarm(f: FarmSettings) {
+    return this.net(() => {
+      const me = this.head();
+      if (!f.name?.trim()) throw new ApiError('VALIDATION', 'Укажите название фермы');
+      const ids = this.farmIds();
+      this.stash();
+      const farm = { ...this.s.farm, ...f, id: `farm-${Date.now()}`, name: f.name.trim() };
+      this.s = { ...this.s, farm, users: [{ ...me, houseIds: [] }], houses: [], batches: [], hbs: [], logs: [], feed: [], health: [], weighings: [], handovers: [],
+        prices: [], costs: [], payments: [], overrides: [], normOverrides: {}, staffEvents: [] };
+      localStorage.setItem(`${KEY}:farms`, JSON.stringify([...ids, farm.id]));
+      this.save();
+      return this.session(this.me());
+    });
+  }
+  switchFarm(farmId: string) {
+    return this.net(() => {
+      const me = this.head();
+      if (farmId !== this.s.farm.id) {
+        const raw = localStorage.getItem(`${KEY}:${farmId}`);
+        if (!raw || !this.farmIds().includes(farmId)) throw new ApiError('FORBIDDEN');
+        const ids = this.farmIds();
+        this.stash();
+        this.s = JSON.parse(raw) as DemoState;
+        if (!this.s.users.some((u) => u.id === me.id)) this.s.users.push({ ...me, houseIds: [] });
+        localStorage.setItem(`${KEY}:farms`, JSON.stringify(ids));
+        this.save();
+      }
+      return this.session(this.me());
+    });
   }
   listHouses() { return this.net(() => { this.head(); return this.s.houses.map((h) => ({ ...h, active: h.active !== false })); }); }
   createHouse(h: Omit<House, 'id'>) {

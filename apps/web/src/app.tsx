@@ -31,7 +31,7 @@ export function AppProvider({ api, children }: { api: Api; children: ReactNode }
 
   const value = useMemo<Ctx>(() => {
     const today = () => (session ? productionDay(new Date(), session.farm.tz, session.farm.dayStartHour) : '');
-    const db = session ? dbForUser(session.userId) : null;
+    const db = session ? dbForUser(session.userId, session.farm.id) : null;
     const sync = session && db ? new SyncEngine(db, api, today) : null;
     return { api, session, db, sync, today, setSession };
   }, [api, session]);

@@ -21,11 +21,13 @@ export default function More() {
           <span style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             <b style={{ fontSize: 16 }}>{session.displayName}</b>
             <span className="small muted num">{ROLE_RU[session.role]} · {fmtPhone(session.phone)}</span>
+            <span className="small muted">{session.farm.name}</span>
           </span>
           <SignOutButton />
         </section>
         <div className="section">
-          {head && item('/people', 'Ферма и люди', 'Блоки, работники, PIN, доступ')}
+          {head && item('/people', 'Ферма и люди', 'Профиль фермы, блоки, работники, PIN')}
+          {head && item('/farms', 'Мои фермы', 'Переключиться или создать новую ферму')}
           {item('/placement', 'Посадка', 'Приёмка цыплят, проверка зоба')}
           {item('/weighing', 'Взвешивание', 'Выборка, средняя масса, однородность')}
           {item('/catch', 'Отлов и сдача', 'Дата отлова, снятие корма, сдача покупателю')}

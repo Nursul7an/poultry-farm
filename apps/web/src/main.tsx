@@ -14,6 +14,7 @@ import People, { HouseCard, WorkerCard } from './screens/People';
 import Setup from './screens/Setup';
 import NewBatch from './screens/NewBatch';
 import CloseBatch from './screens/CloseBatch';
+import Farms from './screens/Farms';
 import Feed from './screens/Feed';
 import Health from './screens/Health';
 import More from './screens/More';
@@ -49,7 +50,8 @@ function Shell() {
     <div className={`shell${head ? ' wide' : ''}`}>
       <BottomNav />
       <div className="main">
-        <Routes>
+        {/* Keyed by farm: switching farms remounts every screen, so nothing from the previous farm stays on screen. */}
+        <Routes key={session.farm.id}>
           <Route path="/today" element={<Today />} />
           <Route path="/history" element={<History />} />
           <Route path="/log/:hb/:day" element={<DailyLog />} />
@@ -73,6 +75,7 @@ function Shell() {
           {head && <Route path="/people/worker/:id" element={<WorkerCard />} />}
           {head && <Route path="/people/house/:id" element={<HouseCard />} />}
           {head && <Route path="/setup" element={<Setup />} />}
+          {head && <Route path="/farms" element={<Farms />} />}
           {head && <Route path="/settings" element={<Navigate to="/people" replace />} />}
           <Route path="*" element={<Navigate to={head ? '/farm' : '/today'} replace />} />
         </Routes>

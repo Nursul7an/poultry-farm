@@ -61,7 +61,7 @@ export default function People() {
             </button>
           )}
 
-        <h2 className="pad" style={{ margin: '8px 0 0', fontSize: 17 }}>Птичники {houses ? `· ${houses.filter((h) => h.active !== false).length}` : ''}</h2>
+        <h2 className="pad" style={{ margin: '8px 0 0', fontSize: 17 }}>Блоки {houses ? `· ${houses.filter((h) => h.active !== false).length}` : ''}</h2>
         <div className="section">
           {houses?.map((h) => (
             <Link key={h.id} to={`/people/house/${h.id}`} className="row">
@@ -72,11 +72,11 @@ export default function People() {
               <span aria-hidden="true">›</span>
             </Link>
           ))}
-          {houses && !houses.length && <div className="row muted">Птичников пока нет</div>}
+          {houses && !houses.length && <div className="row muted">Блоков пока нет</div>}
         </div>
         {adding === 'houses'
           ? <AddHouses existing={houses ?? []} busy={busy || !online} onAdd={(names, areaM2, meter) => void run(async () => { for (const name of names) await api.createHouse({ name, areaM2, hasWaterMeter: meter, drinkerType: null, feederType: null }); await sync.refresh(); }, `Добавлены: ${names.join(', ')}`).then(async (ok) => { if (ok) setAdding(null); await reload(); })} />
-          : <div className="pad"><button className="btn block" disabled={!online} onClick={() => setAdding('houses')}>+ Добавить птичники</button></div>}
+          : <div className="pad"><button className="btn block" disabled={!online} onClick={() => setAdding('houses')}>+ Добавить блоки</button></div>}
 
         <h2 className="pad" style={{ margin: '8px 0 0', fontSize: 17 }}>Работники {workers ? `· ${active.length}` : ''}</h2>
         <div className="section">
@@ -84,7 +84,7 @@ export default function People() {
             <Link key={w.id} to={`/people/worker/${w.id}`} className="row">
               <span style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontWeight: 500 }}>{w.displayName}</span>
-                <span className="small muted num">{fmtPhone(w.phone)} · {w.houseIds.map(houseName).filter(Boolean).join(', ') || 'нет птичников'}</span>
+                <span className="small muted num">{fmtPhone(w.phone)} · {w.houseIds.map(houseName).filter(Boolean).join(', ') || 'нет блоков'}</span>
               </span>
               <span aria-hidden="true">›</span>
             </Link>
@@ -120,7 +120,7 @@ export function WorkerCard() {
   const lastLog = useLive(() => db.logs.filter((l) => l.createdBy === id).toArray().then((l) => l.reduce<string | null>((m, x) => (!m || x.productionDay > m ? x.productionDay : m), null)), [db, id], null);
   if (!w) return <><TopBar title="Работник" back="/people" /><main className="content">{workers ? <p className="pad muted">Работник не найден</p> : <p className="pad muted">Загрузка…</p>}</main></>;
 
-  const toggle = (hid: string) => void run(() => api.setWorkerHouses(w.id, w.houseIds.includes(hid) ? w.houseIds.filter((x) => x !== hid) : [...w.houseIds, hid]), 'Птичники обновлены').then(reload);
+  const toggle = (hid: string) => void run(() => api.setWorkerHouses(w.id, w.houseIds.includes(hid) ? w.houseIds.filter((x) => x !== hid) : [...w.houseIds, hid]), 'Блоки обновлены').then(reload);
   async function saveEdit() {
     if (!edit) return;
     const ok = await run(async () => {
@@ -155,8 +155,8 @@ export function WorkerCard() {
 
         {w.active && (
           <>
-            <h2 className="pad" style={{ margin: '8px 0 0', fontSize: 17 }}>Птичники</h2>
-            <div className="chips pad" role="group" aria-label="Птичники работника">
+            <h2 className="pad" style={{ margin: '8px 0 0', fontSize: 17 }}>Блоки</h2>
+            <div className="chips pad" role="group" aria-label="Блоки работника">
               {houses?.filter((h) => h.active !== false).map((h) => <button key={h.id} className={`chip${w.houseIds.includes(h.id) ? ' on' : ''}`} aria-pressed={w.houseIds.includes(h.id)} disabled={busy || !online} onClick={() => toggle(h.id)}>{h.name}</button>)}
             </div>
           </>
@@ -194,14 +194,14 @@ export function HouseCard() {
   const h = houses?.find((x) => x.id === id);
   const [f, setF] = useState<{ name: string; area: string; meter: boolean } | null>(null);
   useEffect(() => { if (h && !f) setF({ name: h.name, area: String(h.areaM2).replace('.', ','), meter: h.hasWaterMeter }); }, [h, f]);
-  if (!h || !f) return <><TopBar title="Птичник" back="/people" /><main className="content"><p className="pad muted">{houses ? 'Птичник не найден' : 'Загрузка…'}</p></main></>;
+  if (!h || !f) return <><TopBar title="Блок" back="/people" /><main className="content"><p className="pad muted">{houses ? 'Блок не найден' : 'Загрузка…'}</p></main></>;
   const area = parseNum(f.area);
   const ok = f.name.trim() && area != null && !Number.isNaN(area) && area > 0;
   const people = (workers ?? []).filter((w) => w.active && w.houseIds.includes(h.id)).map((w) => w.displayName);
 
   return (
     <>
-      <TopBar title={h.name} sub={h.active === false ? 'Отключён' : 'Птичник'} back="/people" />
+      <TopBar title={h.name} sub={h.active === false ? 'Отключён' : 'Блок'} back="/people" />
       <main className="content">
         {!online && <NeedNet />}
         {banner}
@@ -216,10 +216,10 @@ export function HouseCard() {
         </form>
         <div className="pad" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {h.active === false
-            ? <button className="btn block" disabled={busy || !online} onClick={() => void run(() => api.updateHouse(h.id, { active: true }), 'Птичник снова в работе').then(reload)}>Включить птичник</button>
-            : <button className="btn block" disabled={busy || !online} onClick={() => void run(() => api.updateHouse(h.id, { active: false }), 'Птичник отключён: его не предложат для новой посадки').then(reload)}>Отключить птичник</button>}
-          <button className="btn danger block" disabled={busy || !online} onClick={() => void run(() => api.deleteHouse(h.id)).then((done) => { if (done) nav('/people', { replace: true }); })}>Удалить птичник</button>
-          <span className="small muted">Удалить можно только птичник без истории партий; иначе — отключить.</span>
+            ? <button className="btn block" disabled={busy || !online} onClick={() => void run(() => api.updateHouse(h.id, { active: true }), 'Блок снова в работе').then(reload)}>Включить блок</button>
+            : <button className="btn block" disabled={busy || !online} onClick={() => void run(() => api.updateHouse(h.id, { active: false }), 'Блок отключён: в нём нельзя начать новую партию').then(reload)}>Отключить блок</button>}
+          <button className="btn danger block" disabled={busy || !online} onClick={() => void run(() => api.deleteHouse(h.id)).then((done) => { if (done) nav('/people', { replace: true }); })}>Удалить блок</button>
+          <span className="small muted">Удалить можно только блок без истории партий; иначе — отключить.</span>
         </div>
       </main>
     </>

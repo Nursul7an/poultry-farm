@@ -39,7 +39,7 @@ export default function Events() {
   ].sort((a, b) => b.at.localeCompare(a.at));
   return (
     <>
-      <TopBar title="События" sub="Последние 7 дней · все птичники" />
+      <TopBar title="События" sub="Последние 7 дней · все блоки" />
       <main className="content">
         {err && <div className="banner warn">{err}</div>}
         <div className="chips pad" role="group" aria-label="Фильтр">

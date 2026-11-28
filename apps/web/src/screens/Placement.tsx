@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useLive, useSignedIn } from '../app';
 import type { MyHouse, Placement as P } from '../api/types';
 import { TopBar } from '../ui/parts';
@@ -7,7 +8,7 @@ import { fmtDayLong, fmtInt, parseNum } from '../ui/format';
 const HOURS = ['2', '4', '8', '12', '24', '48'];
 const NORM: Record<string, number> = { '2': 75, '4': 80, '8': 80, '12': 85, '24': 95, '48': 100 };
 
-/** Worker: placement of chicks in own house (FR-3). The first placement opens the batch. */
+/** Placement details of the running batch (waybill, crop fill…). A new batch starts in «Новая партия». */
 export default function Placement() {
   const { db, sync, today } = useSignedIn();
   const mine = useLive(() => db.myHouses.toArray().then((x) => x.sort((a, b) => a.houseName.localeCompare(b.houseName))), [db], [] as MyHouse[]);
@@ -26,7 +27,23 @@ export default function Placement() {
     setMsg(null);
   }, [house?.houseId, hb?.houseBatchId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!house) return <><TopBar title="Посадка" back="/more" /><main className="content"><p className="pad muted">Нет назначенных птичников</p></main></>;
+  if (!house) return <><TopBar title="Посадка" back="/more" /><main className="content"><p className="pad muted">Нет назначенных блоков</p></main></>;
+  const picker = mine.length > 1 && (
+    <div className="seg pad" role="group" aria-label="Блок">
+      {mine.map((h) => <button key={h.houseId} className={h.houseId === house.houseId ? 'on' : ''} aria-pressed={h.houseId === house.houseId} onClick={() => setHouseId(h.houseId)}>{h.houseName}</button>)}
+    </div>
+  );
+  if (!hb) {
+    return (
+      <><TopBar title={`Посадка · ${house.houseName}`} sub="Блок пустой" back="/more" />
+        <main className="content">{picker}
+          <div className="banner info" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span>В {house.houseName} сейчас нет партии. Когда привезут цыплят, начните новую партию — номер присвоится сам.</span>
+            <Link className="btn primary" to={`/batch/new/${house.houseId}`}>+ Новая партия</Link>
+          </div>
+        </main></>
+    );
+  }
   const waybill = parseNum(f.waybill ?? '');
   const dead = parseNum(f.dead ?? '') ?? 0;
   const placed = waybill != null && !Number.isNaN(waybill) ? waybill - dead : null;
@@ -47,13 +64,9 @@ export default function Placement() {
 
   return (
     <>
-      <TopBar title={`Посадка · ${house.houseName}`} sub={hb ? `Партия ${hb.batchName} · ${fmtDayLong(hb.placedOn)}` : 'Новая посадка откроет партию'} back="/more" />
+      <TopBar title={`Посадка · ${house.houseName}`} sub={`Партия ${hb.batchName} · ${fmtDayLong(hb.placedOn)}`} back="/more" />
       <main className="content">
-        {mine.length > 1 && (
-          <div className="seg pad" role="group" aria-label="Птичник">
-            {mine.map((h) => <button key={h.houseId} className={h.houseId === house.houseId ? 'on' : ''} onClick={() => setHouseId(h.houseId)}>{h.houseName}</button>)}
-          </div>
-        )}
+        {picker}
         <section className="formrow" style={{ borderBottom: '1px solid var(--color-border)' }}>
           <label className="field"><span>Дата посадки</span><input className="input text" type="date" value={f.placedOn ?? ''} onChange={(e) => setF({ ...f, placedOn: e.target.value })} /></label>
           {field('hatchery', 'Инкубаторий', 'text')}

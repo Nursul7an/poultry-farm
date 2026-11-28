@@ -3,7 +3,8 @@ import { dayOfAge, liveBirds } from '@farm/core';
 import { useLive, useSignedIn } from '../app';
 import type { FeedDelivery, Handover, HealthEvent, HouseBatchInfo, LogRecord, Weighing } from '../api/types';
 
-const KEY = 'farm-selected-house';
+export const SELECTED_HOUSE_KEY = 'farm-selected-house';
+const KEY = SELECTED_HOUSE_KEY;
 
 /** The user's houses from the local cache, plus the remembered selection. */
 export function useHouses() {

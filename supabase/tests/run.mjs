@@ -53,7 +53,11 @@ const uuid = () => crypto.randomUUID();
 
 // ---- schema
 await db.query(readFileSync(join(here, 'auth_shim.sql'), 'utf8'));
-for (const f of readdirSync(migrationsDir).sort()) await db.query(readFileSync(join(migrationsDir, f), 'utf8'));
+// Migrations before v3 (blocks) first; then old-style fixtures (one batch for the whole farm); then the rest,
+// so the tests also check that the v3 migration splits existing data correctly.
+const migrations = readdirSync(migrationsDir).sort();
+const V3 = '20261128000002';
+for (const f of migrations.filter((f) => f < V3)) await db.query(readFileSync(join(migrationsDir, f), 'utf8'));
 
 // ---- fixtures (as superuser)
 const F = uuid(), F2 = uuid(), H = uuid(), A = uuid(), N = uuid(), H2 = uuid();
@@ -73,6 +77,12 @@ const day = (n) => { const d = new Date(today + 'T00:00:00Z'); d.setUTCDate(d.ge
 await db.query(`insert into public.house_batch (id, batch_id, house_id, placed_on, placed) values
   ($1, $4, $5, $8, 17050), ($2, $4, $6, $8, 16980), ($3, $4, $7, $8, 17020)`,
   [hb.p1, hb.p2, hb.p3, B, houses.p1, houses.p2, houses.p3, day(-23)]);
+await db.query(`insert into public.price (farm_id, kind, ref_id, unit_price) values ($1, 'chick', $2, 70)`, [F, B]);
+await db.query(`insert into public.cost (farm_id, batch_id, category, amount) values ($1, $2, 'energy', 300000)`, [F, B]);
+for (const f of migrations.filter((f) => f >= V3)) await db.query(readFileSync(join(migrationsDir, f), 'utf8'));
+// After v3 each block has its own batch.
+const batchOf = async (hbId) => (await db.query('select batch_id from public.house_batch where id = $1', [hbId])).rows[0].batch_id;
+const Bp = { p1: await batchOf(hb.p1), p2: await batchOf(hb.p2), p3: await batchOf(hb.p3) };
 
 const log = (o) => ({ id: uuid(), house_batch_id: hb.p2, production_day: today, deaths: 9, culls: 0, feed_kg: 1970, t_min: 21.6, t_max: 23, rh: 62, ...o });
 
@@ -156,13 +166,24 @@ await test('house_today: head sees 3 houses, worker 2, with live birds', async (
   const sum = (await db.query('select sum(deaths + culls)::int s from public.daily_log where house_batch_id = $1', [hb.p2])).rows[0].s;
   eq(p2.live_birds, 16980 - sum);
 });
-await test('only one open batch per farm', async () => {
-  await expectError('one_active_batch_per_farm', () => as(H, () => db.query(`insert into public.batch (farm_id, name) values ($1, '07/2026')`, [F])));
+console.log('Blocks: each block has its own batch (v3)');
+await test('migration split the farm batch into one numbered batch per block, chick price copied, cost made shared', async () => {
+  const rows = (await db.query(`select h.name, b.name num, b.status from public.batch b join public.house h on h.id = b.house_id where b.farm_id = $1 order by h.name`, [F])).rows;
+  const y = today.slice(0, 4);
+  eq(rows.map((r) => [r.name, r.num, r.status]), [['П-1', `П1-${y}-01`, 'open'], ['П-2', `П2-${y}-01`, 'open'], ['П-3', `П3-${y}-01`, 'open']]);
+  eq(new Set(Object.values(Bp)).size, 3);
+  eq((await db.query(`select count(*)::int c from public.price where kind = 'chick' and unit_price = 70 and ref_id = any($1)`, [Object.values(Bp)])).rows[0].c, 3);
+  eq((await db.query(`select count(*)::int c from public.cost where batch_id is null and amount = 300000`)).rows[0].c, 1);
 });
-await test('closed batch refuses logs → BATCH_CLOSED', async () => {
-  await db.query(`update public.batch set status = 'closed' where id = $1`, [B]);
+await test('only one open batch per block; other blocks are independent', async () => {
+  await expectError('one_open_batch_per_block', () => db.query(`insert into public.batch (farm_id, house_id, name) values ($1, $2, 'X-1')`, [F, houses.p1]));
+});
+await test('closed batch refuses logs → BATCH_CLOSED; only the director closes a batch', async () => {
+  await expectError('FORBIDDEN', () => as(A, () => db.query('select public.close_batch($1)', [Bp.p1])));
+  await as(H, () => db.query('select public.close_batch($1)', [Bp.p1]));
   await expectError('BATCH_CLOSED', () => as(A, () => upsert(log({ house_batch_id: hb.p1, deaths: 1 }))));
-  await db.query(`update public.batch set status = 'open' where id = $1`, [B]);
+  await expectError('BATCH_CLOSED', () => as(H, () => db.query('select public.close_batch($1)', [Bp.p1])));
+  await db.query(`update public.batch set status = 'open', closed_at = null where id = $1`, [Bp.p1]);
 });
 
 console.log('Operations by workers (role model v2.1)');
@@ -223,8 +244,9 @@ await test('director prices a delivery and adds costs and payments; worker sees 
   const ho = (await db.query('select id from public.handover limit 1')).rows[0].id;
   await as(H, async () => {
     await ins('price', { kind: 'feed', ref_id: fd, unit_price: 38000 });
-    await ins('price', { kind: 'chick', ref_id: B, unit_price: 70 });
-    await ins('cost', { batch_id: B, category: 'energy', amount: 85000 });
+    await ins('price', { kind: 'chick', ref_id: Bp.p1, unit_price: 72 }).catch(() => {}); // copied by the migration already
+    await ins('cost', { batch_id: Bp.p1, category: 'energy', amount: 85000 });
+    await ins('cost', { batch_id: null, category: 'wages', amount: 450000 });
     await ins('payment', { handover_id: ho, amount: 10000 });
   });
   for (const t of ['price', 'cost', 'payment']) {
@@ -232,22 +254,35 @@ await test('director prices a delivery and adds costs and payments; worker sees 
     eq((await as(H, () => db.query(`select count(*)::int c from public.${t}`))).rows[0].c > 0, true, `director sees ${t}`);
   }
   await expectError('row-level security', () => as(A, () => ins('price', { kind: 'feed', ref_id: fd, unit_price: 1 })));
-  await expectError('row-level security', () => as(A, () => ins('cost', { batch_id: B, category: 'other', amount: 1 })));
+  await expectError('row-level security', () => as(A, () => ins('cost', { batch_id: Bp.p1, category: 'other', amount: 1 })));
   eq((await as(H2, () => db.query(`select count(*)::int c from public.price`))).rows[0].c, 0, 'other farm');
 });
 
 console.log('Placement by workers');
-await test('worker places chicks only in own houses; first placement opens a new batch', async () => {
-  await db.query(`update public.batch set status = 'closed' where id = $1`, [B]);
+await test('placement starts a new numbered batch only in an empty block; worker only in own blocks', async () => {
+  const y = today.slice(0, 4);
+  await expectError('BLOCK_BUSY', () => as(A, () => db.query('select * from public.record_placement($1)', [JSON.stringify({ id: uuid(), house_id: houses.p1, placed_on: today, placed: 100 })])));
+  await as(H, () => db.query('select public.close_batch($1)', [Bp.p1]));
   await expectError('FORBIDDEN', () => as(A, () => db.query('select * from public.record_placement($1)', [JSON.stringify({ house_id: houses.p3, placed_on: today, placed: 100 })])));
-  const r = (await as(A, () => db.query('select * from public.record_placement($1)', [JSON.stringify({ id: uuid(), house_id: houses.p1, placed_on: today, waybill_count: 17060, transport_dead: 10, placed: 17050 })]))).rows[0];
-  const nb = (await db.query('select name, status from public.batch where id = $1', [r.batch_id])).rows[0];
-  eq(nb.status, 'open');
-  if (r.batch_id === B) throw new Error('reused closed batch');
-  const again = (await as(A, () => db.query('select * from public.record_placement($1)', [JSON.stringify({ id: uuid(), house_id: houses.p1, placed_on: today, placed: 17040 })]))).rows[0];
-  eq([again.id, again.placed], [r.id, 17040]);
-  await db.query(`delete from public.batch where id = $1`, [r.batch_id]);
-  await db.query(`update public.batch set status = 'open' where id = $1`, [B]);
+  const id = uuid();
+  const r = (await as(A, () => db.query('select * from public.record_placement($1)', [JSON.stringify({ id, house_id: houses.p1, placed_on: today, waybill_count: 17060, transport_dead: 10, placed: 17050 })]))).rows[0];
+  const nb = (await db.query('select name, status, house_id from public.batch where id = $1', [r.batch_id])).rows[0];
+  eq([nb.name, nb.status, nb.house_id], [`П1-${y}-02`, 'open', houses.p1]);
+  const again = (await as(A, () => db.query('select * from public.record_placement($1)', [JSON.stringify({ id, house_id: houses.p1, placed_on: today, placed: 17040 })]))).rows[0];
+  eq([again.id, again.placed, again.batch_id], [r.id, 17040, r.batch_id]);
+  // The director may set his own number; a taken number is refused.
+  await as(H, () => db.query('select public.close_batch($1)', [r.batch_id]));
+  await expectError('BATCH_NUMBER_TAKEN', () => as(H, () => db.query('select * from public.record_placement($1)', [JSON.stringify({ id: uuid(), house_id: houses.p1, placed_on: today, placed: 1, batch_number: `П2-${y}-01` })])));
+  const own = (await as(H, () => db.query('select * from public.record_placement($1)', [JSON.stringify({ id: uuid(), house_id: houses.p1, placed_on: today, placed: 1, batch_number: 'Б-7' })]))).rows[0];
+  eq((await db.query('select name from public.batch where id = $1', [own.batch_id])).rows[0].name, 'Б-7');
+  // Restore: the original batch of П-1 is the open one again.
+  await db.query(`delete from public.batch where id = any($1)`, [[r.batch_id, own.batch_id]]);
+  await db.query(`update public.batch set status = 'open', closed_at = null where id = $1`, [Bp.p1]);
+});
+await test('block code follows the name: «Блок B» → B', async () => {
+  const r = (await as(H, () => db.query(`insert into public.house (farm_id, name, area_m2) values ($1, 'Блок B', 900) returning code`, [F]))).rows[0];
+  eq(r.code, 'B');
+  await db.query(`delete from public.house where name = 'Блок B'`);
 });
 
 console.log('Knowledge: AA norms and handbook');

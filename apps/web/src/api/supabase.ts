@@ -1,6 +1,6 @@
 /** Real backend: Supabase (Postgres + RLS). Server rules: supabase/migrations. */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Api, Article, AskAnswer, AskContext, BatchInfo, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
+import type { Api, Article, AskAnswer, AskContext, BatchInfo, BlockInfo, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError, errorCodeFrom } from './types';
 import { normalizePhone, phoneToEmail } from './phone';
 
@@ -136,7 +136,7 @@ export class SupabaseApi implements Api {
 
   async listHouses(): Promise<House[]> {
     const rows = await this.call(() => this.sb.from('house').select('*').order('name'));
-    return (rows as Row[]).map((r) => ({ id: r.id, name: r.name, areaM2: Number(r.area_m2), hasWaterMeter: r.has_water_meter, drinkerType: r.drinker_type, feederType: r.feeder_type, active: r.active }));
+    return (rows as Row[]).map((r) => ({ id: r.id, name: r.name, code: r.code, areaM2: Number(r.area_m2), hasWaterMeter: r.has_water_meter, drinkerType: r.drinker_type, feederType: r.feeder_type, active: r.active }));
   }
 
   async createHouse(h: Omit<House, 'id'>) {
@@ -153,7 +153,7 @@ export class SupabaseApi implements Api {
   }
   async deleteHouse(id: string) {
     const rows = await this.call(() => this.sb.from('house').delete().eq('id', id).select('id'));
-    if (!(rows as Row[]).length) throw new ApiError('VALIDATION', 'У птичника есть история партий — его можно только отключить');
+    if (!(rows as Row[]).length) throw new ApiError('VALIDATION', 'У блока есть история партий — его можно только отключить');
   }
 
   async listWorkers(): Promise<Worker[]> {
@@ -216,7 +216,7 @@ export class SupabaseApi implements Api {
       case 'health': return up('health_event', { id: p.id, house_batch_id: p.houseBatchId, kind: p.kind, event_on: p.eventOn, product: p.product ?? null, dose: p.dose ?? null, lot: p.lot ?? null, method: p.method ?? null, course_days: p.courseDays ?? null, withdrawal_days: p.withdrawalDays ?? null, birds_examined: p.birdsExamined ?? null, findings: p.findings ?? null, note: p.note ?? null, edit_reason: p.editReason ?? null }, toHealth);
       case 'weighing': return up('weighing', { id: p.id, house_batch_id: p.houseBatchId, weighed_on: p.weighedOn, method: p.method, samples_g: p.samplesG, group_total_g: p.groupTotalG ?? null, group_birds: p.groupBirds ?? null, edit_reason: p.editReason ?? null }, toWeighing);
       case 'handover': return up('handover', { id: p.id, house_batch_id: p.houseBatchId, handed_on: p.handedOn, buyer: p.buyer, birds: p.birds, kg: p.kg, transport_dead: p.transportDead ?? 0, note: p.note ?? null, edit_reason: p.editReason ?? null }, toHandover);
-      case 'placement': return toHb(await this.call(() => this.sb.rpc('record_placement', { p: { id: p.id, house_id: p.houseId, placed_on: p.placedOn, hatchery: p.hatchery, waybill_count: p.waybillCount, transport_dead: p.transportDead, placed: p.placed, parent_age_weeks: p.parentAgeWeeks, day0_weight_g: p.day0WeightG, cloacal_t: p.cloacalT, crop_fill: p.cropFill, edit_reason: p.editReason ?? null } }).single()));
+      case 'placement': return toHb(await this.call(() => this.sb.rpc('record_placement', { p: { id: p.id, house_id: p.houseId, placed_on: p.placedOn, hatchery: p.hatchery, waybill_count: p.waybillCount, transport_dead: p.transportDead, placed: p.placed, parent_age_weeks: p.parentAgeWeeks, day0_weight_g: p.day0WeightG, cloacal_t: p.cloacalT, crop_fill: p.cropFill, edit_reason: p.editReason ?? null, batch_number: p.batchNumber ?? null } }).single()));
       case 'phase': return toHb(await this.call(() => this.sb.rpc('set_feed_phase', { p_house_batch: p.houseBatchId, p_phase: p.phase, p_since: p.since }).single()));
       case 'catch': return toHb(await this.call(() => this.sb.rpc('set_catch_plan', { p_house_batch: p.houseBatchId, p_catch_at: p.catchAt, p_feed_off_at: p.feedOffAt, p_reason: p.reason }).single()));
     }
@@ -230,6 +230,28 @@ export class SupabaseApi implements Api {
     return (rows as Row[]).map((r) => ({ at: r.at, houseBatchId: r.house_batch_id, houseName: hn.get(r.house_batch_id) ?? '', who: un.get(r.user_id) ?? null, kind: r.kind, refId: r.ref_id, data: r.data ?? {} }));
   }
   // ------------------------------------------------------------ finance (RLS returns nothing to workers)
+  async blocks(): Promise<BlockInfo[]> {
+    const [houses, batches] = await Promise.all([
+      this.call(() => this.sb.from('house').select('id, name, code, area_m2, active, has_water_meter').order('name')),
+      this.call(() => this.sb.from('batch').select('id, name, seq, status, closed_at, house_id, house_batch (id, placed_on, placed)')),
+    ]);
+    const year = new Date().getFullYear();
+    return (houses as Row[]).map((h) => {
+      const mine = (batches as Row[]).filter((b) => b.house_id === h.id && b.house_batch?.length);
+      const open = mine.find((b) => b.status !== 'closed');
+      const last = mine.filter((b) => b.status === 'closed').sort((a, b) => String(b.closed_at).localeCompare(String(a.closed_at)))[0];
+      const seq = Math.max(0, ...mine.filter((b) => String(b.house_batch[0].placed_on).startsWith(String(year))).map((b) => b.seq ?? 0)) + 1;
+      return {
+        houseId: h.id, name: h.name, code: h.code, areaM2: Number(h.area_m2), active: h.active, hasWaterMeter: h.has_water_meter,
+        open: open ? { batchId: open.id, number: open.name, houseBatchId: open.house_batch[0].id, placedOn: open.house_batch[0].placed_on, placed: open.house_batch[0].placed } : null,
+        last: last ? { batchId: last.id, number: last.name, closedAt: last.closed_at, houseBatchId: last.house_batch[0].id } : null,
+        nextNumber: `${h.code}-${year}-${String(seq).padStart(2, '0')}`,
+      };
+    });
+  }
+  async closeBatch(batchId: string) {
+    await this.call(() => this.sb.rpc('close_batch', { p_batch: batchId }));
+  }
   async currentBatch(): Promise<BatchInfo | null> {
     const rows = await this.call(() => this.sb.from('batch').select('id, name, status').neq('status', 'closed').limit(1));
     return ((rows as Row[])[0] ?? null) as BatchInfo | null;

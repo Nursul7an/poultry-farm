@@ -17,7 +17,7 @@ export default function Weighing() {
   const [entry, setEntry] = useState('');
   const [group, setGroup] = useState({ kg: '', birds: '' });
   const [msg, setMsg] = useState<string | null>(null);
-  if (!current) return <><TopBar title="Взвешивание" back="/more" /><main className="content"><p className="pad muted">Нет птичников с партией</p></main></>;
+  if (!current) return <><TopBar title="Взвешивание" back="/more" /><main className="content"><p className="pad muted">Нет блоков с партией</p></main></>;
 
   const day = today();
   const age = dayOfAge(current.placedOn, day);

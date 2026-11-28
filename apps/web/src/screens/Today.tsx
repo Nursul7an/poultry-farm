@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { addDays, daysBetween } from '@farm/core';
 import { useLive, useSignedIn } from '../app';
 import { AgeRuler, Icon, TopBar } from '../ui/parts';
@@ -6,6 +6,7 @@ import { fmtDayLong, fmtInt, fmtNum, fmtTime } from '../ui/format';
 import { houseFigures, useHouseLogs, useHouseOps, useHouses } from './useHouses';
 import { feedDueTask } from './Feed';
 import { activeTreatments, catchDay } from './Health';
+import { BlockCards, useBlocks } from '../ui/blocks';
 
 export default function Today() {
   const { session, db, today } = useSignedIn();
@@ -14,16 +15,24 @@ export default function Today() {
   const ops = useHouseOps(current?.houseBatchId);
   const outbox = useLive(() => db.outbox.toArray(), [db], []);
   const day = today();
+  const { blocks } = useBlocks();
+  const loc = useLocation();
+  const started = (loc.state as { started?: string } | null)?.started;
+  // Own blocks without a batch: offer to start one (a worker records the arrival of chicks).
+  const empty = (blocks ?? []).filter((b) => b.active && !b.open && !houses.some((h) => h.houseId === b.houseId));
+  const emptyCards = empty.length ? <><h2 className="pad" style={{ margin: 0, fontSize: 16 }}>Пустые блоки</h2><BlockCards blocks={empty} today={day} /></> : null;
 
   if (!houses.length) {
     return (
       <>
         <TopBar title="Сегодня" sub={session.displayName} />
         <main className="content">
-          <div className="banner info" role="status">
-            <strong>В птичнике нет партии</strong><br />
-            Журнал откроется, когда директор откроет партию и назначит вам птичник. Если партия уже идёт — подключитесь к сети, чтобы загрузить данные.
-          </div>
+          {empty.length ? emptyCards : (
+            <div className="banner info" role="status">
+              <strong>Нет блоков с партией</strong><br />
+              {blocks?.length === 0 ? 'Директор ещё не назначил вам блок.' : 'Журнал откроется, когда в вашем блоке начнут новую партию. Если партия уже идёт — подключитесь к сети, чтобы загрузить данные.'}
+            </div>
+          )}
         </main>
       </>
     );
@@ -56,8 +65,9 @@ export default function Today() {
     <>
       <TopBar title={current.houseName} sub={`${session.displayName} · ${fmtDayLong(day)}`} />
       <main className="content">
+        {started && <div className="banner ok" role="status">Партия {started} начата. Через 2 и 24 часа проверьте наполнение зоба («Ещё → Посадка»).</div>}
         {houses.length > 1 && (
-          <div className="seg pad" role="group" aria-label="Мои птичники">
+          <div className="seg pad" role="group" aria-label="Мои блоки">
             {houses.map((h) => (
               <button key={h.houseBatchId} className={h.houseBatchId === current.houseBatchId ? 'on' : ''} aria-pressed={h.houseBatchId === current.houseBatchId} onClick={() => select(h.houseBatchId)}>{h.houseName}</button>
             ))}
@@ -108,6 +118,7 @@ export default function Today() {
             </div>
           ) : <span className="muted">Нет записи за вчера</span>}
         </section>
+        {emptyCards}
       </main>
     </>
   );

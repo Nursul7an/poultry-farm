@@ -8,7 +8,7 @@ async function signIn(page: Page, who: RegExp) {
 /** Number of logs the demo "server" holds for a house on a given day. */
 async function serverLogs(page: Page, hb: string) {
   return page.evaluate((hb) => {
-    const s = JSON.parse(localStorage.getItem('farm-demo-v2')!);
+    const s = JSON.parse(localStorage.getItem('farm-demo-v3')!);
     return s.logs.filter((l: any) => l.houseBatchId === hb && !String(l.id).startsWith('seed-'));
   }, hb);
 }
@@ -34,9 +34,9 @@ test.beforeEach(async ({ page }) => {
 
 test('worker sees only assigned houses and logs a day online', async ({ page }) => {
   await signIn(page, /Айгуль/);
-  await expect(page.getByRole('group', { name: 'Мои птичники' }).getByRole('button')).toHaveText(['П-1', 'П-2']);
+  await expect(page.getByRole('group', { name: 'Мои блоки' }).getByRole('button')).toHaveText(['Блок A', 'Блок B']);
   await expect(page.getByText('День 23', { exact: true }).first()).toBeVisible();
-  await page.getByRole('link', { name: /Записать день · П-1/ }).click();
+  await page.getByRole('link', { name: /Записать день · Блок A/ }).click();
   await fillLog(page, '9');
   await page.getByRole('button', { name: 'Сохранить журнал' }).click();
   await expect(page.getByText('Журнал сохранён и отправлен')).toBeVisible();
@@ -51,7 +51,7 @@ test('offline: saved on the phone, survives reload, sent exactly once when back 
   await expect(page.getByText('День 23', { exact: true }).first()).toBeVisible();
 
   await context.setOffline(true);
-  await page.getByRole('link', { name: /Записать день · П-1/ }).click();
+  await page.getByRole('link', { name: /Записать день · Блок A/ }).click();
   await fillLog(page, '12');
   await page.getByRole('button', { name: 'Сохранить журнал' }).click();
   await expect(page.getByText('Сохранено на телефоне')).toBeVisible();
@@ -72,7 +72,7 @@ test('offline: saved on the phone, survives reload, sent exactly once when back 
 
 test('plausibility: 90 deaths asks "Это верно?", Исправить keeps the values', async ({ page }) => {
   await signIn(page, /Айгуль/);
-  await page.getByRole('link', { name: /Записать день · П-1/ }).click();
+  await page.getByRole('link', { name: /Записать день · Блок A/ }).click();
   await fillLog(page, '90');
   await page.getByRole('button', { name: 'Сохранить журнал' }).click();
   await expect(page.getByRole('dialog', { name: 'Это верно?' })).toContainText('Падёж 90');
@@ -85,7 +85,7 @@ test('plausibility: 90 deaths asks "Это верно?", Исправить keep
 
 test('double tap on save creates one record', async ({ page }) => {
   await signIn(page, /Айгуль/);
-  await page.getByRole('link', { name: /Записать день · П-1/ }).click();
+  await page.getByRole('link', { name: /Записать день · Блок A/ }).click();
   await fillLog(page, '9');
   await page.getByRole('button', { name: 'Сохранить журнал' }).dblclick();
   await expect(page.getByText('Журнал сохранён и отправлен')).toBeVisible();
@@ -102,7 +102,7 @@ test('48-hour rule: worker cannot edit an old log; head must give a reason', asy
   await page.goto('/queue');
   await page.getByRole('button', { name: /Выйти/ }).click();
   await signIn(page, /Директор/);
-  const day22 = await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('farm-demo-v2')!); return s.logs.find((l: any) => l.id === 'seed-hb-1-22').productionDay; });
+  const day22 = await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('farm-demo-v3')!); return s.logs.find((l: any) => l.id === 'seed-hb-1-22').productionDay; });
   await page.goto(`/log/hb-1/${day22}`);
   await page.getByRole('button', { name: 'Сохранить журнал' }).click();
   await expect(page.getByRole('alert')).toContainText('укажите причину');
@@ -115,6 +115,6 @@ test('head sees all 4 houses with today status', async ({ page }) => {
   await signIn(page, /Директор/);
   const rows = page.locator('table.data tbody tr');
   await expect(rows).toHaveCount(4);
-  await expect(rows.first()).toContainText('П-1');
+  await expect(rows.first()).toContainText('Блок A');
   await expect(page.getByText('нет записи').first()).toBeVisible();
 });

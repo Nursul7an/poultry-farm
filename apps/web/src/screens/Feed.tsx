@@ -21,7 +21,7 @@ export default function Feed() {
   const [tonnes, setTonnes] = useState('');
   const [err, setErr] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
-  if (!current) return <><TopBar title="Корм" /><main className="content"><p className="pad muted">Нет птичников с партией</p></main></>;
+  if (!current) return <><TopBar title="Корм" /><main className="content"><p className="pad muted">Нет блоков с партией</p></main></>;
 
   const day = today();
   const age = dayOfAge(current.placedOn, day);

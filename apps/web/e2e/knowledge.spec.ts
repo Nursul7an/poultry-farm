@@ -26,7 +26,7 @@ test.beforeEach(async ({ page }) => {
 
 test('saved log is checked against the norms, with a link to the handbook', async ({ page }) => {
   await signIn(page, /Айгуль/);
-  await page.getByRole('link', { name: /Записать день · П-1/ }).click();
+  await page.getByRole('link', { name: /Записать день · Блок A/ }).click();
   await fillLog(page, '60'); // 60 of ~16 800 ≈ 0.36 % > 0.2 % → critical
   await page.getByRole('button', { name: 'Сохранить журнал' }).click();
   await page.getByRole('button', { name: 'Да, верно — сохранить' }).click(); // 60 deaths is a spike vs. the last days
@@ -41,7 +41,7 @@ test('saved log is checked against the norms, with a link to the handbook', asyn
 test('handbook works offline: search, open an article with a table', async ({ page, context }) => {
   await signIn(page, /Нурлан/);
   await page.goto('/handbook');
-  await expect(page.getByRole('heading', { name: /Нормы на сегодня · П-3, день 23/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Нормы на сегодня · Блок C, день 23/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Посадка, брудер/ })).toBeVisible(); // articles cached
   await context.setOffline(true);
   await page.getByRole('searchbox', { name: 'Поиск по справочнику' }).fill('температура по возрасту');
@@ -54,16 +54,19 @@ test('handbook works offline: search, open an article with a table', async ({ pa
 test('director changes a norm; the worker\'s check uses it', async ({ page }) => {
   await signIn(page, /Директор/);
   await page.goto('/norms');
-  await page.getByRole('button', { name: /^Отход/ }).click();
-  await page.getByLabel('отход за сутки до %', { exact: true }).fill('0,5');
-  await page.getByRole('button', { name: 'Сохранить для фермы' }).click();
-  await expect(page.getByText(/Норма сохранена/)).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Отход.*изменено/ })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Однородность (CV), не больше' })).toHaveValue('10');
+  await expect(page.getByRole('textbox', { name: 'Вода : корм, от (ниппели)' })).toHaveValue('1,6');
+  await page.getByRole('textbox', { name: 'Падёж за сутки, не больше' }).fill('0,5');
+  await expect(page.getByText(/Изменено · Arbor Acres: 0,1 %/)).toBeVisible();
+  await page.getByRole('button', { name: 'Сохранить' }).click();
+  await expect(page.getByText(/Сохранено\. Телефоны получат нормы/)).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('textbox', { name: 'Падёж за сутки, не больше' })).toHaveValue('0,5');
 
   await page.goto('/queue');
   await page.getByRole('button', { name: /Выйти/ }).click();
   await signIn(page, /Айгуль/);
-  await page.getByRole('link', { name: /Записать день · П-1/ }).click();
+  await page.getByRole('link', { name: /Записать день · Блок A/ }).click();
   await fillLog(page, '60');
   await page.getByRole('button', { name: 'Сохранить журнал' }).click();
   await page.getByRole('button', { name: 'Да, верно — сохранить' }).click(); // 60 deaths is a spike vs. the last days

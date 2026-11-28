@@ -10,7 +10,7 @@ export default function History() {
   const { houses, current, select } = useHouses();
   const logs = useHouseLogs(current?.houseBatchId);
   const outbox = useLive(() => db.outbox.toArray(), [db], []);
-  if (!current) return <><TopBar title="Журнал" /><main className="content"><p className="pad muted">Нет птичников</p></main></>;
+  if (!current) return <><TopBar title="Журнал" /><main className="content"><p className="pad muted">Нет блоков</p></main></>;
   const day = today();
   const days: string[] = [];
   for (let d = day; d >= current.placedOn && days.length < 45; d = addDays(d, -1)) days.push(d);
@@ -20,7 +20,7 @@ export default function History() {
       <TopBar title={`Журнал · ${current.houseName}`} />
       <main className="content">
         {houses.length > 1 && (
-          <div className="seg pad" role="group" aria-label="Птичник">
+          <div className="seg pad" role="group" aria-label="Блок">
             {houses.map((h) => <button key={h.houseBatchId} className={h.houseBatchId === current.houseBatchId ? 'on' : ''} onClick={() => select(h.houseBatchId)}>{h.houseName}</button>)}
           </div>
         )}

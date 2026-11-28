@@ -6,7 +6,7 @@ async function signIn(page: Page, who: RegExp) {
   await page.getByRole('button', { name: who }).click();
   await expect(page.getByRole('navigation', { name: 'Основное меню' })).toBeVisible();
 }
-const demo = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('farm-demo-v2')!));
+const demo = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('farm-demo-v3')!));
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -19,7 +19,7 @@ test.beforeEach(async ({ page }) => {
 test('worker records a feed delivery offline; it arrives once when back online', async ({ page, context }) => {
   await signIn(page, /Айгуль/);
   await page.getByRole('link', { name: 'Корм' }).click();
-  await expect(page.getByText('В бункере П-1')).toBeVisible();
+  await expect(page.getByText('В бункере Блок A')).toBeVisible();
   await context.setOffline(true);
   await page.getByRole('button', { name: 'Записать поставку' }).click();
   await page.getByLabel('Тонн по накладной').fill('8,5');
@@ -47,7 +47,7 @@ test('worker never sees money and cannot open the director screens', async ({ pa
 test('treatment blocks an early catch; override with a reason reaches the director', async ({ page }) => {
   await signIn(page, /Айгуль/);
   await page.getByRole('link', { name: 'Здоровье' }).click();
-  await page.getByRole('group', { name: 'Птичник' }).getByRole('button', { name: 'П-2' }).click();
+  await page.getByRole('group', { name: 'Блок' }).getByRole('button', { name: 'Блок B' }).click();
   await page.getByLabel('Препарат').fill('Амоксициллин 10%');
   await page.getByRole('button', { name: 'Сохранить лечение' }).click();
   await expect(page.getByText(/Сохранено\. Убой не ранее .* Директор уведомлён/)).toBeVisible();
@@ -75,7 +75,7 @@ test('treatment blocks an early catch; override with a reason reaches the direct
 test('director prices what workers recorded; the item leaves the list and the cost appears', async ({ page }) => {
   await signIn(page, /Директор/);
   await page.getByRole('link', { name: 'Деньги' }).click();
-  const row = page.getByRole('textbox', { name: /Корм П-3 · Рост 8,0 т: цена за тонну/ });
+  const row = page.getByRole('textbox', { name: /Корм Блок C · Рост 8,0 т: цена за тонну/ });
   await expect(row).toBeVisible();
   await row.fill('38000');
   await page.getByRole('button', { name: 'OK' }).click();

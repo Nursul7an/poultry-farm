@@ -12,6 +12,7 @@ import Queue from './screens/Queue';
 import Farm from './screens/Farm';
 import People, { HouseCard, WorkerCard } from './screens/People';
 import Setup from './screens/Setup';
+import NewBatch from './screens/NewBatch';
 import Feed from './screens/Feed';
 import Health from './screens/Health';
 import More from './screens/More';
@@ -22,7 +23,7 @@ import Events from './screens/Events';
 import Money from './screens/Money';
 import Handbook, { HandbookArticle } from './screens/Handbook';
 import Ask from './screens/Ask';
-import NormsEdit from './screens/NormsEdit';
+import KeyNorms from './screens/KeyNorms';
 import './styles.css';
 
 // New versions install in the background; check on start, every 30 minutes and whenever the app comes back to the screen.
@@ -56,12 +57,13 @@ function Shell() {
           <Route path="/health" element={<Health />} />
           <Route path="/more" element={<More />} />
           <Route path="/placement" element={<Placement />} />
+          <Route path="/batch/new/:houseId" element={<NewBatch />} />
           <Route path="/weighing" element={<Weighing />} />
           <Route path="/catch" element={<Catch />} />
           <Route path="/handbook" element={<Handbook />} />
           <Route path="/handbook/:id" element={<HandbookArticle />} />
           <Route path="/ask" element={<Ask />} />
-          {head && <Route path="/norms" element={<NormsEdit />} />}
+          {head && <Route path="/norms" element={<KeyNorms />} />}
           {head && <Route path="/events" element={<Events />} />}
           {head && <Route path="/money" element={<Money />} />}
           {head && <Route path="/farm" element={<Farm />} />}

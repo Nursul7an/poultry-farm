@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import { SETUP_DONE_KEY } from './Setup';
+import { BlockCards, useBlocks } from '../ui/blocks';
 import { useOnline, useSignedIn } from '../app';
 import type { HouseToday } from '../api/types';
 import { ApiError } from '../api/types';
-import { AgeRuler, TopBar } from '../ui/parts';
+import { TopBar } from '../ui/parts';
 import type { FarmEvent } from '../api/types';
 import { eventText } from './eventText';
 import { fmtDayLong, fmtInt, fmtNum, fmtTime } from '../ui/format';
@@ -35,45 +36,47 @@ export default function Farm() {
   const [houseCount, setHouseCount] = useState<number | null>(null);
   useEffect(() => { if (online && rows?.length === 0) api.listHouses().then((h) => setHouseCount(h.filter((x) => x.active !== false).length)).catch(() => {}); }, [api, online, rows]);
   const loc = useLocation();
+  const { blocks } = useBlocks();
   const setupDone = (() => { try { return localStorage.getItem(SETUP_DONE_KEY) === '1'; } catch { return true; } })();
   if (houseCount === 0 && !setupDone) return <Navigate to="/setup" replace />;
 
   const day = today();
   const totals = rows?.reduce((a, r) => ({ placed: a.placed + r.placed, live: a.live + r.liveBirds }), { placed: 0, live: 0 });
-  const age = rows?.[0]?.dayOfAge ?? 0;
 
   return (
     <>
-      <TopBar title={`День ${age} · все птичники`} sub={`${session.farm.name} · ${fmtDayLong(day)}`} />
+      <TopBar title="Ферма" sub={`${session.farm.name} · ${fmtDayLong(day)}`} />
       <main className="content">
         {(err || !online) && <div className="banner warn" role="status">{!online ? 'Нет сети.' : err} {at ? `Показаны данные за ${fmtTime(at)}.` : ''}</div>}
         {rows === null && !err && <p className="pad muted">Загрузка…</p>}
         {(loc.state as { setupDone?: boolean } | null)?.setupDone && <div className="banner ok" role="status">Ферма настроена. Передайте работникам телефон и PIN.</div>}
         {rows?.length === 0 && houseCount === 0 && (
           <div className="banner info" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span>На ферме ещё нет птичников.</span>
+            <span>На ферме ещё нет блоков.</span>
             <Link className="btn primary" to="/setup">Настроить ферму</Link>
           </div>
         )}
-        {rows?.length === 0 && houseCount !== 0 && (
-          <div className="banner info" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span>Нет открытой партии. Первая посадка открывает партию — её записывает работник птичника или вы.</span>
-            <Link className="btn" to="/placement">Записать посадку</Link>
+        {rows && rows.length > 0 && (
+          <div className="grid3 pad">
+            <div className="tile"><div className="l">Живых</div><div className="v">{fmtInt(totals!.live)}</div></div>
+            <div className="tile"><div className="l">Сохранность</div><div className="v">{fmtNum((totals!.live / totals!.placed) * 100)}%</div></div>
+            <div className="tile"><div className="l">Журналы сегодня</div><div className="v">{rows.filter((r) => r.today).length} из {rows.length}</div></div>
           </div>
+        )}
+        {!!blocks?.length && (
+          <section aria-label="Блоки">
+            <h2 className="pad" style={{ margin: '0 0 8px', fontSize: 17 }}>Блоки</h2>
+            <BlockCards blocks={blocks} today={today()} rows={rows} />
+          </section>
         )}
         {rows && rows.length > 0 && (
           <>
-            <div className="pad"><AgeRuler day={age} /></div>
-            <div className="grid3 pad">
-              <div className="tile"><div className="l">Живых</div><div className="v">{fmtInt(totals!.live)}</div></div>
-              <div className="tile"><div className="l">Сохранность</div><div className="v">{fmtNum((totals!.live / totals!.placed) * 100)}%</div></div>
-              <div className="tile"><div className="l">Журналы сегодня</div><div className="v">{rows.filter((r) => r.today).length} из {rows.length}</div></div>
-            </div>
+            <h2 className="pad" style={{ margin: '8px 0 0', fontSize: 17 }}>Сегодня по блокам</h2>
             <div className="pad">
               <div className="scroll-x">
                 <table className="data">
                   <thead><tr>
-                    <th>Птичник</th><th>Живых</th><th>Сохр., %</th><th>Падёж сег. / вчера</th><th>Корм, г/гол</th><th>Вода, л</th><th>Вода:корм</th><th>t мин/макс</th><th>ОВ</th><th>Журнал</th>
+                    <th>Блок</th><th>День</th><th>Живых</th><th>Сохр., %</th><th>Падёж сег. / вчера</th><th>Корм, г/гол</th><th>Вода, л</th><th>Вода:корм</th><th>t мин/макс</th><th>ОВ</th><th>Журнал</th>
                   </tr></thead>
                   <tbody>
                     {rows.map((r) => {
@@ -82,6 +85,7 @@ export default function Farm() {
                       return (
                         <tr key={r.houseBatchId}>
                           <td><Link to={`/log/${r.houseBatchId}/${day}`} style={{ color: 'inherit', textDecoration: 'none', display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}><b>{r.houseName}</b><span className="small muted">{r.workers ?? 'нет работника'}</span></Link></td>
+                          <td>{r.dayOfAge}</td>
                           <td>{fmtInt(r.liveBirds)}</td>
                           <td>{fmtNum((r.liveBirds / r.placed) * 100)}</td>
                           <td>{t ? t.deaths + t.culls : '—'} / {r.yesterdayDeaths ?? '—'}</td>
@@ -105,7 +109,7 @@ export default function Farm() {
               ); })}
               {!events.some((e) => e.kind !== 'log') && <div className="row muted">Новых записей нет</div>}
             </div>
-            <p className="pad small muted">Предупреждения по нормам Arbor Acres (падёж, вода, температура) — фаза 2. Нажмите на птичник, чтобы открыть или исправить журнал.</p>
+            <p className="pad small muted">Нажмите на блок в таблице, чтобы открыть или исправить журнал.</p>
           </>
         )}
       </main>

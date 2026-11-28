@@ -5,19 +5,22 @@
  * The real rules live in SQL; keep the two in step when changing either.
  */
 import { AA_NORMS, addDays, earliestSlaughter, localParts, productionDay, weighingStats, withinWorkerEditWindow } from '@farm/core';
-import type { Api, Article, AskAnswer, AskContext, BatchInfo, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
+import type { Api, Article, AskAnswer, AskContext, BatchInfo, BlockInfo, FarmSettings, NormRow, StaffEvent, Cost, FarmEvent, FeedDelivery, Handover, HealthEvent, House, HouseBatchInfo, HouseToday, LogRecord, MyHouse, OpsBundle, Payment, Price, Session, Weighing, Worker } from './types';
 import { ApiError } from './types';
 import { normalizePhone } from './phone';
 import { searchArticles } from './search';
+import { blockCode } from './blocks';
 
 interface DemoUser { id: string; role: 'head' | 'worker'; displayName: string; phone: string; pin: string; houseIds: string[]; active: boolean }
 type DemoHB = Omit<HouseBatchInfo, 'houseBatchId' | 'houseName' | 'hasWaterMeter' | 'batchName'> & { id: string; createdBy?: string };
+interface DemoBatch { id: string; houseId: string; name: string; seq: number; status: 'open' | 'closed'; openedAt: string; closedAt: string | null }
 interface DemoState {
   v: 2;
   farm: Session['farm'];
   users: DemoUser[];
   houses: House[];
-  batch: { id: string; name: string; status: 'open' | 'closed' };
+  /** One batch per block (v3): its number, e.g. "B-2026-07". */
+  batches: DemoBatch[];
   hbs: DemoHB[];
   logs: LogRecord[];
   feed: FeedDelivery[];
@@ -33,7 +36,7 @@ interface DemoState {
   staffEvents?: { at: string; kind: StaffEvent['kind']; userId: string; actorId: string }[];
 }
 
-const KEY = 'farm-demo-v2';
+const KEY = 'farm-demo-v3';
 const SESSION_KEY = 'farm-demo-session';
 
 export const DEMO_ACCOUNTS = [
@@ -46,12 +49,15 @@ function seed(now = new Date()): DemoState {
   const farm = { id: 'farm-1', name: 'Бройлерная ферма (демо)', tz: 'Asia/Bishkek', dayStartHour: 8 };
   const today = productionDay(now, farm.tz, farm.dayStartHour);
   const placedOn = addDays(today, -23);
-  const houses: House[] = ['П-1', 'П-2', 'П-3', 'П-4'].map((name, i) => ({
-    id: `house-${i + 1}`, name, areaM2: 1000, hasWaterMeter: i !== 3, drinkerType: 'ниппели', feederType: i < 2 ? 'чашки' : 'цепной',
+  const houses: House[] = ['A', 'B', 'C', 'D', 'E'].map((code, i) => ({
+    id: `house-${i + 1}`, name: `Блок ${code}`, code, areaM2: 1000, hasWaterMeter: i !== 3, drinkerType: 'ниппели', feederType: i < 2 ? 'чашки' : 'цепной',
   }));
+  const year = placedOn.slice(0, 4);
   const placed = [17050, 16980, 17020, 16950];
   const created0 = new Date(Date.parse(placedOn + 'T03:00:00Z')).toISOString();
-  const hbs: DemoHB[] = houses.map((h, i) => ({ id: `hb-${i + 1}`, houseId: h.id, placedOn, placed: placed[i]!, batchId: 'batch-6',
+  // Blocks A–D are on day 23, each with its own batch; Block E is empty (no batch yet).
+  const batches: DemoBatch[] = houses.slice(0, 4).map((h, i) => ({ id: `batch-${i + 1}`, houseId: h.id, name: `${h.code}-${year}-01`, seq: 1, status: 'open', openedAt: new Date(Date.parse(placedOn + 'T03:00:00Z')).toISOString(), closedAt: null }));
+  const hbs: DemoHB[] = houses.slice(0, 4).map((h, i) => ({ id: `hb-${i + 1}`, houseId: h.id, placedOn, placed: placed[i]!, batchId: `batch-${i + 1}`,
     waybillCount: placed[i]! + 10, transportDead: 10, hatchery: 'Инкубаторий', parentAgeWeeks: i < 2 ? 34 : 48, day0WeightG: 41 + i * 0.6,
     cropFill: { '24': [96, 97, 95, 93][i]! }, feedPhase: 'grower', feedPhaseSince: addDays(placedOn, 10), catchAt: null, feedOffAt: null,
     catchOverrideReason: null, createdAt: created0, createdBy: i < 2 ? 'u-aigul' : 'u-nurlan' }));
@@ -76,7 +82,7 @@ function seed(now = new Date()): DemoState {
     }
   });
   const by = (i: number) => (i < 2 ? 'u-aigul' : 'u-nurlan');
-  const feed: FeedDelivery[] = [], health: HealthEvent[] = [], weighings: Weighing[] = [], prices: Price[] = [{ kind: 'chick', refId: 'batch-6', unitPrice: 70 }];
+  const feed: FeedDelivery[] = [], health: HealthEvent[] = [], weighings: Weighing[] = [], prices: Price[] = batches.map((b) => ({ kind: 'chick' as const, refId: b.id, unitPrice: 70 }));
   hbs.forEach((hb, i) => {
     ([[0, 'starter', 6.5], [8, 'grower', 7.5], [15, 'grower', 8], [21, 'grower', 8]] as const).forEach(([d, t, tn]) => {
       const id = `feed-${hb.id}-${d}`;
@@ -92,11 +98,11 @@ function seed(now = new Date()): DemoState {
   });
   return {
     v: 2, farm, houses, hbs, logs, feed, health, weighings, prices, handovers: [], costs: [
-      { id: 'c1', batchId: 'batch-6', category: 'energy', amount: 620000, spentOn: addDays(placedOn, 10), comment: 'газ, уголь' },
-      { id: 'c2', batchId: 'batch-6', category: 'wages', amount: 450000, spentOn: addDays(placedOn, 15), comment: null },
-      { id: 'c3', batchId: 'batch-6', category: 'litter', amount: 180000, spentOn: addDays(placedOn, -2), comment: 'опилки' },
+      { id: 'c1', batchId: null, category: 'energy', amount: 620000, spentOn: addDays(placedOn, 10), comment: 'газ, уголь' },
+      { id: 'c2', batchId: null, category: 'wages', amount: 450000, spentOn: addDays(placedOn, 15), comment: null },
+      { id: 'c3', batchId: null, category: 'litter', amount: 180000, spentOn: addDays(placedOn, -2), comment: 'опилки' },
     ], payments: [], overrides: [],
-    batch: { id: 'batch-6', name: '06/2026', status: 'open' },
+    batches,
     users: [
       { id: 'u-head', role: 'head', displayName: 'Директор', phone: '+996700000001', pin: '111111', houseIds: [], active: true },
       { id: 'u-aigul', role: 'worker', displayName: 'Айгуль Т.', phone: '+996700000002', pin: '222222', houseIds: ['house-1', 'house-2'], active: true },
@@ -134,6 +140,8 @@ export class DemoApi implements Api {
     return this.s.hbs.filter((hb) => u.role === 'head' || u.houseIds.includes(hb.houseId));
   }
   private today() { return productionDay(new Date(), this.s.farm.tz, this.s.farm.dayStartHour); }
+  private batchOfHb(hbId: string) { const hb = this.s.hbs.find((h) => h.id === hbId); return this.s.batches.find((b) => b.id === hb?.batchId); }
+  private hbOpen(hb: DemoHB) { return this.s.batches.find((b) => b.id === hb.batchId)?.status !== 'closed'; }
 
   signIn(phone: string, pin: string) {
     return this.net(() => {
@@ -154,7 +162,7 @@ export class DemoApi implements Api {
   myHouseBatches() {
     return this.net((): HouseBatchInfo[] => {
       const u = this.me();
-      return this.visibleHbs(u).map((hb) => {
+      return this.visibleHbs(u).filter((hb) => this.hbOpen(hb)).map((hb) => {
         const h = this.s.houses.find((x) => x.id === hb.houseId)!;
         return this.hbInfo(hb, h);
       }).sort((a, b) => a.houseName.localeCompare(b.houseName));
@@ -171,7 +179,7 @@ export class DemoApi implements Api {
     return this.net(() => {
       const u = this.me();
       if (!this.visibleHbs(u).some((h) => h.id === rec.houseBatchId)) throw new ApiError('FORBIDDEN');
-      if (this.s.batch.status === 'closed') throw new ApiError('BATCH_CLOSED');
+      if (this.batchOfHb(rec.houseBatchId)?.status === 'closed') throw new ApiError('BATCH_CLOSED');
       const existing = this.s.logs.find((l) => l.id === rec.id) ?? this.s.logs.find((l) => l.houseBatchId === rec.houseBatchId && l.productionDay === rec.productionDay);
       const now = new Date();
       if (!existing) {
@@ -210,7 +218,7 @@ export class DemoApi implements Api {
     return this.net((): HouseToday[] => {
       const u = this.me();
       const today = this.today();
-      return this.visibleHbs(u).map((hb) => {
+      return this.visibleHbs(u).filter((hb) => this.hbOpen(hb)).map((hb) => {
         const h = this.s.houses.find((x) => x.id === hb.houseId)!;
         const logs = this.s.logs.filter((l) => l.houseBatchId === hb.id);
         const t = logs.find((l) => l.productionDay === today);
@@ -236,8 +244,8 @@ export class DemoApi implements Api {
   createHouse(h: Omit<House, 'id'>) {
     return this.net(() => {
       this.head();
-      if (this.s.houses.some((x) => x.name === h.name.trim())) throw new ApiError('VALIDATION', `Птичник ${h.name} уже есть`);
-      const house = { ...h, name: h.name.trim(), id: `house-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, active: true };
+      if (this.s.houses.some((x) => x.name === h.name.trim())) throw new ApiError('VALIDATION', `${h.name.trim()} уже есть`);
+      const house = { ...h, name: h.name.trim(), code: h.code ?? blockCode(h.name), id: `house-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, active: true };
       this.s.houses.push(house); this.save();
       return house;
     });
@@ -246,15 +254,15 @@ export class DemoApi implements Api {
     return this.net(() => {
       this.head();
       const h = this.s.houses.find((x) => x.id === id);
-      if (!h) throw new ApiError('VALIDATION', 'Птичник не найден');
-      if (p.name && this.s.houses.some((x) => x.id !== id && x.name === p.name)) throw new ApiError('VALIDATION', `Птичник ${p.name} уже есть`);
-      Object.assign(h, p); this.save();
+      if (!h) throw new ApiError('VALIDATION', 'Блок не найден');
+      if (p.name && this.s.houses.some((x) => x.id !== id && x.name === p.name)) throw new ApiError('VALIDATION', `${p.name} уже есть`);
+      Object.assign(h, p); if (p.name) h.code = blockCode(p.name); this.save();
     });
   }
   deleteHouse(id: string) {
     return this.net(() => {
       this.head();
-      if (this.s.hbs.some((hb) => hb.houseId === id)) throw new ApiError('VALIDATION', 'У птичника есть история партий — его можно только отключить');
+      if (this.s.hbs.some((hb) => hb.houseId === id)) throw new ApiError('VALIDATION', 'У блока есть история партий — его можно только отключить');
       this.s.houses = this.s.houses.filter((h) => h.id !== id);
       this.s.users.forEach((u) => { u.houseIds = u.houseIds.filter((x) => x !== id); });
       this.save();
@@ -329,7 +337,7 @@ export class DemoApi implements Api {
   // ------------------------------------------------------------ operations (mirror supabase/migrations/*operations*)
   private hbInfo(hb: DemoHB, h = this.s.houses.find((x) => x.id === hb.houseId)!): HouseBatchInfo {
     const { id, createdBy: _c, ...rest } = hb;
-    return { ...rest, houseBatchId: id, houseName: h.name, hasWaterMeter: h.hasWaterMeter, batchName: this.s.batch.name };
+    return { ...rest, houseBatchId: id, houseName: h.name, hasWaterMeter: h.hasWaterMeter, batchName: this.s.batches.find((b) => b.id === hb.batchId)?.name ?? '' };
   }
   private canHb(u: DemoUser, hbId: string) { return this.visibleHbs(u).some((h) => h.id === hbId); }
   private checkWindow(u: DemoUser, existing: { createdAt?: string } | undefined, reason?: string | null) {
@@ -353,7 +361,7 @@ export class DemoApi implements Api {
   push(kind: 'feed' | 'health' | 'weighing' | 'handover' | 'placement' | 'phase' | 'catch', p: any) {
     return this.net(() => {
       const u = this.me();
-      if (this.s.batch.status === 'closed' && kind !== 'placement') throw new ApiError('BATCH_CLOSED');
+      if (kind !== 'placement' && p?.houseBatchId && this.batchOfHb(p.houseBatchId)?.status === 'closed') throw new ApiError('BATCH_CLOSED');
       const now = new Date().toISOString();
       const upsert = <T extends { id: string; houseBatchId: string; createdAt?: string; createdBy?: string | null; editReason?: string | null }>(list: T[], rec: T, fix: (r: T) => T = (r) => r) => {
         if (!this.canHb(u, rec.houseBatchId)) throw new ApiError('FORBIDDEN');
@@ -375,13 +383,25 @@ export class DemoApi implements Api {
         });
         case 'placement': {
           if (!(u.role === 'head' || u.houseIds.includes(p.houseId))) throw new ApiError('FORBIDDEN');
-          const ex = this.s.hbs.find((h) => h.id === p.id || (h.batchId === this.s.batch.id && h.houseId === p.houseId));
+          const ex = this.s.hbs.find((h) => h.id === p.id);
+          if (ex && ex.houseId !== p.houseId) throw new ApiError('FORBIDDEN');
           if (ex && u.role !== 'head' && ex.createdAt && !withinWorkerEditWindow(new Date(ex.createdAt), new Date())) throw new ApiError('EDIT_WINDOW');
           const fields = { placedOn: p.placedOn, hatchery: p.hatchery, waybillCount: p.waybillCount, transportDead: p.transportDead ?? 0, placed: p.placed,
             parentAgeWeeks: p.parentAgeWeeks, day0WeightG: p.day0WeightG, cloacalT: p.cloacalT, cropFill: p.cropFill ?? {} };
           let hb: DemoHB;
           if (ex) { Object.assign(ex, fields); hb = ex; }
-          else { hb = { id: p.id, houseId: p.houseId, batchId: this.s.batch.id, feedPhase: 'starter', feedPhaseSince: p.placedOn, catchAt: null, feedOffAt: null, catchOverrideReason: null, createdAt: now, createdBy: u.id, ...fields }; this.s.hbs.push(hb); }
+          else {
+            // A new batch: only in an empty block, numbered <code>-<year>-<seq> unless the director typed a number.
+            if (this.s.batches.some((b) => b.houseId === p.houseId && b.status !== 'closed')) throw new ApiError('BLOCK_BUSY');
+            const house = this.s.houses.find((h) => h.id === p.houseId)!;
+            const name = (u.role === 'head' && p.batchNumber?.trim()) || this.nextNumber(house, p.placedOn);
+            if (this.s.batches.some((b) => b.name === name)) throw new ApiError('BATCH_NUMBER_TAKEN');
+            const yr = p.placedOn.slice(0, 4);
+            const seq = Math.max(0, ...this.s.batches.filter((b) => b.houseId === house.id && this.s.hbs.find((h) => h.batchId === b.id)?.placedOn.startsWith(yr)).map((b) => b.seq)) + 1;
+            const batch: DemoBatch = { id: `batch-${Date.now()}`, houseId: house.id, name, seq, status: 'open', openedAt: now, closedAt: null };
+            this.s.batches.push(batch);
+            hb = { id: p.id, houseId: p.houseId, batchId: batch.id, feedPhase: 'starter', feedPhaseSince: p.placedOn, catchAt: null, feedOffAt: null, catchOverrideReason: null, createdAt: now, createdBy: u.id, ...fields }; this.s.hbs.push(hb);
+          }
           this.save(); return this.hbInfo(hb);
         }
         case 'phase': {
@@ -424,7 +444,40 @@ export class DemoApi implements Api {
   }
   // ------------------------------------------------------------ finance: director only; workers get nothing (FR-23)
   private isHead() { return this.me().role === 'head'; }
-  currentBatch() { return this.net((): BatchInfo | null => ({ ...this.s.batch, status: this.s.batch.status })); }
+  currentBatch() {
+    return this.net((): BatchInfo | null => { const b = this.s.batches.find((x) => x.status !== 'closed'); return b ? { id: b.id, name: b.name, status: b.status, houseId: b.houseId } : null; });
+  }
+  // ------------------------------------------------------------ blocks and their batches (mirror 20261128000002_blocks.sql)
+  private nextNumber(house: House, onDay: string) {
+    const yr = onDay.slice(0, 4);
+    const seq = Math.max(0, ...this.s.batches.filter((b) => b.houseId === house.id && this.s.hbs.find((h) => h.batchId === b.id)?.placedOn.startsWith(yr)).map((b) => b.seq)) + 1;
+    return `${house.code ?? house.name}-${yr}-${String(seq).padStart(2, '0')}`;
+  }
+  blocks() {
+    return this.net((): BlockInfo[] => {
+      const u = this.me();
+      return this.s.houses.filter((h) => u.role === 'head' || u.houseIds.includes(h.id)).map((h) => {
+        const mine = this.s.batches.filter((b) => b.houseId === h.id);
+        const open = mine.find((b) => b.status !== 'closed');
+        const last = mine.filter((b) => b.status === 'closed').sort((a, b) => (b.closedAt ?? '').localeCompare(a.closedAt ?? ''))[0];
+        const hbOf = (b: DemoBatch) => this.s.hbs.find((x) => x.batchId === b.id)!;
+        return {
+          houseId: h.id, name: h.name, code: h.code ?? h.name, areaM2: h.areaM2, active: h.active !== false, hasWaterMeter: h.hasWaterMeter,
+          open: open ? { batchId: open.id, number: open.name, houseBatchId: hbOf(open).id, placedOn: hbOf(open).placedOn, placed: hbOf(open).placed } : null,
+          last: last ? { batchId: last.id, number: last.name, closedAt: last.closedAt, houseBatchId: hbOf(last).id } : null,
+          nextNumber: this.nextNumber(h, this.today()),
+        };
+      }).sort((a, b) => a.name.localeCompare(b.name));
+    });
+  }
+  closeBatch(batchId: string) {
+    return this.net(() => {
+      this.head();
+      const b = this.s.batches.find((x) => x.id === batchId);
+      if (!b || b.status === 'closed') throw new ApiError('BATCH_CLOSED');
+      b.status = 'closed'; b.closedAt = new Date().toISOString(); this.save();
+    });
+  }
   prices() { return this.net(() => (this.isHead() ? this.s.prices.map((p) => ({ ...p })) : [])); }
   setPrice(p: Price) {
     return this.net(() => { this.head(); this.s.prices = this.s.prices.filter((x) => !(x.kind === p.kind && x.refId === p.refId)).concat(p); this.save(); });

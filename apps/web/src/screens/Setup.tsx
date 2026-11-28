@@ -35,10 +35,10 @@ export default function Setup() {
 
   return (
     <>
-      <TopBar title="Настройка фермы" sub={`Шаг ${step} из 3 · ${['Ферма', 'Птичники', 'Работники'][step - 1]}`} />
+      <TopBar title="Настройка фермы" sub={`Шаг ${step} из 3 · ${['Ферма', 'Блоки', 'Работники'][step - 1]}`} />
       <main className="content">
         <div className="seg pad" role="group" aria-label="Шаги">
-          {(['Ферма', 'Птичники', 'Работники'] as const).map((t, i) => (
+          {(['Ферма', 'Блоки', 'Работники'] as const).map((t, i) => (
             <button key={t} className={step === i + 1 ? 'on' : ''} aria-pressed={step === i + 1} disabled={i + 1 > 1 && !active.length && i + 1 > step} onClick={() => setStep((i + 1) as 1 | 2 | 3)}>{i + 1}. {t}</button>
           ))}
         </div>
@@ -57,7 +57,7 @@ export default function Setup() {
           <>
             <div className="section">
               {active.map((h) => <div className="row" key={h.id}><span style={{ flex: 1, fontWeight: 500 }}>{h.name}</span><span className="small muted">{h.areaM2} м² · {h.hasWaterMeter ? 'счётчик' : 'без счётчика'}</span></div>)}
-              {houses && !active.length && <div className="row muted">Птичников пока нет — добавьте ниже</div>}
+              {houses && !active.length && <div className="row muted">Блоков пока нет — добавьте ниже</div>}
             </div>
             <AddHouses existing={houses ?? []} busy={busy || !online}
               onAdd={(names, areaM2, meter) => void run(async () => { for (const name of names) await api.createHouse({ name, areaM2, hasWaterMeter: meter, drinkerType: null, feederType: null }); }, `Добавлены: ${names.join(', ')}`).then(reload)} />

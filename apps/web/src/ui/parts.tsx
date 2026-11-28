@@ -68,7 +68,7 @@ export function BottomNav() {
         <NavLink to="/farm"><Icon name="farm" />Ферма</NavLink>
         <NavLink to="/events"><Icon name="events" />События</NavLink>
         <NavLink to="/money"><Icon name="money" />Деньги</NavLink>
-        <NavLink to="/today"><Icon name="houses" />Птичники</NavLink>
+        <NavLink to="/today"><Icon name="houses" />Блоки</NavLink>
         <NavLink to="/more"><Icon name="more" />Ещё {badge}</NavLink>
         <NavAccount />
       </nav>

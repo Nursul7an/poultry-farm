@@ -61,7 +61,7 @@ export default function Handbook() {
         </form>
         <div className="pad" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingTop: 0 }}>
           <Link className="chip" to={`/ask${q ? `?q=${encodeURIComponent(q)}` : ''}`}>Спросить помощника</Link>
-          {head && <Link className="chip" to="/norms">Нормы фермы</Link>}
+          {head && <Link className="chip" to="/norms">Ключевые нормы</Link>}
         </div>
         {articles === null && <p className="pad muted">Загрузка…</p>}
         {articles?.length === 0 && <p className="pad muted">Справочник ещё не загружен. Подключитесь к сети один раз — дальше он работает без связи.</p>}

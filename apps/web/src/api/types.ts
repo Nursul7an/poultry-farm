@@ -45,6 +45,8 @@ export interface Handover { id: string; houseBatchId: string; handedOn: string; 
 export interface Placement {
   id: string; houseId: string; placedOn: string; hatchery?: string | null; waybillCount?: number | null; transportDead: number; placed: number;
   parentAgeWeeks?: number | null; day0WeightG?: number | null; cloacalT?: number | null; cropFill: Record<string, number>; editReason?: string | null;
+  /** Only for a new batch, director only: own number instead of the automatic one. */
+  batchNumber?: string | null;
 }
 export interface PhaseChange { houseBatchId: string; phase: 'starter' | 'grower' | 'finisher'; since: string }
 export interface CatchPlan { houseBatchId: string; catchAt: string; feedOffAt: string | null; reason: string | null }
@@ -57,13 +59,22 @@ export interface FarmEvent { at: string; houseBatchId: string; houseName: string
 
 /** Finance (director only; the server returns nothing to workers). */
 export interface Price { kind: 'chick' | 'feed' | 'medicine' | 'sale'; refId: string; unitPrice: number }
-export interface Cost { id: string; batchId: string; category: 'energy' | 'wages' | 'litter' | 'vet' | 'transport' | 'other'; amount: number; spentOn: string; comment: string | null }
+/** `batchId` null = a shared farm cost (light, gas, wages…), split between batches by chicks placed. */
+export interface Cost { id: string; batchId: string | null; category: 'energy' | 'wages' | 'litter' | 'vet' | 'transport' | 'other'; amount: number; spentOn: string; comment: string | null }
 export interface Payment { id: string; handoverId: string; amount: number; paidOn: string; comment: string | null }
 /** Knowledge: norm rows (defaults + farm overrides) and handbook articles. */
 export interface NormRow { code: string; data: unknown; farm: boolean }
 export interface Article { id: string; section: string; title: string; bodyMd: string; source: string | null; sort: number; farm?: boolean }
 
-export interface BatchInfo { id: string; name: string; status: 'open' | 'catching' | 'closed' }
+export interface BatchInfo { id: string; name: string; status: 'open' | 'catching' | 'closed'; houseId?: string }
+/** A block (кашар) with its current batch, if any, and the last closed one. */
+export interface BlockInfo {
+  houseId: string; name: string; code: string; areaM2: number; active: boolean; hasWaterMeter: boolean;
+  open: { batchId: string; number: string; houseBatchId: string; placedOn: string; placed: number } | null;
+  last: { batchId: string; number: string; closedAt: string | null; houseBatchId: string } | null;
+  /** Number the next batch will get, e.g. "B-2026-08". */
+  nextNumber: string;
+}
 
 /** One daily log, in the app's shape. */
 export interface LogRecord {
@@ -99,7 +110,7 @@ export interface HouseToday {
   yesterdayDeaths: number | null;
 }
 
-export interface House { id: string; name: string; areaM2: number; hasWaterMeter: boolean; drinkerType: string | null; feederType: string | null; active?: boolean }
+export interface House { id: string; name: string; code?: string; areaM2: number; hasWaterMeter: boolean; drinkerType: string | null; feederType: string | null; active?: boolean }
 /** What the director did with accounts (no PINs). */
 export interface StaffEvent { at: string; kind: 'created' | 'pin_reset' | 'deactivated' | 'reactivated' | 'phone_changed'; userName: string; actorName: string }
 export type FarmSettings = Pick<Session['farm'], 'name' | 'tz' | 'dayStartHour'>;
@@ -107,16 +118,18 @@ export interface Worker { id: string; displayName: string; phone: string; houseI
 
 /** Error codes the server can return (see supabase/migrations). */
 export type ApiErrorCode =
-  | 'NETWORK' | 'AUTH' | 'FORBIDDEN' | 'EDIT_WINDOW' | 'REASON_REQUIRED' | 'BATCH_CLOSED'
+  | 'NETWORK' | 'AUTH' | 'FORBIDDEN' | 'EDIT_WINDOW' | 'REASON_REQUIRED' | 'BATCH_CLOSED' | 'BLOCK_BUSY' | 'BATCH_NUMBER_TAKEN'
   | 'DAY_IN_FUTURE' | 'DAY_TOO_OLD' | 'METER_BACKWARDS' | 'WITHDRAWAL' | 'VALIDATION' | 'UNKNOWN';
 
 export const ERROR_TEXT: Record<ApiErrorCode, string> = {
   NETWORK: 'Нет связи с сервером',
   AUTH: 'Неверный номер или PIN',
-  FORBIDDEN: 'Нет доступа к этому птичнику',
+  FORBIDDEN: 'Нет доступа к этому блоку',
   EDIT_WINDOW: 'Прошло больше 48 часов — исправить может только директор',
   REASON_REQUIRED: 'Укажите причину исправления',
   BATCH_CLOSED: 'Партия закрыта — сообщите директору',
+  BLOCK_BUSY: 'В этом блоке уже идёт партия — сначала директор закрывает её',
+  BATCH_NUMBER_TAKEN: 'Такой номер партии уже есть',
   DAY_IN_FUTURE: 'Дата ещё не наступила',
   DAY_TOO_OLD: 'Старые дни заполняет директор',
   METER_BACKWARDS: 'Показание меньше прошлого — отметьте «новый счётчик»',
@@ -156,6 +169,10 @@ export interface Api {
   setWorkerActive(workerId: string, active: boolean): Promise<void>;
   setWorkerPhone(workerId: string, phone: string): Promise<void>;
   staffEvents(): Promise<StaffEvent[]>;
+  /** Blocks with their batches: the director sees all, a worker own blocks. */
+  blocks(): Promise<BlockInfo[]>;
+  /** Director: the batch is over (after the catch); the block becomes empty. */
+  closeBatch(batchId: string): Promise<void>;
   changePin(newPin: string): Promise<void>;
   // Operations (worker on own houses, director on all)
   myHouses(): Promise<MyHouse[]>;
@@ -186,7 +203,7 @@ export interface AskAnswer { answer: string; sources: { id: string; title: strin
 /** Map a raw server error message to a code. */
 export function errorCodeFrom(message: string | undefined): ApiErrorCode {
   const m = message ?? '';
-  for (const c of ['EDIT_WINDOW', 'REASON_REQUIRED', 'BATCH_CLOSED', 'DAY_IN_FUTURE', 'DAY_TOO_OLD', 'METER_BACKWARDS', 'WITHDRAWAL', 'FORBIDDEN'] as const) {
+  for (const c of ['EDIT_WINDOW', 'REASON_REQUIRED', 'BATCH_CLOSED', 'BLOCK_BUSY', 'BATCH_NUMBER_TAKEN', 'DAY_IN_FUTURE', 'DAY_TOO_OLD', 'METER_BACKWARDS', 'WITHDRAWAL', 'FORBIDDEN'] as const) {
     if (m.includes(c)) return c;
   }
   if (/row-level security|permission denied/i.test(m)) return 'FORBIDDEN';

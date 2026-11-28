@@ -29,7 +29,7 @@ export default function Health() {
   const [tab, setTab] = useState<Tab>('treatment');
   const [f, setF] = useState({ product: '', dose: '', lot: '', method: 'с водой', course: 5, withdrawal: 7, birds: 8, finding: 'Энтерит', notes: '' });
   const [msg, setMsg] = useState<string | null>(null);
-  if (!current) return <><TopBar title="Здоровье" /><main className="content"><p className="pad muted">Нет птичников с партией</p></main></>;
+  if (!current) return <><TopBar title="Здоровье" /><main className="content"><p className="pad muted">Нет блоков с партией</p></main></>;
 
   const day = today();
   const tz = session.farm.tz;

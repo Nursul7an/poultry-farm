@@ -28,7 +28,7 @@ export default function Catch() {
   useEffect(() => {
     setPlan({ date: catchDay(current?.catchAt, tz) ?? '', time: localTime(current?.catchAt, tz) || '22:00', feedOff: localTime(current?.feedOffAt, tz) || '18:00', reason: current?.catchOverrideReason ?? '' });
   }, [current?.houseBatchId]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (!current) return <><TopBar title="Отлов и сдача" back="/more" /><main className="content"><p className="pad muted">Нет птичников с партией</p></main></>;
+  if (!current) return <><TopBar title="Отлов и сдача" back="/more" /><main className="content"><p className="pad muted">Нет блоков с партией</p></main></>;
 
   const until = withdrawalUntil(health.filter((e) => e.kind === 'treatment' && e.courseDays != null && e.withdrawalDays != null).map((e) => ({ startOn: e.eventOn, courseDays: e.courseDays!, withdrawalDays: e.withdrawalDays! })));
   const blocked = !!until && !!plan.date && plan.date < until;

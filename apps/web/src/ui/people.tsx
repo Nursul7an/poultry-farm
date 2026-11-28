@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { FarmSettings, House } from '../api/types';
 import { ApiError } from '../api/types';
 import { normalizePhone } from '../api/phone';
+import { nextBlockNames } from '../api/blocks';
 import { parseNum } from './format';
 
 export const TIMEZONES = [
@@ -56,25 +57,31 @@ export function FarmForm({ farm, onSave, busy, submit = 'Сохранить' }: 
   );
 }
 
-/** Adds N houses named П-1…П-N (skipping names already taken). */
+/** Adds N blocks named «Блок A», «Блок B»… (skipping letters already used). */
 export function AddHouses({ existing, onAdd, busy }: { existing: House[]; onAdd: (names: string[], areaM2: number, meter: boolean) => void; busy?: boolean }) {
-  const [n, setN] = useState(existing.length ? '1' : '4');
+  const [n, setN] = useState(existing.length ? 1 : 4);
   const [area, setArea] = useState('1000');
   const [meter, setMeter] = useState(true);
-  const count = Number(n), a = parseNum(area);
-  const taken = new Set(existing.map((h) => h.name));
-  const names: string[] = [];
-  for (let i = 1; names.length < count && i < 100; i++) if (!taken.has(`П-${i}`)) names.push(`П-${i}`);
-  const ok = Number.isInteger(count) && count >= 1 && count <= 20 && a != null && !Number.isNaN(a) && a > 0;
+  const a = parseNum(area);
+  const names = nextBlockNames(existing, n);
+  const ok = n >= 1 && n <= 20 && a != null && !Number.isNaN(a) && a > 0;
   return (
-    <form className="formrow" aria-label="Добавить птичники" onSubmit={(e) => { e.preventDefault(); if (ok) onAdd(names, a!, meter); }}>
-      <div className="grid2">
-        <label className="field"><span>Сколько птичников</span><input className="input" inputMode="numeric" value={n} onChange={(e) => setN(e.target.value.replace(/\D/g, '').slice(0, 2))} /></label>
-        <label className="field"><span>Площадь каждого, м²</span><input className="input" inputMode="decimal" value={area} onChange={(e) => setArea(e.target.value)} /></label>
+    <form className="formrow" aria-label="Добавить блоки" onSubmit={(e) => { e.preventDefault(); if (ok) onAdd(names, a!, meter); }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{ flex: 1, fontWeight: 600 }}>{existing.length ? 'Добавить блоков' : 'Блоков (кашаров) на ферме'}</span>
+        <div className="stepper" style={{ width: 160 }}>
+          <button type="button" aria-label="Меньше" onClick={() => setN(Math.max(1, n - 1))}>−</button>
+          <input aria-label="Сколько блоков" inputMode="numeric" value={n} onChange={(e) => setN(Math.min(20, Number(e.target.value.replace(/\D/g, '') || 1)))} style={{ fontSize: 22 }} />
+          <button type="button" aria-label="Больше" onClick={() => setN(Math.min(20, n + 1))}>+</button>
+        </div>
       </div>
-      <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}><input type="checkbox" checked={meter} onChange={(e) => setMeter(e.target.checked)} /> Есть водосчётчик</label>
-      <button className="btn primary block" disabled={!ok || busy}>{ok ? `Добавить ${names.join(', ')}` : 'Добавить'}</button>
-      <span className="small muted">Названия, площадь и счётчик можно поменять потом у каждого птичника.</span>
+      <div className="chips" aria-label="Будут добавлены">{names.map((x) => <span key={x} className="chip" style={{ cursor: 'default' }}>{x}</span>)}</div>
+      <div className="grid2">
+        <label className="field"><span>Площадь каждого, м²</span><input className="input" inputMode="decimal" value={area} onChange={(e) => setArea(e.target.value)} /></label>
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center', alignSelf: 'end', minHeight: 48 }}><input type="checkbox" checked={meter} onChange={(e) => setMeter(e.target.checked)} /> Есть водосчётчик</label>
+      </div>
+      <button className="btn primary block" disabled={!ok || busy}>Добавить: {names.join(', ')}</button>
+      <span className="small muted">Название, площадь и счётчик каждого блока можно поменять потом. Партии начинают, когда привозят цыплят.</span>
     </form>
   );
 }
@@ -92,11 +99,11 @@ export function WorkerForm({ houses, onAdd, busy }: { houses: House[]; onAdd: (w
         <label className="field"><span>Телефон</span><input className="input" type="tel" inputMode="tel" value={w.phone} onChange={(e) => setW({ ...w, phone: e.target.value })} /></label>
         <label className="field"><span>PIN (6 цифр)</span><input className="input" inputMode="numeric" value={w.pin} onChange={(e) => setW({ ...w, pin: e.target.value.replace(/\D/g, '').slice(0, 6) })} /></label>
       </div>
-      <span className="small muted">Птичники работника</span>
-      <div className="chips" role="group" aria-label="Птичники работника">
+      <span className="small muted">Блоки работника</span>
+      <div className="chips" role="group" aria-label="Блоки работника">
         {houses.filter((h) => h.active !== false).map((h) => <button key={h.id} type="button" className={`chip${w.houseIds.includes(h.id) ? ' on' : ''}`} aria-pressed={w.houseIds.includes(h.id)} onClick={() => toggle(h.id)}>{h.name}</button>)}
       </div>
-      {!w.houseIds.length && <span className="small warn-t">Без птичников работник ничего не увидит — отметьте хотя бы один.</span>}
+      {!w.houseIds.length && <span className="small warn-t">Без блоков работник ничего не увидит — отметьте хотя бы один.</span>}
       <button className="btn primary block" disabled={!ok || busy}>Добавить работника</button>
     </form>
   );

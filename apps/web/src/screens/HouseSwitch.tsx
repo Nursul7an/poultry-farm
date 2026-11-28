@@ -4,7 +4,7 @@ import type { HouseBatchInfo } from '../api/types';
 export function HouseSwitch({ houses, current, select }: { houses: HouseBatchInfo[]; current: HouseBatchInfo | null; select: (id: string) => void }) {
   if (houses.length < 2 || !current) return null;
   return (
-    <div className="seg pad" role="group" aria-label="Птичник">
+    <div className="seg pad" role="group" aria-label="Блок">
       {houses.map((h) => (
         <button key={h.houseBatchId} className={h.houseBatchId === current.houseBatchId ? 'on' : ''} aria-pressed={h.houseBatchId === current.houseBatchId} onClick={() => select(h.houseBatchId)}>{h.houseName}</button>
       ))}
